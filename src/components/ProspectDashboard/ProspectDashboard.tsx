@@ -59,10 +59,10 @@ interface ProspectProfile {
 // --- Configuration ---
 const KPI_CONFIG = [
     { label: "TOTAL PROFILE", key: "" },
-    { label: "PROSPECT", key: "Prospect" },
-    { label: "FREE", key: "Free" },
-    { label: "OFFER", key: "Offer" },
-    { label: "BASIC", key: "Basic" },
+    { label: "PROSPECT - TN/OTH", key: "prospect", split: true },
+    { label: "FREE - TN/OTH", key: "free", split: true },
+    { label: "OFFER - TN/OTH", key: "offer", split: true },
+    { label: "BASIC - TN/OTH", key: "basic", split: true },
     { label: "AGE > 35", key: "age_above_30" },
     { label: "AGE < 35", key: "age_under_30" },
     { label: "NO HORO", key: "no_horo" },
@@ -91,10 +91,10 @@ export const getProspectCardColor = (label: string) => {
     const map: Record<string, string> = {
         "TOTAL PROFILE": "primary",
 
-        "PROSPECT": "info",
-        "FREE": "muted",
-        "OFFER": "warning",
-        "BASIC": "success",
+        "PROSPECT - TN/OTH": "info",
+        "FREE - TN/OTH": "muted",
+        "OFFER - TN/OTH": "warning",
+        "BASIC - TN/OTH": "success",
 
         "AGE > 35": "info",
         "AGE < 35": "info",
@@ -196,14 +196,41 @@ const ProspectDashboard: React.FC = () => {
         }
     };
 
+    type KpiValue =
+        | number
+        | { total: number; tn: number; non_tn: number };
+
     const getKpiValue = (label: string) => {
-        if (!stats) return 0;
+        if (!stats) return { total: 0, tn: 0, non_tn: 0 };
         switch (label) {
             case "TOTAL PROFILE": return stats.total_profiles;
-            case "PROSPECT": return stats.plan_counts?.prospect;
-            case "FREE": return stats.plan_counts?.free;
-            case "OFFER": return stats.plan_counts?.offer;
-            case "BASIC": return stats.plan_counts?.basic;
+            case "PROSPECT - TN/OTH":
+                return {
+                    total: stats.plan_counts?.prospect || 0,
+                    tn: stats.plan_counts?.prospect_tn || 0,
+                    non_tn: stats.plan_counts?.prospect_non_tn || 0,
+                };
+
+            case "FREE - TN/OTH":
+                return {
+                    total: stats.plan_counts?.free || 0,
+                    tn: stats.plan_counts?.free_tn || 0,
+                    non_tn: stats.plan_counts?.free_non_tn || 0,
+                };
+
+            case "OFFER - TN/OTH":
+                return {
+                    total: stats.plan_counts?.offer || 0,
+                    tn: stats.plan_counts?.offer_tn || 0,
+                    non_tn: stats.plan_counts?.offer_non_tn || 0,
+                };
+
+            case "BASIC - TN/OTH":
+                return {
+                    total: stats.plan_counts?.basic || 0,
+                    tn: stats.plan_counts?.basic_tn || 0,
+                    non_tn: stats.plan_counts?.basic_non_tn || 0,
+                };
             case "AGE > 35": return stats.age_above_30; // mapping based on your JSON
             case "AGE < 35": return stats.age_under_30;
             case "NO HORO": return stats.no_horo;
@@ -870,7 +897,7 @@ const ProspectDashboard: React.FC = () => {
             ) : (
                 <>
                     <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
-                        {KPI_CONFIG.map((kpi, i) => (
+                        {/* {KPI_CONFIG.map((kpi, i) => (
                             <motion.div
                                 key={i}
                                 whileHover={{ y: -5 }}
@@ -883,7 +910,63 @@ const ProspectDashboard: React.FC = () => {
                                 </h2>
                                 <p className="text-[10px] opacity-70 text-start">Click to view profiles</p>
                             </motion.div>
-                        ))}
+                        ))} */}
+                        {KPI_CONFIG.map((kpi, i) => {
+                            const data = getKpiValue(kpi.label);
+                            const isSplit = kpi.split;
+
+                            const isTotalActive = filters.countFilter === kpi.key;
+                            const isTnActive = filters.countFilter === `${kpi.key}_tn`;
+                            const isNonTnActive = filters.countFilter === `${kpi.key}_non_tn`;
+
+                            return (
+                                <motion.div
+                                    key={i}
+                                    onClick={() => handleCardClick(kpi.key)}
+                                    className={`${getProspectCardColor(kpi.label)} p-5 rounded-2xl border cursor-pointer min-w-[220px] flex-1
+                ${isTotalActive ? 'border-4 border-black/40' : 'border-[#E3E6EE]'}`}
+                                >
+                                    <h6 className="text-[10px] font-bold uppercase">{kpi.label}</h6>
+
+                                    <div className="flex items-center gap-2">
+                                        {/* TOTAL */}
+                                        <h2 className="text-3xl font-bold">
+                                            {typeof data === "number" ? data : data.total}
+                                        </h2>
+
+                                        {/* TN / OTH */}
+                                        {isSplit && typeof data === "object" && (
+                                            <div className="flex gap-2 text-sm font-semibold text-gray-500 mb-2">
+                                                <p>-</p>
+                                                <span
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleCardClick(`${kpi.key}_tn`);
+                                                    }}
+                                                    className={isTnActive ? "underline font-bold text-black" : ""}
+                                                >
+                                                
+                                                    {data.tn}
+                                                </span>
+                                                /
+                                                <span
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleCardClick(`${kpi.key}_non_tn`);
+                                                    }}
+                                                    className={isNonTnActive ? "underline font-bold text-black" : ""}
+                                                >
+                                                    {data.non_tn}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <p className="text-[10px] opacity-70">Click to view profiles</p>
+                                </motion.div>
+                            );
+                        })}
+
                     </section>
 
                     {/* --- Work Stats Section --- */}
