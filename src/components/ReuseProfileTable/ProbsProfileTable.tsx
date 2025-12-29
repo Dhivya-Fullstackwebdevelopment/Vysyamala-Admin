@@ -64,7 +64,7 @@ interface Column {
   align?: 'right' | 'left' | 'center';
 }
 
-const columns: Column[] = [
+const allColumns: Column[] = [
   // { id: 'ProfileId', label: 'Profile ID' },
   // { id: 'Profile_name', label: 'Name' },
   // { id: 'Profile_dob', label: 'Date of Birth' },
@@ -102,6 +102,12 @@ const columns: Column[] = [
   { id: 'profession', label: 'Profession' },
   { id: 'plan_name', label: 'Plan Name' },
   { id: 'status', label: 'Status' },
+  { id: 'membership_startdate', label: 'Membership Start Date' },
+  { id: 'membership_enddate', label: 'Membership End Date' },
+  { id: 'has_horo', label: 'Horoscope' },
+  { id: 'has_photo', label: 'Photo' },
+  { id: 'username', label: 'Owner' },
+  { id: 'ModeName', label: 'Created By' },
 ];
 
 const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
@@ -124,6 +130,21 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
   const [selectedRows, setSelectedRows] = useState<number[]>([]); // To track selected profile IDs
   console.log(selectedRows);
   const [totalCount, setTotalCount] = useState<number>(0);
+
+  const columns = allColumns.filter(column => {
+    // Hide 'Owner' and 'Created By' for page 3 (Hidden) and page 4 (Deleted)
+    if (pageNameValue === 3 || pageNameValue === 4) {
+      return column.id !== 'username' && column.id !== 'ModeName';
+    }
+    if (column.id === 'membership_startdate' || column.id === 'membership_enddate') {
+      return pageNameValue === 5;
+    }
+    if (column.id === 'has_horo' || column.id === 'has_photo') {
+      return pageNameValue === 5 || pageNameValue === 1;
+    }
+    return true;
+  });
+
 
   useEffect(() => {
     fetchData();
