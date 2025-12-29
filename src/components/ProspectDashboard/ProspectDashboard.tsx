@@ -915,16 +915,21 @@ const ProspectDashboard: React.FC = () => {
                             const data = getKpiValue(kpi.label);
                             const isSplit = kpi.split;
 
-                            const isTotalActive = filters.countFilter === kpi.key;
+                            const isCardActive =
+                                filters.countFilter === kpi.key ||
+                                filters.countFilter === `${kpi.key}_tn` ||
+                                filters.countFilter === `${kpi.key}_non_tn`;
                             const isTnActive = filters.countFilter === `${kpi.key}_tn`;
                             const isNonTnActive = filters.countFilter === `${kpi.key}_non_tn`;
+
 
                             return (
                                 <motion.div
                                     key={i}
                                     onClick={() => handleCardClick(kpi.key)}
-                                    className={`${getProspectCardColor(kpi.label)} p-5 rounded-2xl border cursor-pointer min-w-[220px] flex-1
-                ${isTotalActive ? 'border-4 border-black/40' : 'border-[#E3E6EE]'}`}
+                                    className={`${getProspectCardColor(kpi.label)} p-5 rounded-2xl border cursor-pointer min-w-[220px]
+  ${isCardActive ? 'border-4 border-black/40 shadow-lg' : 'border-[#E3E6EE]'}`}
+
                                 >
                                     <h6 className="text-[10px] font-bold uppercase">{kpi.label}</h6>
 
@@ -945,7 +950,7 @@ const ProspectDashboard: React.FC = () => {
                                                     }}
                                                     className={isTnActive ? "underline font-bold text-black" : ""}
                                                 >
-                                                
+
                                                     {data.tn}
                                                 </span>
                                                 /
