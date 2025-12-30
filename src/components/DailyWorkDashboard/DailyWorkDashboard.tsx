@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     CircularProgress,
     Typography
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { RiArrowDropDownLine } from 'react-icons/ri';
+import { ProfileOwner } from '../RegistrationDashboard/RegistrationDashboard';
+import { apiAxios } from '../../api/apiUrl';
 
 // --- Styles & Constants ---
 const DASHBOARD_CONTAINER = "bg-white rounded-xl border border-[#E3E6EE] p-7 shadow-sm mb-8";
@@ -14,6 +16,27 @@ const BTN_OUTLINE = "bg-white border border-gray-300 text-[#0A1735] px-6 py-2 ro
 
 const DailyWorkDashboard: React.FC = () => {
     const [tableLoading] = useState(false);
+    const [profileOwners, setProfileOwners] = useState<ProfileOwner[]>([]);
+    const [ownersLoading, setOwnersLoading] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState("");
+
+    const fetchProfileOwners = useCallback(async () => {
+        setOwnersLoading(true);
+        try {
+            const response = await apiAxios.get('api/users/');
+            // Dynamic check based on your provided logic
+            setProfileOwners(Array.isArray(response.data) ? response.data : []);
+        } catch (e) {
+            console.error("Error fetching staff:", e);
+        } finally {
+            setOwnersLoading(false);
+        }
+    }, []);
+
+    // --- Load Staff on Mount ---
+    useEffect(() => {
+        fetchProfileOwners();
+    }, [fetchProfileOwners]);
 
     const KPICard = ({ label, value, colorClass }: { label: string, value: string | number, colorClass: string }) => (
         <motion.div
@@ -41,12 +64,22 @@ const DailyWorkDashboard: React.FC = () => {
                     <div className="text-start">
                         <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
                         <div className="relative">
-                            <select className="w-[300px] h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black">
-                                <option>All Staff (Admin)</option>
-                                <option>Logged-in Staff</option>
+                            <select
+                                className="w-[330px] h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black disabled:bg-gray-100"
+                                value={selectedStaff}
+                                onChange={(e) => setSelectedStaff(e.target.value)}
+                                disabled={ownersLoading}
+                            >
+                                <option value="">{ownersLoading ? "Loading Staff..." : "All Staff (Admin)"}</option>
+                                {profileOwners.map(owner => (
+                                    <option key={owner.id} value={owner.id}>{owner.username}</option>
+                                ))}
                             </select>
                             <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                                <RiArrowDropDownLine size={30} className="text-gray-500" />
+                                {ownersLoading ?
+                                    <CircularProgress size={20} sx={{ mr: 1 }} /> :
+                                    <RiArrowDropDownLine size={30} className="text-gray-500" />
+                                }
                             </div>
                         </div>
                     </div>
