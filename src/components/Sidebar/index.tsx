@@ -1425,6 +1425,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 className={`translate transform overflow-hidden ${!open && 'hidden'
                   }`}
               >
+                <ul className=" mb-5 flex flex-col">
+                  {/* Submenu Items */}
+                  <li>
+                    <NavLink
+                      to="/DailyWorkDashboard"
+                      className={({ isActive }) =>
+                        'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
+                        (isActive && '!text-PrimaryRed')
+                      }
+                    >
+                      <MdDashboard />
+                      Daily Work Dashboard
+                    </NavLink>
+                  </li>
+                </ul>
+              </div>
+              <div
+                className={`translate transform overflow-hidden ${!open && 'hidden'
+                  }`}
+              >
                 <ul className="mt-4 mb-5.5 flex flex-col">
                   <li>
                     <NavLink

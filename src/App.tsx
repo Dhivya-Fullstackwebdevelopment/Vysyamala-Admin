@@ -122,6 +122,7 @@ import RenewalDashboard from './components/RenewalDashboard/RenewalDahboardPage'
 import RegistrationDashboard from './components/RegistrationDashboard/RegistrationDashboard';
 import ProspectDashboard from './components/ProspectDashboard/ProspectDashboard';
 import PremiumDashboard from './components/new_profile/EditFormComponents/PremiumDashboard/PremiumDashboard';
+import DailyWorkDashboard from './components/DailyWorkDashboard/DailyWorkDashboard';
 
 function App() {
   const { pathname } = useLocation();
@@ -1143,6 +1144,7 @@ function App() {
                 <Route path="/RegistrationDashboard" element={<RegistrationDashboard />} />
                 <Route path="/ProspectDashboard" element={<ProspectDashboard />} />
                 <Route path="/PremiumDashboard" element={<PremiumDashboard />} />
+                <Route path="/DailyWorkDashboard" element={<DailyWorkDashboard />} />
               </Routes>
             </DefaultLayout>
           }
