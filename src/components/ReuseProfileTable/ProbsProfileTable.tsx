@@ -132,16 +132,27 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
   const [totalCount, setTotalCount] = useState<number>(0);
 
   const columns = allColumns.filter(column => {
-    // Hide 'Owner' and 'Created By' for page 3 (Hidden) and page 4 (Deleted)
+    const membershipIds = ['membership_startdate', 'membership_enddate'];
+    const mediaIds = ['has_horo', 'has_photo'];
+
+    // 1. Membership Dates: Show ONLY for "Paid Profiles"
+    if (membershipIds.includes(column.id)) {
+      return heading.toLowerCase().includes("paid");
+    }
+
+    // 2. Media (Horo/Photo): Show for "Paid" AND "Prospect" ONLY
+    if (mediaIds.includes(column.id)) {
+      const isPaid = heading.toLowerCase().includes("paid");
+      const isProspect = heading.toLowerCase().includes("prospect");
+      return isPaid || isProspect;
+    }
+
+    // 3. Metadata: Hide for Hidden (3) or Deleted (4)
     if (pageNameValue === 3 || pageNameValue === 4) {
-      return column.id !== 'username' && column.id !== 'ModeName';
+      const hiddenIds = ['username', 'ModeName', ...membershipIds, ...mediaIds];
+      return !hiddenIds.includes(column.id);
     }
-    if (column.id === 'membership_startdate' || column.id === 'membership_enddate') {
-      return pageNameValue === 5;
-    }
-    if (column.id === 'has_horo' || column.id === 'has_photo') {
-      return pageNameValue === 5 || pageNameValue === 1;
-    }
+
     return true;
   });
 
