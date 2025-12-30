@@ -58,15 +58,15 @@ const DailyWorkDashboard: React.FC = () => {
                         <label className="block text-sm font-semibold text-[#3A3E47] mb-1">To Date</label>
                         <input type="date" className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm outline-none focus:ring-1 focus:ring-blue-500" />
                     </div> */}
-                    <div className="flex gap-3 h-12">
+                    {/* <div className="flex gap-3 h-12">
                         <button className={BTN_OUTLINE}>Reset</button>
                         <button className={BTN_DARK}>Apply Filters</button>
-                    </div>
+                    </div> */}
                 </div>
             </section>
 
             {/* 📊 PERFORMANCE HEADER */}
-            <div className={DASHBOARD_CONTAINER}>
+            {/* <div className={DASHBOARD_CONTAINER}>
                 <div className="flex justify-between items-center mb-2">
                     <h2 className="font-bold text-lg text-[#0A1735]">Today’s Performance</h2>
                     <span className="text-[#129f46] font-bold text-xl">72%</span>
@@ -77,20 +77,20 @@ const DailyWorkDashboard: React.FC = () => {
                 <p className="text-[11px] text-gray-500 mt-2 italic">
                     (Completed Work + Completed Actions) ÷ Total Assigned × 100
                 </p>
-            </div>
+            </div> */}
 
             <div className="space-y-8">
 
                 {/* 🔢 OVERALL SUMMARY WITH INSTRUCTIONAL NOTE */}
                 <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>Overall Today Summary</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
                         <KPICard label="Total Today Call Work" value="38" colorClass="bg-white" />
                         <KPICard label="Total Today Pending Work" value="12" colorClass="bg-white" />
                         <KPICard label="Total Action Work" value="26" colorClass="bg-white" />
                         <KPICard label="Total Pending Action" value="9" colorClass="bg-white" />
-                        <KPICard label="Total Assigned Work" value="44" colorClass="bg-white" />
-                        <KPICard label="Total Other Assigned Work" value="7" colorClass="bg-white" />
+                        {/* <KPICard label="Total Assigned Work" value="44" colorClass="bg-white" />
+                        <KPICard label="Total Other Assigned Work" value="7" colorClass="bg-white" /> */}
                     </div>
                     {/* Added the requested line below */}
                     <p className="text-[11px] text-gray-400 mt-3">
@@ -101,68 +101,68 @@ const DailyWorkDashboard: React.FC = () => {
                 {/* 🔁 RENEWAL DASHBOARD */}
                 <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>🔁 Renewal Dashboard</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Ren-TW" value="12" colorClass="bg-[#F1F7FF]" />
                         <KPICard label="Ren-PW" value="6" colorClass="bg-[#F1F7FF]" />
                         <KPICard label="Ren-TA" value="8" colorClass="bg-[#F1F7FF]" />
                         <KPICard label="Ren-PA" value="5" colorClass="bg-[#F1F7FF]" />
-                        <KPICard label="Ren-AW" value="9" colorClass="bg-[#F1F7FF]" />
+                        {/* <KPICard label="Ren-AW" value="9" colorClass="bg-[#F1F7FF]" /> */}
                     </div>
                 </div>
 
                 {/* 📝 REGISTRATION DASHBOARD */}
                 <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>📝 Registration Dashboard</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Reg-TW" value="10" colorClass="bg-[#F0FDF4]" />
                         <KPICard label="Reg-PW" value="4" colorClass="bg-[#F0FDF4]" />
                         <KPICard label="Reg-TA" value="7" colorClass="bg-[#F0FDF4]" />
                         <KPICard label="Reg-PA" value="3" colorClass="bg-[#F0FDF4]" />
-                        <KPICard label="Reg-AW" value="6" colorClass="bg-[#F0FDF4]" />
+                        {/* <KPICard label="Reg-AW" value="6" colorClass="bg-[#F0FDF4]" /> */}
                     </div>
                 </div>
 
                 {/* 🔎 PROSPECT DASHBOARD */}
                 <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>🔎 Prospect Dashboard</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Pro-TW" value="14" colorClass="bg-orange-50" />
                         <KPICard label="Pro-PW" value="9" colorClass="bg-orange-50" />
                         <KPICard label="Pro-TA" value="11" colorClass="bg-orange-50" />
                         <KPICard label="Pro-PA" value="6" colorClass="bg-orange-50" />
-                        <KPICard label="Pro-AW" value="8" colorClass="bg-orange-50" />
+                        {/* <KPICard label="Pro-AW" value="8" colorClass="bg-orange-50" /> */}
                     </div>
                 </div>
 
                 {/* 💎 PREMIUM DASHBOARD */}
                 <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>💎 Premium Dashboard</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Pre-TW" value="5" colorClass="bg-purple-50" />
                         <KPICard label="Pre-PW" value="2" colorClass="bg-purple-50" />
                         <KPICard label="Pre-TA" value="4" colorClass="bg-purple-50" />
                         <KPICard label="Pre-PA" value="1" colorClass="bg-purple-50" />
-                        <KPICard label="Pre-AW" value="3" colorClass="bg-purple-50" />
+                        {/* <KPICard label="Pre-AW" value="3" colorClass="bg-purple-50" /> */}
                     </div>
                 </div>
 
                 {/* 🗑 DELETE DASHBOARD */}
-                <div className={DASHBOARD_CONTAINER}>
+                {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className="text-base font-semibold text-[#ef4444] mb-4 flex items-center gap-2">🗑 Delete Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                         <KPICard label="Today Deleted" value="3" colorClass="bg-[#FFECEC]" />
                         <KPICard label="Pending Deleted" value="5" colorClass="bg-[#FFECEC]" />
                     </div>
-                </div>
+                </div> */}
 
                 {/* 💍 MARRIAGE SETTLED DASHBOARD */}
-                <div className={DASHBOARD_CONTAINER}>
+                {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className="text-base font-semibold text-[#db2777] mb-4 flex items-center gap-2">💍 Marriage Settled Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                         <KPICard label="Today Settled" value="2" colorClass="bg-[#FFF1F2]" />                         <KPICard label="Pending Follow-ups" value="4" colorClass="bg-[#FFF1F2]" />
                         <KPICard label="Assigned Cases" value="6" colorClass="bg-[#FFF1F2]" />
                     </div>
-                </div>
+                </div> */}
             </div>
 
             {/* 📋 TABLE SECTION */}
