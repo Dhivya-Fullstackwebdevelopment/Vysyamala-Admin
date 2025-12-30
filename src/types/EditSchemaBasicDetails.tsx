@@ -67,6 +67,8 @@ export const EditScheemaBasicDetails = z.object({
     linkedin: z.string().optional(),
     facebook: z.string().optional(),
     Video_url: z.string().optional(),
+    Profile_emailid: z.string().optional(),
+    Profile_mobile_no: z.string().optional(),
   })
     .refine(
       (data) => {
@@ -119,6 +121,8 @@ export interface BasicDetailss {
     facebook: string;
     linkedin: string;
     Video_url: string;
+    Profile_emailid: string;
+    Profile_mobile_no: string;
   };
 }
 

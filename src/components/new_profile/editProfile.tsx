@@ -297,6 +297,8 @@ const EditProfile = () => {
         linkedin: data.BasicDetail.linkedin,
         facebook: data.BasicDetail.facebook,
         Video_url: data.BasicDetail.Video_url,
+        Profile_emailid: data.BasicDetail.Profile_emailid,
+        Profile_mobile_no: data.BasicDetail.Profile_mobile_no,
         // Addon_package: addOnPackageDetails.join(','),
       },
     };

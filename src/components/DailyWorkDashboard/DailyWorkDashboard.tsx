@@ -170,6 +170,7 @@ const DailyWorkDashboard: React.FC = () => {
     // Handle Card Click
     const handleCardClick = (key: string) => {
         setTableLoading(true);
+        setSearchQuery("");
 
         const updatedFilter =
             filters.countFilter === key ? "" : key; // 👈 toggle logic
@@ -372,6 +373,26 @@ const DailyWorkDashboard: React.FC = () => {
                             <RenderDashboardSection title="Registration" data={stats?.registration} color="bg-[#F0FDF4]" icon="📝" prefix="reg" />
                             <RenderDashboardSection title="Prospect" data={stats?.prospect} color="bg-[#FFF7ED]" icon="🔎" prefix="pros" />
                             <RenderDashboardSection title="Premium" data={stats?.premium} color="bg-[#F5F3FF]" icon="💎" prefix="pre" />
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
+                                <KPICard
+                                    label="Today's Birthday"
+                                    value={stats?.all?.today_birthday}
+                                    colorClass="bg-[#FFF1F2]" // Pinkish
+                                    filterKey="today_birthday"
+                                />
+                                <KPICard
+                                    label="Yesterday Login"
+                                    value={stats?.all?.yesterday_login}
+                                    colorClass="bg-[#F0FDFA]" // Teal/Mint
+                                    filterKey="yesterday_login"
+                                />
+                                <KPICard
+                                    label="Payment Failed"
+                                    value={stats?.all?.payment_failed}
+                                    colorClass="bg-[#FEF2F2]" // Reddish
+                                    filterKey="payment_failed"
+                                />
+                            </div>
                         </div>
 
                         {/* 🔁 RENEWAL DASHBOARD */}

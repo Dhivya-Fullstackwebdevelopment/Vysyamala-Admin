@@ -100,6 +100,11 @@ export const parentSchema = z.object({
     Addon_package: z.string().optional(),
     // Plan_id: z.string().optional(),
     //Last_login_date: z.string().optional(),
+    linkedin: z.string().optional(),
+    facebook: z.string().optional(),
+    Video_url: z.string().optional(),
+    Profile_emailid: z.string().optional(),
+    Profile_mobile_no: z.string().optional(),
   }),
 
   FamilyDetailsForm: z.object({
@@ -142,7 +147,7 @@ export const parentSchema = z.object({
     work_city: z.string().optional(),
     heighestEducation: z.string().min(1, "Highest Education Level is required"),
     degree: z.string().optional(),
-    other_degree:z.string().optional(),
+    other_degree: z.string().optional(),
     field_ofstudy: z.string().optional(),
     AboutEducation: z.string().optional(),
     AnnualIncome: z.string().optional(),
@@ -197,7 +202,7 @@ export const parentSchema = z.object({
     heightTo: z.string().optional(),
     agePreference: z.string().optional(),
     // agePreference: z.string().min(3,"Age difference is required"),
-    
+
     heightPreference: z.string().optional(),
     ragukethu: z.string().optional(),
     ChevvaiDhosam: z.string().optional(),
@@ -211,7 +216,7 @@ export const parentSchema = z.object({
     pref_family_status: z.string().optional().nullable(), // If you allow null
     pref_state: z.string().optional().nullable(),
   }),
-  
+
 
 
 });

@@ -36,6 +36,11 @@ export interface FormValues {
     status?: string;
     Profile_height: string;
     WhatsAppNumber?: string;
+    facebook: string;
+    linkedin: string;
+    Video_url: string;
+    Profile_emailid: string;
+    Profile_mobile_no: string;
     // Notifcation_enabled?: string; // Optional, as it's not in the original form
     // Addon_package?: string; // Optional field for the plan package
     //Plan_id?: string; // Optional, for tracking plan subscription
@@ -302,6 +307,11 @@ const AddProfile = () => {
         DateOfJoin: DateOfJoinToday,
         // DateOfJoin: '2024-11-11',
         Last_login_date: null,
+        linkedin: data.AddProfileForm.linkedin,
+        facebook: data.AddProfileForm.facebook,
+        Video_url: data.AddProfileForm.Video_url,
+        Profile_emailid: data.AddProfileForm.Profile_emailid,
+        Profile_mobile_no: data.AddProfileForm.Profile_mobile_no,
       },
 
       family_details: {

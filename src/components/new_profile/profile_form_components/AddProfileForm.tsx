@@ -888,7 +888,68 @@ const AddProfileForm: React.FC<AddProfileForm> = ({
               )}
             </div>
           </div>
+          <div className="flex w-full flex-row gap-4 max-md:flex-col">
+            <div className="w-2/4 max-md:w-full">
+              <Input
+                label="Facebook"
+                // placeholder="https://facebook.com/username"
+                {...register("AddProfileForm.facebook")}
+              />
+            </div>
+            <div className="w-2/4 max-md:w-full">
+              <Input
+                label="LinkedIn"
+                //placeholder="https://linkedin.com/in/username"
+                {...register("AddProfileForm.linkedin")}
+              />
+            </div>
 
+            <div className="w-2/4 max-md:w-full">
+              <Input
+                label="Video URL"
+                //placeholder="https://youtube.com/..."
+                {...register("AddProfileForm.Video_url")}
+              />
+            </div>
+          </div>
+          <div className="flex w-full flex-row gap-4 max-md:flex-col">
+            <div className="w-[410px] max-md:w-full">
+              <Input
+                label="Profile Email ID"
+                type="email"
+                {...register("AddProfileForm.Profile_emailid")}
+              />
+              {errors?.AddProfileForm?.Profile_emailid && (
+                <p className="text-red-600">
+                  {errors.AddProfileForm.Profile_emailid.message?.toString()}
+                </p>
+              )}
+            </div>
+
+            <div className="w-[410px] max-md:w-full">
+              <label className="block text-black font-medium mb-1">
+                Profile Mobile No
+              </label>
+
+              <Controller
+                name="AddProfileForm.Profile_mobile_no"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    maxLength={10}
+                    onInput={(e) => {
+                      const cleaned = e.currentTarget.value.replace(/\D/g, "");
+                      field.onChange(cleaned);
+                    }}
+                  />
+                )}
+              />
+            </div>
+
+          </div>
           {/* <AlertSettings setAlretSetting={setAlretSetting} /> */}
         </div>
 

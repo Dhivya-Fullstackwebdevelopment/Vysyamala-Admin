@@ -522,16 +522,40 @@ const ViewBasicDetails: React.FC<pageProps> = ({ profile, setGennder }) => {
               />
             </div>
           </div>
-          <div className="w-1/3">
-            <label className="block text-[#5a5959e6] font-semibold mb-1">
-              Video url
-            </label>
+          <div className="flex w-full flex-row gap-4">
+            <div className="w-1/3">
+              <label className="block text-[#5a5959e6] font-semibold mb-1">
+                Video url
+              </label>
 
-            <Input
-              value={basicDetails.Video_url || "N/A"}
-              readOnly
-              label={""}
-            />
+              <Input
+                value={basicDetails.Video_url || "N/A"}
+                readOnly
+                label={""}
+              />
+            </div>
+            <div className="w-1/3">
+              <label className="block text-[#5a5959e6] font-semibold mb-1">
+                Profile Email ID
+              </label>
+
+              <Input
+                value={basicDetails.Profile_emailid || "N/A"}
+                readOnly
+                label={""}
+              />
+            </div>
+            <div className="w-1/3">
+              <label className="block text-[#5a5959e6] font-semibold mb-1">
+                Profile Mobile No
+              </label>
+
+              <Input
+                value={basicDetails.Profile_mobile_no || "N/A"}
+                readOnly
+                label={""}
+              />
+            </div>
           </div>
         </div>
       )}

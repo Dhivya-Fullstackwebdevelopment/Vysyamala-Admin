@@ -244,8 +244,11 @@ const BasicDetails: React.FC<formProps> = ({
       setValue('BasicDetail.district', EditData[0].Profile_district || '' || null);
       setValue('BasicDetail.City', EditData[0].Profile_city || '' || null);
       setValue('BasicDetail.status', EditData[0].status || '' || null);
-      setValue('BasicDetail.Profile_height', EditData[0].Profile_height || '');
-
+      setValue('BasicDetail.linkedin', EditData[0].linkedin || '');
+      setValue('BasicDetail.facebook', EditData[0].facebook || '');
+      setValue('BasicDetail.Video_url', EditData[0].Video_url || '');
+      setValue('BasicDetail.Profile_mobile_no', EditData[0].Profile_mobile_no || '');
+      setValue('BasicDetail.Profile_emailid', EditData[0].Profile_emailid || '');
       //const formattedWhatsupNumber = `${EditData[0].Profile_whatsapp}`
       setValue(
         'BasicDetail.WhatsAppNumber',
@@ -898,9 +901,6 @@ const BasicDetails: React.FC<formProps> = ({
             </div>
           </div>
           <div className="flex w-full flex-row gap-4">
-
-
-
             <div className="w-1/3">
               <label className='block text-[#5a5959e6]   font-semibold mb-1'>
                 Profile Height
@@ -954,25 +954,75 @@ const BasicDetails: React.FC<formProps> = ({
             </div>
 
           </div>
-          <div className="w-1/3">
-            <Input
-              required
-              {...register('BasicDetail.Video_url')}
-              label={'Video url'}
-            />
-            {errors?.BasicDetail?.Video_url && (
-              <p className="text-red-600">
-                {errors.BasicDetail.Video_url.message?.toString()}
+          <div className="flex w-full flex-row gap-4">
+            <div className="w-1/3">
+              <Input
+                required
+                {...register('BasicDetail.Video_url')}
+                label={'Video url'}
+              />
+              {errors?.BasicDetail?.Video_url && (
+                <p className="text-red-600">
+                  {errors.BasicDetail.Video_url.message?.toString()}
 
-              </p>
-            )}
+                </p>
+              )}
+            </div>
+            <div className="w-1/3">
+              <Input
+                required
+                {...register('BasicDetail.Profile_emailid')}
+                label={'Profile Email ID'}
+              />
+              {errors?.BasicDetail?.Video_url && (
+                <p className="text-red-600">
+                  {errors.BasicDetail.Video_url.message?.toString()}
+
+                </p>
+              )}
+            </div>
+            {/* <div className="w-1/3">
+              <Input
+                required
+                {...register('BasicDetail.Profile_mobile_no')}
+                label={'Profile Mobile No'}
+              />
+              {errors?.BasicDetail?.Video_url && (
+                <p className="text-red-600">
+                  {errors.BasicDetail.Video_url.message?.toString()}
+
+                </p>
+              )}
+            </div> */}
+            <div ref={MobileNoRef} className="w-full">
+              <label className="block text-[#5a5959e6] font-semibold mb-1">
+                Profile Mobile No
+                {/* <span className="text-red-500">*</span> */}
+              </label>
+              <Controller
+                name="BasicDetail.Profile_mobile_no"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    type="text"
+                    {...field}
+                    className="w-full border border-[#b5b2b2e6] rounded-md px-4 py-2 text-[#222020e6] font-medium outline-none focus:outline-none "
+                    maxLength={10} // optional if you want to restrict to 10 digits
+                    onKeyPress={(e) => {
+                      // Allow only digits (0-9)
+                      if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                )}
+              />
+            </div>
           </div>
         </div>
-
       )}
       <div className='flex justify-end mt-10 '>
         <button
-
           type="submit"
           className="bg-blue-500 text-white px-15 py-2 rounded"
         >
