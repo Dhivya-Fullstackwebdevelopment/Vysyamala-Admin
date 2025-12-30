@@ -30,6 +30,9 @@ const DailyWorkDashboard: React.FC = () => {
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
     const abortControllerRef = useRef<AbortController | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [originalTableData, setOriginalTableData] = useState<any[]>([]);
+
     // Filter States
     const [filters, setFilters] = useState({
         staff: SuperAdminID || "",
@@ -74,6 +77,7 @@ const DailyWorkDashboard: React.FC = () => {
             if (response.data.status) {
                 setStats(response.data.counts_by_type);
                 setTableData(response.data.data);
+                setOriginalTableData(response.data.data);
             }
         } catch (e) {
             console.error("Error fetching dashboard report:", e);
@@ -126,6 +130,27 @@ const DailyWorkDashboard: React.FC = () => {
     };
 
     useEffect(() => {
+        if (tableLoading) return;
+
+        if (!searchQuery.trim()) {
+            setTableData(originalTableData);
+            return;
+        }
+
+        const term = searchQuery.toLowerCase();
+
+        const filtered = originalTableData.filter((row) => {
+            return (
+                row.ProfileId?.toString().toLowerCase().includes(term) ||
+                row.Profile_name?.toLowerCase().includes(term)
+            );
+        });
+
+        setTableData(filtered);
+    }, [searchQuery, originalTableData, tableLoading]);
+
+
+    useEffect(() => {
         if (RoleID === "7") fetchProfileOwners();
     }, [RoleID, fetchProfileOwners]);
 
@@ -144,13 +169,25 @@ const DailyWorkDashboard: React.FC = () => {
 
     // Handle Card Click
     const handleCardClick = (key: string) => {
-        setFilters(prev => ({ ...prev, countFilter: key }));
+        setTableLoading(true);
 
-        // Scroll to table immediately
+        const updatedFilter =
+            filters.countFilter === key ? "" : key; // 👈 toggle logic
+
+        const updatedFilters = {
+            ...filters,
+            countFilter: updatedFilter,
+        };
+
+        setFilters(updatedFilters);
+
         if (tableRef.current) {
             tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+
+        // fetchDashboardData(updatedFilters);
     };
+
 
     const KPICard = ({
         label,
@@ -407,10 +444,25 @@ const DailyWorkDashboard: React.FC = () => {
 
                     {/* 📋 TABLE SECTION */}
                     <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex flex-wrap justify-between items-center mb-6">
                             <h5 className="text-lg font-semibold text-[#0A1735] flex items-center gap-2">
                                 📋 All Work List ({tableData.length || stats?.filtered_count || 0})
                             </h5>
+                            <div className="flex gap-2 ml-100">
+                                <input
+                                    type="text"
+                                    placeholder="Search Profile ID / Name"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-[250px] h-10 px-4 rounded-full border border-gray-300 text-sm focus:outline-none focus:border-gray-500"
+                                />
+                                <button
+                                    onClick={() => setSearchQuery("")}
+                                    className="h-10 px-4 rounded-full bg-white border border-gray-300 text-sm font-semibold hover:bg-gray-50"
+                                >
+                                    Clear
+                                </button>
+                            </div>
                             <button
                                 onClick={() => handleDownloadReport()}
                                 disabled={isDownloading}
@@ -442,6 +494,7 @@ const DailyWorkDashboard: React.FC = () => {
                                 <thead className="sticky top-0 z-20 bg-gray-50">
                                     <tr>
                                         <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Profile ID</th>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Name</th>
                                         <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">DOJ</th>
                                         <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Plan Name</th>
                                         <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Owner</th>
@@ -456,7 +509,12 @@ const DailyWorkDashboard: React.FC = () => {
                                     ) : tableData.length > 0 ? (
                                         tableData.map((row) => (
                                             <tr key={row.ProfileId} className="hover:bg-gray-50">
-                                                <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{row.ProfileId}</td>
+                                                <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1] whitespace-nowrap">
+                                                    <a href={`/viewProfile?profileId=${row.ProfileId}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                                        {row.ProfileId}
+                                                    </a>
+                                                </td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.Profile_name}</td>
                                                 {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.DateOfJoin || 'N/A'}</td> */}
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {row.DateOfJoin
                                                     ? new Date(row.DateOfJoin.replace("T", " ")).toLocaleDateString('en-CA')
