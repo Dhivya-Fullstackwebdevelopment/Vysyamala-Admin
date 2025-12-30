@@ -28,6 +28,7 @@ const DailyWorkDashboard: React.FC = () => {
     const tableRef = useRef<HTMLDivElement>(null);
     const SuperAdminID = localStorage.getItem('id') || sessionStorage.getItem('id');
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
+    const abortControllerRef = useRef<AbortController | null>(null);
     // Filter States
     const [filters, setFilters] = useState({
         staff: SuperAdminID || "",
@@ -48,16 +49,27 @@ const DailyWorkDashboard: React.FC = () => {
     }, []);
 
     const fetchDashboardData = useCallback(async (currentFilters = filters) => {
-        // Show loading for both cards and table when staff changes
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // 2. Create new controller
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
+        // If staff changes, we usually want to show the full loader. 
+        // If only countFilter changes, we only show table loading.
         setTableLoading(true);
-        setLoading(true);
 
         try {
             const params = new URLSearchParams();
-            if (currentFilters.staff) params.append('owner', currentFilters.staff);
-            if (currentFilters.countFilter) params.append('countFilter', currentFilters.countFilter);
+            if (currentFilters.staff) params.append('owner', filters.staff);
+            if (currentFilters.countFilter) params.append('countFilter', filters.countFilter);
 
-            const response = await apiAxios.get(`api/daily-work-report/?${params.toString()}`);
+            const response = await apiAxios.get(`api/daily-work-report/`, {
+                params: Object.fromEntries(params.entries()),
+                signal: controller.signal
+            });
             if (response.data.status) {
                 setStats(response.data.counts_by_type);
                 setTableData(response.data.data);
@@ -65,40 +77,44 @@ const DailyWorkDashboard: React.FC = () => {
         } catch (e) {
             console.error("Error fetching dashboard report:", e);
         } finally {
-            setTableLoading(false);
-            setLoading(false);
+            if (abortControllerRef.current === controller) {
+                setTableLoading(false);
+                setLoading(false);
+            }
         }
-    }, [filters]);
+    }, [RoleID, SuperAdminID, filters]);
 
     useEffect(() => {
         if (RoleID === "7") fetchProfileOwners();
+    }, [RoleID, fetchProfileOwners]);
+
+    useEffect(() => {
         fetchDashboardData();
-    }, []);
+    }, [fetchDashboardData]);
 
     // Handle Staff Change
     const handleStaffChange = (staffId: string) => {
-        const updatedFilters = { ...filters, staff: staffId, countFilter: "" };
-        setFilters(updatedFilters);
-        fetchDashboardData(updatedFilters);
+        setLoading(true); // Show main loader for cards too when switching staff
+        setFilters({
+            staff: staffId,
+            countFilter: "" // Reset table filter when staff changes
+        });
     };
 
     // Handle Card Click
     const handleCardClick = (key: string) => {
-        const updatedFilters = { ...filters, countFilter: key };
-        setFilters(updatedFilters);
+        setFilters(prev => ({ ...prev, countFilter: key }));
 
-        // Scroll to table
+        // Scroll to table immediately
         if (tableRef.current) {
             tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-
-        fetchDashboardData(updatedFilters);
     };
 
     const KPICard = ({ label, value, colorClass, filterKey }: { label: string, value: string | number, colorClass: string, filterKey: string }) => (<motion.div
         whileHover={{ y: -5 }}
         onClick={() => handleCardClick(filterKey)}
-        className={`${colorClass} p-5 rounded-2xl min-h-[120px] border flex flex-col justify-center cursor-pointer transition shadow-sm ${filters.countFilter === filterKey ? 'border-blue-600 border-2' : 'border-[#E3E6EE]'}`}
+        className={`${colorClass} p-5 rounded-2xl min-h-[120px] border flex flex-col justify-center cursor-pointer transition shadow-sm ${filters.countFilter === filterKey ? 'border-4 border-black/40 shadow-lg' : 'border-[#E3E6EE]'}`}
     >
         <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
         <h2 className="text-3xl text-start font-bold mb-1">{value || 0}</h2>
@@ -108,7 +124,7 @@ const DailyWorkDashboard: React.FC = () => {
     const RenderDashboardSection = ({ title, data, color, icon, prefix }: any) => (
         <div className={DASHBOARD_CONTAINER}>
             <h3 className={HEADER_TEXT}>{icon} {title} Dashboard</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 <KPICard label="Todays Work" value={data?.todays_work} colorClass={color} filterKey={`${prefix}_today_work`} />
                 <KPICard label="Pending Work" value={data?.pending_work} colorClass={color} filterKey={`${prefix}_pending_work`} />
                 <KPICard label="Todays Action" value={data?.todays_action} colorClass={color} filterKey={`${prefix}_today_task`} />
@@ -118,8 +134,52 @@ const DailyWorkDashboard: React.FC = () => {
         </div>
     );
 
-    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}><CircularProgress /></Box>;
+    const LoadingSpinner = () => (
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 8,
+                minHeight: '200px',
+                width: '100%',
+            }}
+        >
+            <CircularProgress color="primary" size={30} />
+            <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                Loading Dashboard Data...
+            </Typography>
+        </Box>
+    );
 
+    const FullWidthLoadingSpinner = () => (
+        <Box
+            className="container-fluid mx-auto px-4 sm:px-6 lg:px-8"
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 12, // Increased padding for visibility
+                width: '100%',
+                backgroundColor: '#fff', // White background
+                borderRadius: '1rem',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+                mb: 4, // margin bottom to separate from the table
+            }}
+        >
+            <CircularProgress color="primary" size={40} />
+            <Typography variant="h6" sx={{ mt: 3, color: '#0A1735', fontWeight: 600 }}>
+                Loading...
+            </Typography>
+        </Box>
+    );
+
+
+    if (loading && !stats) {
+        return <LoadingSpinner />;
+    }
     return (
         <div className="min-h-screen bg-[#F5F7FB] font-inter text-black p-4 md:p-8">
 
@@ -140,7 +200,7 @@ const DailyWorkDashboard: React.FC = () => {
                                 <select
                                     className="w-[330px] h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black disabled:bg-gray-100"
                                     value={filters.staff}
-                                    onChange={(e) => setFilters({ ...filters, staff: e.target.value })}
+                                    onChange={(e) => handleStaffChange(e.target.value)}
                                     disabled={ownersLoading}
                                 >
                                     <option value="">{ownersLoading ? "Loading Staff..." : "All Staff (Admin)"}</option>
@@ -186,33 +246,33 @@ const DailyWorkDashboard: React.FC = () => {
                 </p>
             </div> */}
             {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}><CircularProgress /></Box>
+                <section className="mt-4"><FullWidthLoadingSpinner /></section>
             ) : (
-                <div className="space-y-8">
-
-                    {/* 🔢 OVERALL SUMMARY WITH INSTRUCTIONAL NOTE */}
-                    <div className={DASHBOARD_CONTAINER}>
-                        <h3 className={HEADER_TEXT}>Overall Today Summary</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
-                            <KPICard label="Total Call Work" value={stats?.all?.todays_work} colorClass="bg-white" filterKey="all_today_work" />
-                            <KPICard label="Total Pending Work" value={stats?.all?.pending_work} colorClass="bg-white" filterKey="all_pending_work" />
-                            <KPICard label="Total Action Work" value={stats?.all?.todays_action} colorClass="bg-white" filterKey="all_today_task" />
-                            <KPICard label="Total Pending Action" value={stats?.all?.pending_action} colorClass="bg-white" filterKey="all_pending_task" />
-                            {/* <KPICard label="Total Assigned Work" value="44" colorClass="bg-white" />
+                <>
+                    <div className="space-y-8">
+                        {/* 🔢 OVERALL SUMMARY WITH INSTRUCTIONAL NOTE */}
+                        <div className={DASHBOARD_CONTAINER}>
+                            <h3 className={HEADER_TEXT}>Overall Today Summary</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+                                <KPICard label="Total Call Work" value={stats?.all?.todays_work} colorClass="bg-white" filterKey="all_today_work" />
+                                <KPICard label="Total Pending Work" value={stats?.all?.pending_work} colorClass="bg-white" filterKey="all_pending_work" />
+                                <KPICard label="Total Action Work" value={stats?.all?.todays_action} colorClass="bg-white" filterKey="all_today_task" />
+                                <KPICard label="Total Pending Action" value={stats?.all?.pending_action} colorClass="bg-white" filterKey="all_pending_task" />
+                                {/* <KPICard label="Total Assigned Work" value="44" colorClass="bg-white" />
                         <KPICard label="Total Other Assigned Work" value="7" colorClass="bg-white" /> */}
-                        </div>
-                        {/* Added the requested line below */}
-                        {/* <p className="text-[11px] text-gray-400 mt-3">
+                            </div>
+                            {/* Added the requested line below */}
+                            {/* <p className="text-[11px] text-gray-400 mt-3">
                         Click any total KPI → Shows ALL dashboard records together
                     </p> */}
-                        <RenderDashboardSection title="Renewal" data={stats?.renewal} color="bg-[#F1F7FF]" icon="🔁" prefix="renewal" />
-                        <RenderDashboardSection title="Registration" data={stats?.registration} color="bg-[#F0FDF4]" icon="📝" prefix="reg" />
-                        <RenderDashboardSection title="Prospect" data={stats?.prospect} color="bg-[#FFF7ED]" icon="🔎" prefix="pros" />
-                        <RenderDashboardSection title="Premium" data={stats?.premium} color="bg-[#F5F3FF]" icon="💎" prefix="pre" />
-                    </div>
+                            <RenderDashboardSection title="Renewal" data={stats?.renewal} color="bg-[#F1F7FF]" icon="🔁" prefix="renewal" />
+                            <RenderDashboardSection title="Registration" data={stats?.registration} color="bg-[#F0FDF4]" icon="📝" prefix="reg" />
+                            <RenderDashboardSection title="Prospect" data={stats?.prospect} color="bg-[#FFF7ED]" icon="🔎" prefix="pros" />
+                            <RenderDashboardSection title="Premium" data={stats?.premium} color="bg-[#F5F3FF]" icon="💎" prefix="pre" />
+                        </div>
 
-                    {/* 🔁 RENEWAL DASHBOARD */}
-                    {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* 🔁 RENEWAL DASHBOARD */}
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>🔁 Renewal Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Ren-TW" value="12" colorClass="bg-[#F1F7FF]" />
@@ -223,8 +283,8 @@ const DailyWorkDashboard: React.FC = () => {
                     </div>
                  </div> */}
 
-                    {/* 📝 REGISTRATION DASHBOARD */}
-                    {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* 📝 REGISTRATION DASHBOARD */}
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>📝 Registration Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Reg-TW" value="10" colorClass="bg-[#F0FDF4]" />
@@ -235,8 +295,8 @@ const DailyWorkDashboard: React.FC = () => {
                     </div>
                  </div> */}
 
-                    {/* 🔎 PROSPECT DASHBOARD */}
-                    {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* 🔎 PROSPECT DASHBOARD */}
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>🔎 Prospect Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Pro-TW" value="14" colorClass="bg-orange-50" />
@@ -247,8 +307,8 @@ const DailyWorkDashboard: React.FC = () => {
                     </div>
                  </div> */}
 
-                    {/* 💎 PREMIUM DASHBOARD */}
-                    {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* 💎 PREMIUM DASHBOARD */}
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>💎 Premium Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Pre-TW" value="5" colorClass="bg-purple-50" />
@@ -259,8 +319,8 @@ const DailyWorkDashboard: React.FC = () => {
                     </div>
                  </div> */}
 
-                    {/* 🗑 DELETE DASHBOARD */}
-                    {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* 🗑 DELETE DASHBOARD */}
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className="text-base font-semibold text-[#ef4444] mb-4 flex items-center gap-2">🗑 Delete Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                         <KPICard label="Today Deleted" value="3" colorClass="bg-[#FFECEC]" />
@@ -268,70 +328,72 @@ const DailyWorkDashboard: React.FC = () => {
                     </div>
                  </div> */}
 
-                    {/* 💍 MARRIAGE SETTLED DASHBOARD */}
-                    {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* 💍 MARRIAGE SETTLED DASHBOARD */}
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className="text-base font-semibold text-[#db2777] mb-4 flex items-center gap-2">💍 Marriage Settled Dashboard</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                         <KPICard label="Today Settled" value="2" colorClass="bg-[#FFF1F2]" />                         <KPICard label="Pending Follow-ups" value="4" colorClass="bg-[#FFF1F2]" />
                         <KPICard label="Assigned Cases" value="6" colorClass="bg-[#FFF1F2]" />
                     </div>
-                </div> */}
-                </div>
-            )}
+                 </div> */}
+                    </div>
 
-            {/* 📋 TABLE SECTION */}
-            <section className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
-                <div className="flex justify-between items-center mb-6">
-                    <h5 className="text-lg font-semibold text-[#0A1735] flex items-center gap-2">
-                        📋 All Work List ({tableData.length || stats?.filtered_count || 0})
-                    </h5>
-                    <button className="border border-[#b3b5b7] hover:bg-[#dfe0e1] text-sm font-semibold px-4 py-1.5 rounded-lg hover:bg-gray-50 transition shadow-sm">
-                        Export
-                    </button>
-                </div>
 
-                <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
-                    <table className="min-w-full border-separate border-spacing-0 table-auto">
-                        <thead className="sticky top-0 z-20 bg-gray-50">
-                            <tr>
-                                <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Profile ID</th>
-                                <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">DOJ</th>
-                                <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Plan Name</th>
-                                <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Owner</th>
-                                <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Dashboard Type</th>
-                                <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">NCD</th>
-                                <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Last Login Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tableLoading ? (
-                                <tr><td colSpan={7} className="text-center py-10"><CircularProgress size={30} /></td></tr>
-                            ) : tableData.length > 0 ? (
-                                tableData.map((row) => (
-                                    <tr key={row.ProfileId} className="hover:bg-gray-50">
-                                        <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{row.ProfileId}</td>
-                                        {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.DateOfJoin || 'N/A'}</td> */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {row.DateOfJoin
-                                            ? new Date(row.DateOfJoin.replace("T", " ")).toLocaleDateString('en-CA')
-                                            : "N/A"}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.plan_name || 'N/A'}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.owner_name || 'N/A'}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.dashboard_type || 'N/A'}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {row.next_call_date
-                                            ? new Date(row.next_call_date.replace("T", " ")).toLocaleDateString('en-CA')
-                                            : "N/A"}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {row.Last_login_date
-                                            ? new Date(row.Last_login_date.replace("T", " ")).toLocaleDateString('en-CA')
-                                            : "N/A"}</td>
+                    {/* 📋 TABLE SECTION */}
+                    <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <h5 className="text-lg font-semibold text-[#0A1735] flex items-center gap-2">
+                                📋 All Work List ({tableData.length || stats?.filtered_count || 0})
+                            </h5>
+                            <button className="border border-[#b3b5b7] hover:bg-[#dfe0e1] text-sm font-semibold px-4 py-1.5 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                                Export
+                            </button>
+                        </div>
+
+                        <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
+                            <table className="min-w-full border-separate border-spacing-0 table-auto">
+                                <thead className="sticky top-0 z-20 bg-gray-50">
+                                    <tr>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Profile ID</th>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">DOJ</th>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Plan Name</th>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Owner</th>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Dashboard Type</th>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">NCD</th>
+                                        <th className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1]">Last Login Date</th>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr><td colSpan={7} className="text-center py-10 text-gray-500 font-medium">No records found</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                                </thead>
+                                <tbody>
+                                    {tableLoading ? (
+                                        <tr><td colSpan={7} className="text-center py-10"><CircularProgress size={30} /></td></tr>
+                                    ) : tableData.length > 0 ? (
+                                        tableData.map((row) => (
+                                            <tr key={row.ProfileId} className="hover:bg-gray-50">
+                                                <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{row.ProfileId}</td>
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.DateOfJoin || 'N/A'}</td> */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {row.DateOfJoin
+                                                    ? new Date(row.DateOfJoin.replace("T", " ")).toLocaleDateString('en-CA')
+                                                    : "N/A"}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.plan_name || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.owner_name || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{row.dashboard_type || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {row.next_call_date
+                                                    ? new Date(row.next_call_date.replace("T", " ")).toLocaleDateString('en-CA')
+                                                    : "N/A"}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {row.Last_login_date
+                                                    ? new Date(row.Last_login_date.replace("T", " ")).toLocaleDateString('en-CA')
+                                                    : "N/A"}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr><td colSpan={7} className="text-center py-10 text-gray-500 font-medium">No records found</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </>
+            )}
         </div >
 
     );
