@@ -38,10 +38,10 @@ const DailyWorkDashboard: React.FC = () => {
             {/* --- Filters Section (NON-STICKY) --- */}
             <section className="mb-8"> {/* Removed sticky top-0 z-30 */}
                 <div className="bg-white rounded-xl border border-[#E3E6EE] p-7 shadow-sm flex flex-wrap gap-4 items-end">
-                    <div className="text-start flex-1 min-w-[200px]">
+                    <div className="text-start">
                         <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
                         <div className="relative">
-                            <select className="w-full h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black">
+                            <select className="w-[300px] h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black">
                                 <option>All Staff (Admin)</option>
                                 <option>Logged-in Staff</option>
                             </select>
@@ -93,9 +93,9 @@ const DailyWorkDashboard: React.FC = () => {
                         <KPICard label="Total Other Assigned Work" value="7" colorClass="bg-white" /> */}
                     </div>
                     {/* Added the requested line below */}
-                    <p className="text-[11px] text-gray-400 mt-3">
+                    {/* <p className="text-[11px] text-gray-400 mt-3">
                         Click any total KPI → Shows ALL dashboard records together
-                    </p>
+                    </p> */}
                 </div>
 
                 {/* 🔁 RENEWAL DASHBOARD */}
@@ -167,8 +167,13 @@ const DailyWorkDashboard: React.FC = () => {
 
             {/* 📋 TABLE SECTION */}
             <section className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h5 className="text-lg font-semibold text-[#0A1735]">📋 All Work List (1)</h5>
+                <div className="flex justify-between items-center mb-6">
+                    <h5 className="text-lg font-semibold text-[#0A1735] flex items-center gap-2">
+                        📋 All Work List
+                    </h5>
+                    <button className="border border-[#b3b5b7] hover:bg-[#dfe0e1] text-sm font-semibold px-4 py-1.5 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                        Export
+                    </button>
                 </div>
 
                 <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
