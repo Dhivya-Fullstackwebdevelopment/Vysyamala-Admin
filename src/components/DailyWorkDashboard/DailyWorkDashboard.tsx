@@ -29,6 +29,7 @@ const DailyWorkDashboard: React.FC = () => {
     const SuperAdminID = localStorage.getItem('id') || sessionStorage.getItem('id');
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
     const abortControllerRef = useRef<AbortController | null>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
     // Filter States
     const [filters, setFilters] = useState({
         staff: SuperAdminID || "",
@@ -84,6 +85,46 @@ const DailyWorkDashboard: React.FC = () => {
         }
     }, [RoleID, SuperAdminID, filters]);
 
+    const handleDownloadReport = async (currentFilters = filters) => {
+        setIsDownloading(true);
+
+        try {
+            const params = new URLSearchParams();
+            if (currentFilters.staff) params.append('owner', filters.staff);
+            if (currentFilters.countFilter) params.append('countFilter', filters.countFilter);
+            // 🔑 IMPORTANT: export flag
+            params.append('export', 'excel');
+
+            const response = await apiAxios.get('api/daily-work-report/', {
+                params: Object.fromEntries(params.entries()),
+                responseType: 'blob',
+            });
+
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute(
+                'download',
+                `Daily_Work_Report_${new Date().toISOString().slice(0, 10)}.xlsx`
+            );
+
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error("Prospect Excel download failed:", error);
+            alert("Failed to download the report. Please try again.");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     useEffect(() => {
         if (RoleID === "7") fetchProfileOwners();
     }, [RoleID, fetchProfileOwners]);
@@ -111,14 +152,39 @@ const DailyWorkDashboard: React.FC = () => {
         }
     };
 
-    const KPICard = ({ label, value, colorClass, filterKey }: { label: string, value: string | number, colorClass: string, filterKey: string }) => (<motion.div
-        whileHover={{ y: -5 }}
-        onClick={() => handleCardClick(filterKey)}
-        className={`${colorClass} p-5 rounded-2xl min-h-[120px] border flex flex-col justify-center cursor-pointer transition shadow-sm ${filters.countFilter === filterKey ? 'border-4 border-black/40 shadow-lg' : 'border-[#E3E6EE]'}`}
-    >
-        <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
-        <h2 className="text-3xl text-start font-bold mb-1">{value || 0}</h2>
-    </motion.div>
+    const KPICard = ({
+        label,
+        value,
+        colorClass,
+        filterKey,
+        clickable = true,
+    }: {
+        label: string;
+        value: string | number;
+        colorClass: string;
+        filterKey?: string;
+        clickable?: boolean;
+    }) => (
+        <motion.div
+            whileHover={clickable ? { y: -5 } : undefined}
+            onClick={clickable && filterKey ? () => handleCardClick(filterKey) : undefined}
+            className={`
+            ${colorClass}
+            p-5 rounded-2xl min-h-[120px] border flex flex-col justify-center transition shadow-sm
+            ${clickable ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}
+            ${clickable && filters.countFilter === filterKey
+                    ? 'border-4 border-black/40 shadow-lg'
+                    : 'border-[#E3E6EE]'
+                }
+        `}
+        >
+            <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">
+                {label}
+            </h6>
+            <h2 className="text-3xl text-start font-bold mb-1">
+                {value || 0}
+            </h2>
+        </motion.div>
     );
 
     const RenderDashboardSection = ({ title, data, color, icon, prefix }: any) => (
@@ -254,10 +320,10 @@ const DailyWorkDashboard: React.FC = () => {
                         <div className={DASHBOARD_CONTAINER}>
                             <h3 className={HEADER_TEXT}>Overall Today Summary</h3>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
-                                <KPICard label="Total Call Work" value={stats?.all?.todays_work} colorClass="bg-white" filterKey="all_today_work" />
-                                <KPICard label="Total Pending Work" value={stats?.all?.pending_work} colorClass="bg-white" filterKey="all_pending_work" />
-                                <KPICard label="Total Action Work" value={stats?.all?.todays_action} colorClass="bg-white" filterKey="all_today_task" />
-                                <KPICard label="Total Pending Action" value={stats?.all?.pending_action} colorClass="bg-white" filterKey="all_pending_task" />
+                                <KPICard label="Total Call Work" value={stats?.all?.todays_work} colorClass="bg-white" clickable={false} />
+                                <KPICard label="Total Pending Work" value={stats?.all?.pending_work} colorClass="bg-white" clickable={false} />
+                                <KPICard label="Total Action Work" value={stats?.all?.todays_action} colorClass="bg-white" clickable={false} />
+                                <KPICard label="Total Pending Action" value={stats?.all?.pending_action} colorClass="bg-white" clickable={false} />
                                 {/* <KPICard label="Total Assigned Work" value="44" colorClass="bg-white" />
                         <KPICard label="Total Other Assigned Work" value="7" colorClass="bg-white" /> */}
                             </div>
@@ -345,9 +411,30 @@ const DailyWorkDashboard: React.FC = () => {
                             <h5 className="text-lg font-semibold text-[#0A1735] flex items-center gap-2">
                                 📋 All Work List ({tableData.length || stats?.filtered_count || 0})
                             </h5>
-                            <button className="border border-[#b3b5b7] hover:bg-[#dfe0e1] text-sm font-semibold px-4 py-1.5 rounded-lg hover:bg-gray-50 transition shadow-sm">
-                                Export
+                            <button
+                                onClick={() => handleDownloadReport()}
+                                disabled={isDownloading}
+                                className={`
+        border border-[#b3b5b7]
+        text-sm font-semibold px-4 py-1.5 rounded-lg
+        transition shadow-sm
+        flex items-center gap-2
+        ${isDownloading
+                                        ? 'bg-gray-200 cursor-not-allowed text-gray-500'
+                                        : 'hover:bg-[#dfe0e1]'
+                                    }
+    `}
+                            >
+                                {isDownloading ? (
+                                    <>
+                                        <CircularProgress size={16} />
+                                        Exporting...
+                                    </>
+                                ) : (
+                                    'Export'
+                                )}
                             </button>
+
                         </div>
 
                         <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
