@@ -514,31 +514,25 @@ export const UploadApprovalProfileImg = () => {
                         </div>
                     )}
                     {/* Horoscope upload */}
+                    {/* Example for Horoscope File */}
+
                     {photoProofDetails?.horoscope_file && (
-                        <div className="grid grid-cols-3 items-center gap-4">
-                            <span className="w-50 font-semibold text-black">Original Horoscope File</span>
-                            <div>
-                                <a
-                                    href="#"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleDownloadHoroscopeFile(photoProofDetails.horoscope_file);
-                                    }}
-                                    className="text-blue-500 underline  mr-5"
-                                >
+                        <div className="flex items-center mb-4">
+                            <span className="w-48 font-semibold text-black shrink-0">Original Horoscope File</span>
+
+                            {/* Fixed width container for the file info pushes the trash icon to a specific line */}
+                            <div className="flex items-center w-96 shrink-0 ml-4">
+                                <a href="#" onClick={(e) => { e.preventDefault(); handleDownloadHoroscopeFile(photoProofDetails.horoscope_file); }} className="text-blue-500 underline shrink-0">
                                     View File
                                 </a>
-                                (<span className="text-gray-700">
-                                    {getFileNameFromUrl(photoProofDetails.horoscope_file)}
-                                </span>)
+                                <span className="text-gray-500 ml-2 truncate">
+                                    ({getFileNameFromUrl(photoProofDetails.horoscope_file)})
+                                </span>
                             </div>
+
                             {hasPermission('edit_horo_photo') && (
-                                <button
-                                    type="button"
-                                    onClick={() => openDeleteDialog('horoscope', 'horoscope_file')}
-                                    className="text-red-500 hover:text-red-700 flex justify-center"
-                                >
-                                    <FaTrashAlt size={18} />
+                                <button onClick={() => openDeleteDialog('horoscope', 'horoscope_file')} className="text-red-500 hover:text-red-700">
+                                    <FaTrashAlt size={16} />
                                 </button>
                             )}
                         </div>
@@ -558,34 +552,18 @@ export const UploadApprovalProfileImg = () => {
                     )}
                     {/* Horoscope upload */}
                     {photoProofDetails?.horoscope_file_admin && (
-                        <div className="grid grid-cols-3 items-center gap-4">
-                            <span className="w-50 font-semibold text-black">Horoscope Admin File</span>
-                            {/* <input
-                            type="file"
-                            accept="image/*"
-                        /> */}
-                            <div>
-                                <a
-                                    href="#"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleDownloadHoroscopeFile(photoProofDetails.horoscope_file_admin);
-                                    }}
-                                    className="text-blue-500 underline mr-5"
-                                >
+                        <div className="flex items-center mb-4">
+                            <span className="w-48 font-semibold text-black shrink-0">Horoscope Admin File</span>
+                            <div className="flex items-center w-96 shrink-0 ml-4">
+                                <a href="#" onClick={(e) => { e.preventDefault(); handleDownloadHoroscopeFile(photoProofDetails.horoscope_file_admin); }} className="text-blue-500 underline shrink-0">
                                     View File
                                 </a>
-                                (<span className="text-gray-700">
-                                    {getFileNameFromUrl(photoProofDetails.horoscope_file_admin)}
-                                </span>)
+                                <span className="text-gray-500 ml-2 truncate">
+                                    ({getFileNameFromUrl(photoProofDetails.horoscope_file_admin)})
+                                </span>
                             </div>
                             {hasPermission('edit_horo_photo') && (
-                                <button
-                                    type="button"
-                                    onClick={() => openDeleteDialog('horoscope', 'horoscope_file_admin')}
-                                    className="text-red-500 hover:text-red-700 flex justify-center"
-                                    aria-label="Delete Original Horoscope"
-                                >
+                                <button onClick={() => openDeleteDialog('horoscope', 'horoscope_file_admin')} className="text-red-500 hover:text-red-700">
                                     <FaTrashAlt size={16} />
                                 </button>
                             )}
@@ -604,35 +582,20 @@ export const UploadApprovalProfileImg = () => {
                             />
                         </div>
                     )}
+
                     {photoProofDetails?.id_proof && (
-                        <div className="grid grid-cols-3 items-center gap-4">
-                            <span className="w-50 font-semibold text-black">ID Proof</span>
-                            {/* <input
-                            type="file"
-                            accept="image/*"
-                        /> */}
-                            <div>
-                                <a
-                                    href="#"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleDownloadIDProof(photoProofDetails.id_proof);
-                                    }}
-                                    className="text-blue-500 underline  mr-5"
-                                >
+                        <div className="flex items-center mb-4">
+                            <span className="w-48 font-semibold text-black shrink-0">ID Proof</span>
+                            <div className="flex items-center w-96 shrink-0 ml-4">
+                                <a href="#" onClick={(e) => { e.preventDefault(); handleDownloadIDProof(photoProofDetails.id_proof); }} className="text-blue-500 underline shrink-0">
                                     View File
                                 </a>
-                                (<span className="text-gray-700">
-                                    {getFileNameFromUrl(photoProofDetails.id_proof)}
-                                </span>)
+                                <span className="text-gray-500 ml-2 truncate">
+                                    ({getFileNameFromUrl(photoProofDetails.id_proof)})
+                                </span>
                             </div>
                             {hasPermission('edit_horo_photo') && (
-                                <button
-                                    type="button"
-                                    onClick={() => openDeleteDialog('registration', 'Profile_idproof')}
-                                    className="text-red-500 hover:text-red-700 flex justify-center"
-                                    aria-label="Delete Original Horoscope"
-                                >
+                                <button onClick={() => openDeleteDialog('registration', 'Profile_idproof')} className="text-red-500 hover:text-red-700">
                                     <FaTrashAlt size={16} />
                                 </button>
                             )}
@@ -654,34 +617,18 @@ export const UploadApprovalProfileImg = () => {
                         </>
                     )}
                     {photoProofDetails?.divorce_certificate && (
-                        <div className="grid grid-cols-3 items-center gap-4">
-                            <span className="w-50 font-semibold text-black">Divorce Proof</span>
-                            {/* <input
-                            type="file"
-                            accept="image/*"
-                        /> */}
-                            <div className="flex items-center">
-                                <a
-                                    href="#"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleDownloadDivorceProof(photoProofDetails.divorce_certificate);
-                                    }}
-                                    className="text-blue-500 underline mr-5"
-                                >
+                        <div className="flex items-center mb-4">
+                            <span className="w-48 font-semibold text-black shrink-0">Divorce Proof</span>
+                            <div className="flex items-center w-96 shrink-0 ml-4">
+                                <a href="#" onClick={(e) => { e.preventDefault(); handleDownloadDivorceProof(photoProofDetails.divorce_certificate); }} className="text-blue-500 underline shrink-0">
                                     View File
                                 </a>
-                                (<span className="text-gray-700">
-                                    {getFileNameFromUrl(photoProofDetails.divorce_certificate)}
-                                </span>)
+                                <span className="text-gray-500 ml-2 truncate">
+                                    ({getFileNameFromUrl(photoProofDetails.divorce_certificate)})
+                                </span>
                             </div>
                             {hasPermission('edit_horo_photo') && (
-                                <button
-                                    type="button"
-                                    onClick={() => openDeleteDialog('registration', 'Profile_divorceproof')}
-                                    className="text-red-500 hover:text-red-700 flex justify-center"
-                                    aria-label="Delete Original Horoscope"
-                                >
+                                <button onClick={() => openDeleteDialog('registration', 'Profile_divorceproof')} className="text-red-500 hover:text-red-700">
                                     <FaTrashAlt size={16} />
                                 </button>
                             )}
