@@ -572,6 +572,8 @@ const ProspectDashboard: React.FC = () => {
         setModalType(null);
     };
 
+    const yesNo = (value: number | null | undefined) =>
+        value === 1 ? "Yes" : value === 0 ? "No" : "N/A";
 
     const CallLogPopup = ({ profile }: { profile: ProspectProfile }) => {
         // Style definitions to match the UI in the image
@@ -1066,11 +1068,11 @@ const ProspectDashboard: React.FC = () => {
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{profile.state || 'N/A'}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{profile.plan_name || 'N/A'}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{profile.owner_name || 'N/A'}</td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{profile.has_photo || 'N/A'}</td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{profile.has_horo || 'N/A'}</td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{profile.no_id || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(profile.has_photo)}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(profile.has_horo)}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(profile.has_idproof)}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {profile.Last_login_date
-                                                    ? new Date(profile.Last_login_date.replace("T", " ")).toLocaleDateString('en-CA')
+                                                ? new Date(profile.Last_login_date.replace("T", " ")).toLocaleDateString('en-CA')
                                                     : "N/A"}</td>
                                                 {/* Call Logs Button */}
                                                 <td className="px-3 py-3 whitespace-nowrap text-sm border border-[#e5ebf1]">

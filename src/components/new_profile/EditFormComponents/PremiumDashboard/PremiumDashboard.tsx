@@ -28,7 +28,7 @@ interface PremiumProfile {
     has_horo: number;
     Profile_idproof: string;
     owner_name: string;
-    has_idproof: string;
+    has_idproof: number;
     Last_login_date: string;
     call_status: string | null;
     last_call_date: string | null;
@@ -806,6 +806,9 @@ const PremiumDashboard: React.FC = () => {
 
     };
 
+    const yesNo = (value: number | null | undefined) =>
+        value === 1 ? "Yes" : value === 0 ? "No" : "N/A";
+
     const CustomerLogPopup = ({ profile }: { profile: PremiumProfile }) => (
         <Box sx={{ py: 1 }}>
             <Grid container spacing={2}>
@@ -1154,9 +1157,9 @@ const PremiumDashboard: React.FC = () => {
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.plan_name || 'N/A'}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.membership_startdate || 'N/A'}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.membership_enddate || 'N/A'}</td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.has_photo || 'N/A'}</td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.has_horo || 'N/A'}</td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.has_idproof || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(row.has_photo)}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(row.has_horo)}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(row.has_idproof)}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.owner_name || 'N/A'}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">
                                                     {/* {row.Last_login_date
