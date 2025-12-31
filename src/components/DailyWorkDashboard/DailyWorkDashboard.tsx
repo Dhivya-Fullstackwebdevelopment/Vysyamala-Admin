@@ -307,7 +307,7 @@ const DailyWorkDashboard: React.FC = () => {
                                     onChange={(e) => handleStaffChange(e.target.value)}
                                     disabled={ownersLoading}
                                 >
-                                    <option value="">{ownersLoading ? "Loading Staff..." : "All Staff (Admin)"}</option>
+                                    {/* <option value="">{ownersLoading ? "Loading Staff..." : "Select staff"}</option> */}
                                     {profileOwners.map(owner => (
                                         <option key={owner.id} value={owner.id}>{owner.username}</option>
                                     ))}
