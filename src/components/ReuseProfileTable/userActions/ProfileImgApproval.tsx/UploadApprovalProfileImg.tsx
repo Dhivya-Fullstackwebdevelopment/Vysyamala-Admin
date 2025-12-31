@@ -386,7 +386,7 @@ export const UploadApprovalProfileImg = () => {
 
                         <div className="flex items-center gap-4 mt-2">
                             {/* Approve Controls - Fixed */}
-                            {hasPermission('new_photo_update') && (
+                            {hasPermission('edit_horo_photo') && (
                                 <div className="flex items-center space-x-2">
                                     <input
                                         id={`approve-${image.id}`}
@@ -409,7 +409,7 @@ export const UploadApprovalProfileImg = () => {
                             )}
 
                             {/* Delete Controls - Fixed */}
-                            {hasPermission('new_photo_update') && (
+                            {hasPermission('edit_horo_photo') && (
                                 <div className="flex items-center space-x-2">
                                     <input
                                         id={`delete-${image.id}`}
@@ -438,39 +438,43 @@ export const UploadApprovalProfileImg = () => {
             {/* Password */}
             <div className="flex items-start gap-2">
                 <div className="flex flex-col space-y-3">
-                    <div className="flex items-center relative">
-                        <span className="w-50 font-semibold text-black">Password</span>
-                        <div className="relative flex items-center">
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                id="password"
-                                {...register("photo_password")}
-                                className="mt-1 px-2 py-1 pr-10 border border-gray-300 rounded-md focus:outline-none"
-                                placeholder="Enter password"
-                            />
-                            <span
-                                onClick={() => setShowPassword(prev => !prev)}
-                                // Position the icon absolutely within the new relative container
-                                className="absolute right-3 cursor-pointer text-gray-600"
-                            >
-                                {showPassword ? <IoEyeOff size={18} /> : <IoEye size={18} />}
-                            </span>
-                        </div>
+                    {hasPermission('edit_horo_photo') && (
+                        <div className="flex items-center relative">
+                            <span className="w-50 font-semibold text-black">Password</span>
+                            <div className="relative flex items-center">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    id="password"
+                                    {...register("photo_password")}
+                                    className="mt-1 px-2 py-1 pr-10 border border-gray-300 rounded-md focus:outline-none"
+                                    placeholder="Enter password"
+                                />
+                                <span
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                    // Position the icon absolutely within the new relative container
+                                    className="absolute right-3 cursor-pointer text-gray-600"
+                                >
+                                    {showPassword ? <IoEyeOff size={18} /> : <IoEye size={18} />}
+                                </span>
+                            </div>
 
-                        {errors.photo_password && (
-                            <span className="text-red-500 text-sm">{errors.photo_password.message}</span>
-                        )}
-                    </div>
+                            {errors.photo_password && (
+                                <span className="text-red-500 text-sm">{errors.photo_password.message}</span>
+                            )}
+                        </div>
+                    )}
                     {/* Permission */}
-                    <div className="flex">
-                        <span className="w-50 font-semibold text-black">Photo Lock</span>
-                        <input
-                            type="checkbox"
-                            className="mr-2p"
-                            checked={photoProtection} // ✅ Directly use the boolean state
-                            onChange={handleProtectionChange} // ✅ Set boolean directly 
-                        />
-                    </div>
+                    {hasPermission('edit_horo_photo') && (
+                        <div className="flex">
+                            <span className="w-50 font-semibold text-black">Photo Lock</span>
+                            <input
+                                type="checkbox"
+                                className="mr-2p"
+                                checked={photoProtection} // ✅ Directly use the boolean state
+                                onChange={handleProtectionChange} // ✅ Set boolean directly 
+                            />
+                        </div>
+                    )}
 
                     {/* <div className="flex">
                         <span className="w-50 font-semibold text-black">LAD</span>
@@ -491,7 +495,7 @@ export const UploadApprovalProfileImg = () => {
                     )}
 
                     {/* ✅ Step 4: Add this block to display selected file names */}
-                    {hasPermission('edit_horo_photo') && (
+                    {hasPermission('new_photo_update') && (
                         <div className="flex">
                             {/* <span className="w-100 font-semibold text-black">Upload Horoscope</span> */}
                             <FileInput
@@ -522,17 +526,19 @@ export const UploadApprovalProfileImg = () => {
                                     {getFileNameFromUrl(photoProofDetails.horoscope_file)}
                                 </span>)
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => openDeleteDialog('horoscope', 'horoscope_file')}
-                                className="text-red-500 hover:text-red-700 flex justify-center"
-                            >
-                                <FaTrashAlt size={18} />
-                            </button>
+                            {hasPermission('edit_horo_photo') && (
+                                <button
+                                    type="button"
+                                    onClick={() => openDeleteDialog('horoscope', 'horoscope_file')}
+                                    className="text-red-500 hover:text-red-700 flex justify-center"
+                                >
+                                    <FaTrashAlt size={18} />
+                                </button>
+                            )}
                         </div>
                     )}
 
-                    {hasPermission('edit_horo_photo') && (
+                    {hasPermission('new_photo_update') && (
                         <div className="flex">
                             <FileInput
                                 label="Horoscope Admin"
@@ -567,28 +573,31 @@ export const UploadApprovalProfileImg = () => {
                                     {getFileNameFromUrl(photoProofDetails.horoscope_file_admin)}
                                 </span>)
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => openDeleteDialog('horoscope', 'horoscope_file_admin')}
-                                className="text-red-500 hover:text-red-700 flex justify-center"
-                                aria-label="Delete Original Horoscope"
-                            >
-                                <FaTrashAlt size={16} />
-                            </button>
+                            {hasPermission('edit_horo_photo') && (
+                                <button
+                                    type="button"
+                                    onClick={() => openDeleteDialog('horoscope', 'horoscope_file_admin')}
+                                    className="text-red-500 hover:text-red-700 flex justify-center"
+                                    aria-label="Delete Original Horoscope"
+                                >
+                                    <FaTrashAlt size={16} />
+                                </button>
+                            )}
                         </div>
                     )}
 
-
-                    <div className="flex">
-                        {/* <span className="w-100 font-semibold text-black">Upload ID Proof</span> */}
-                        <FileInput
-                            label="ID Proof"
-                            files={idProofFiles}
-                            onFilesChange={setIdProofFiles}
-                            accept="image/*,.pdf,.doc,.docx"
-                            multiple={false}
-                        />
-                    </div>
+                    {hasPermission('new_photo_update') && (
+                        <div className="flex">
+                            {/* <span className="w-100 font-semibold text-black">Upload ID Proof</span> */}
+                            <FileInput
+                                label="ID Proof"
+                                files={idProofFiles}
+                                onFilesChange={setIdProofFiles}
+                                accept="image/*,.pdf,.doc,.docx"
+                                multiple={false}
+                            />
+                        </div>
+                    )}
                     {photoProofDetails?.id_proof && (
                         <div className="grid grid-cols-3 items-center gap-4">
                             <span className="w-50 font-semibold text-black">ID Proof</span>
@@ -611,27 +620,31 @@ export const UploadApprovalProfileImg = () => {
                                     {getFileNameFromUrl(photoProofDetails.id_proof)}
                                 </span>)
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => openDeleteDialog('registration', 'Profile_idproof')}
-                                className="text-red-500 hover:text-red-700 flex justify-center"
-                                aria-label="Delete Original Horoscope"
-                            >
-                                <FaTrashAlt size={16} />
-                            </button>
+                            {hasPermission('edit_horo_photo') && (
+                                <button
+                                    type="button"
+                                    onClick={() => openDeleteDialog('registration', 'Profile_idproof')}
+                                    className="text-red-500 hover:text-red-700 flex justify-center"
+                                    aria-label="Delete Original Horoscope"
+                                >
+                                    <FaTrashAlt size={16} />
+                                </button>
+                            )}
                         </div>
                     )}
                     {['2', '4', '5'].includes(photoProofDetails?.profile_martial_status) && (
                         <>
-                            <div className="flex">
-                                <FileInput
-                                    label="Upload Divorce Proof"
-                                    files={divorceProofFiles}
-                                    onFilesChange={setDivorceProofFiles}
-                                    accept="image/*,.pdf,.doc,.docx"
-                                    multiple={false}
-                                />
-                            </div>
+                            {hasPermission('new_photo_update') && (
+                                <div className="flex">
+                                    <FileInput
+                                        label="Upload Divorce Proof"
+                                        files={divorceProofFiles}
+                                        onFilesChange={setDivorceProofFiles}
+                                        accept="image/*,.pdf,.doc,.docx"
+                                        multiple={false}
+                                    />
+                                </div>
+                            )}
                         </>
                     )}
                     {photoProofDetails?.divorce_certificate && (
@@ -656,14 +669,16 @@ export const UploadApprovalProfileImg = () => {
                                     {getFileNameFromUrl(photoProofDetails.divorce_certificate)}
                                 </span>)
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => openDeleteDialog('registration', 'Profile_divorceproof')}
-                                className="text-red-500 hover:text-red-700 flex justify-center"
-                                aria-label="Delete Original Horoscope"
-                            >
-                                <FaTrashAlt size={16} />
-                            </button>
+                            {hasPermission('edit_horo_photo') && (
+                                <button
+                                    type="button"
+                                    onClick={() => openDeleteDialog('registration', 'Profile_divorceproof')}
+                                    className="text-red-500 hover:text-red-700 flex justify-center"
+                                    aria-label="Delete Original Horoscope"
+                                >
+                                    <FaTrashAlt size={16} />
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
