@@ -994,7 +994,7 @@ const BasicDetails: React.FC<formProps> = ({
                 </p>
               )}
             </div> */}
-            <div ref={MobileNoRef} className="w-full">
+            <div ref={MobileNoRef} className="w-1/3">
               <label className="block text-[#5a5959e6] font-semibold mb-1">
                 Profile Mobile No
                 {/* <span className="text-red-500">*</span> */}
