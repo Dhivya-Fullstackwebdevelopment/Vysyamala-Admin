@@ -170,7 +170,7 @@ export const UploadApprovalProfileImg = () => {
         try {
             const apiTasks = [];
 
-            if (newProfileImages.length > 0) {
+            if (newProfileImages.length > 0 && hasPermission('new_photo_update')) {
                 // Add the new profile image upload task to our list
                 apiTasks.push(
                     uploadNewProfileImages(profileId, newProfileImages)
@@ -184,7 +184,7 @@ export const UploadApprovalProfileImg = () => {
                 divorceProofFiles.length > 0 ||
                 horoscopeAdminFiles.length > 0; // ✅ Corrected this line
 
-            if (hasProofFilesToUpload) {
+            if (hasProofFilesToUpload && hasPermission('new_photo_update')) {
                 apiTasks.push(
                     uploadProofFiles(
                         profileId,
@@ -198,26 +198,32 @@ export const UploadApprovalProfileImg = () => {
             }
 
             // Task for updating image status and password
-            const passwordValue = watch("photo_password");
-            const imageIds = photoProofDetails.profile_images.map(img => img.id).join(",");
-            const imageApprovedStatuses = photoProofDetails.profile_images.map(img => (img.image_approved ? "1" : "0")).join(",");
-            const isDeleted = photoProofDetails.profile_images.map(img => (img.is_deleted ? "1" : "0")).join(",");
+            if (hasPermission('edit_horo_photo')) {
+                const passwordValue = watch("photo_password");
+                const imageIds = photoProofDetails.profile_images.map(img => img.id).join(",");
+                const imageApprovedStatuses = photoProofDetails.profile_images.map(img => (img.image_approved ? "1" : "0")).join(",");
+                const isDeleted = photoProofDetails.profile_images.map(img => (img.is_deleted ? "1" : "0")).join(",");
 
-            apiTasks.push(
-                getPhotoProofDetails(
-                    profileId,
-                    imageIds,
-                    isDeleted,
-                    imageApprovedStatuses,
-                    passwordValue || "",
-                    photoProtection ? "1" : "0",
-                )
-            );
-
+                apiTasks.push(
+                    getPhotoProofDetails(
+                        profileId,
+                        imageIds,
+                        isDeleted,
+                        imageApprovedStatuses,
+                        passwordValue || "",
+                        photoProtection ? "1" : "0",
+                    )
+                );
+            }
             // --- Run all tasks concurrently ---
-            await Promise.all(apiTasks);
-
-            NotifySuccess("Profile updated successfully!");
+            // await Promise.all(apiTasks);
+            // NotifySuccess("Profile updated successfully!");
+            if (apiTasks.length > 0) {
+                await Promise.all(apiTasks);
+                NotifySuccess("Profile updated successfully!");
+            } else {
+                NotifyError("No changes detected");
+            }
 
             // ✅ Clear the file input states on success
             setNewProfileImages([]);
@@ -684,16 +690,18 @@ export const UploadApprovalProfileImg = () => {
                 </div>
             </div>
             {/* ✅ Submit Button */}
-            <div className="w-full flex justify-center mt-6 ml-60">
-                <button
-                    onClick={ImageStatusSubmit} // ✅ no need for handleSubmit
+            {(hasPermission('edit_horo_photo') || hasPermission('new_photo_update')) && (
+                <div className="w-full flex justify-center mt-6 ml-60">
+                    <button
+                        onClick={ImageStatusSubmit} // ✅ no need for handleSubmit
 
-                    type="submit"
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2"
-                >
-                    Submit
-                </button>
-            </div>
+                        type="submit"
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2"
+                    >
+                        Submit
+                    </button>
+                </div>
+            )}
             <ConfirmationDialog
                 open={deleteDialogOpen}
                 onClose={handleDeleteCancel}
