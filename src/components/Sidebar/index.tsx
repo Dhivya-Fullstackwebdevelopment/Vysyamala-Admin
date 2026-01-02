@@ -4,7 +4,8 @@ import SidebarLinkGroup from './SidebarLinkGroup';
 import Logo from '../../../public/Vysyamala.svg';
 import { CgProfile } from 'react-icons/cg';
 import { FaUser, FaUserCog, FaSearch, FaSearchPlus } from 'react-icons/fa';
-import { MdAddLocationAlt, MdAppRegistration, MdAutorenew, MdDashboard } from 'react-icons/md';
+import { GiBigDiamondRing } from "react-icons/gi";
+import { MdAddLocationAlt, MdAppRegistration, MdAutorenew, MdDashboard, MdDelete } from 'react-icons/md';
 import { FaRegStar } from 'react-icons/fa';
 import { MdFamilyRestroom } from 'react-icons/md';
 import { ImProfile } from 'react-icons/im';
@@ -13,6 +14,7 @@ import { IoCall, IoDocumentTextOutline, IoSettings } from 'react-icons/io5';
 import { FaClipboardUser } from "react-icons/fa6";
 import { RxDashboard } from 'react-icons/rx';
 import { hasPermission } from '../utils/auth';
+import { BsListTask } from 'react-icons/bs';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -1435,8 +1437,48 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         (isActive && '!text-PrimaryRed')
                       }
                     >
-                      <MdDashboard />
+                      <BsListTask className="text-lg" />
                       Daily Work Dashboard
+                    </NavLink>
+                  </li>
+                </ul>
+              </div>
+              <div
+                className={`translate transform overflow-hidden ${!open && 'hidden'
+                  }`}
+              >
+                <ul className=" mb-5 flex flex-col">
+                  {/* Submenu Items */}
+                  <li>
+                    <NavLink
+                      to="/MarriageDashboard"
+                      className={({ isActive }) =>
+                        'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
+                        (isActive && '!text-PrimaryRed')
+                      }
+                    >
+                      <GiBigDiamondRing className="text-lg" />
+                      Marriage Dashboard
+                    </NavLink>
+                  </li>
+                </ul>
+              </div>
+              <div
+                className={`translate transform overflow-hidden ${!open && 'hidden'
+                  }`}
+              >
+                <ul className=" mb-5 flex flex-col">
+                  {/* Submenu Items */}
+                  <li>
+                    <NavLink
+                      to="/DeleteDashboard"
+                      className={({ isActive }) =>
+                        'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
+                        (isActive && '!text-PrimaryRed')
+                      }
+                    >
+                      <MdDelete className="text-lg" />
+                      Delete Dashboard
                     </NavLink>
                   </li>
                 </ul>

@@ -123,6 +123,8 @@ import RegistrationDashboard from './components/RegistrationDashboard/Registrati
 import ProspectDashboard from './components/ProspectDashboard/ProspectDashboard';
 import PremiumDashboard from './components/new_profile/EditFormComponents/PremiumDashboard/PremiumDashboard';
 import DailyWorkDashboard from './components/DailyWorkDashboard/DailyWorkDashboard';
+import MarriageDashboard from './components/MarriageDashboard/MarriageDashboard';
+import DeleteDashboard from './components/DeleteDashboard/DeleteDashboard';
 
 function App() {
   const { pathname } = useLocation();
@@ -1145,6 +1147,8 @@ function App() {
                 <Route path="/ProspectDashboard" element={<ProspectDashboard />} />
                 <Route path="/PremiumDashboard" element={<PremiumDashboard />} />
                 <Route path="/DailyWorkDashboard" element={<DailyWorkDashboard />} />
+                <Route path="/MarriageDashboard" element={<MarriageDashboard />} />
+                <Route path="/DeleteDashboard" element={<DeleteDashboard />} />
               </Routes>
             </DefaultLayout>
           }
