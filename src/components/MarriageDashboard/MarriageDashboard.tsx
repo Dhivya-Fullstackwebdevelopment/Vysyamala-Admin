@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import { apiAxios } from '../../api/apiUrl'; // Ensure this path is correct
 import '../../index.css';
+import { MdToggleOff, MdToggleOn } from 'react-icons/md';
 
 // --- Styles & Constants ---
 const DASHBOARD_CONTAINER = "bg-white rounded-xl border border-[#E3E6EE] p-7 shadow-sm mb-8";
@@ -14,6 +15,27 @@ const BTN_OUTLINE = "bg-white border border-gray-300 text-[#0A1735] px-6 py-2 ro
 interface ProfileOwner {
     id: string;
     username: string;
+}
+
+interface MarriageProfile {
+    ProfileId: string | number;
+    dh_date_time?: string;
+    Profile_name?: string;
+    age?: number;
+    plan_name?: string;
+    state?: string;
+    Profile_city?: string;
+    owner_name?: string;
+    marriagedate?: string;
+    engagementdate?: string;
+    groombridevysysaid?: string;
+    settledthru?: string;
+    marriagephotodetails?: string;
+    engagementphotodetails?: string;
+    marriageinvitationdetails?: string;
+    last_call_date?: string;
+    last_call_comments?: string;
+    next_call_date?: string;
 }
 
 const MarriageDashboard: React.FC = () => {
@@ -39,6 +61,8 @@ const MarriageDashboard: React.FC = () => {
         profileId: "",
         searchQuery: "",
         countFilter: "",
+        genderFilter: "",
+        order_by: "asc",
     });
 
     const [triggerFetch, setTriggerFetch] = useState(true);
@@ -74,6 +98,8 @@ const MarriageDashboard: React.FC = () => {
         if (currentFilters.toDate) params.append('to_date', currentFilters.toDate);
         if (currentFilters.profileId) params.append('profile_id', currentFilters.profileId);
         if (currentFilters.countFilter) params.append('countFilter', currentFilters.countFilter);
+        if (currentFilters.genderFilter) params.append('genderFilter', currentFilters.genderFilter);
+        if (currentFilters.order_by) params.append('order_by', currentFilters.order_by);
 
         const ownerId = (RoleID === "7") ? currentFilters.owner : (SuperAdminID || "");
         if (ownerId) params.append("owner", ownerId);
@@ -129,7 +155,9 @@ const MarriageDashboard: React.FC = () => {
         const updatedFilters = {
             ...filters,
             countFilter: filters.countFilter === key ? "" : key,
-            searchQuery: ""
+            searchQuery: "",
+            genderFilter: "",
+            order_by: "asc",
         };
         console.log("updatedFilters", updatedFilters)
         // 2. Update the state for the UI/Inputs
@@ -160,6 +188,8 @@ const MarriageDashboard: React.FC = () => {
             owner: RoleID === "7" ? "" : (SuperAdminID || ""),
             searchQuery: "",
             countFilter: "",
+            genderFilter: "",
+            order_by: "asc",
         });
 
         setScrollSource('filter');
@@ -539,7 +569,41 @@ const MarriageDashboard: React.FC = () => {
                     <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
                         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                             <h5 className="text-lg font-semibold text-[#0A1735]">📋 List View ({tableData.length})</h5>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <select
+                                    className="h-10 px-4 rounded-full border border-gray-300 text-sm focus:outline-none bg-white cursor-pointer"
+                                    value={filters.genderFilter}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setFilters(prev => ({ ...prev, genderFilter: val }));
+                                        setApplyFilters(true); // Trigger auto-reload on change
+                                    }}
+                                >
+                                    <option value="">All</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+
+                                {/* Sort Toggle (ASC/DESC) */}
+                                <button
+                                    onClick={() => {
+                                        const nextOrder = filters.order_by === "desc" ? "asc" : "desc";
+                                        const newFilters = { ...filters, order_by: nextOrder };
+                                        setFilters(newFilters);
+                                        fetchDashboardData(newFilters);
+                                    }}
+                                    className={`h-10 px-4 rounded-full border transition flex items-center gap-3 text-sm font-semibold shadow-sm ${filters.order_by === "asc"
+                                        ? "bg-white border-gray-300 text-gray-700"
+                                        : "bg-[#0A1735] border-[#0A1735] text-white"
+                                        }`}
+                                >
+                                    <span>Sort Deleted Date</span>
+                                    {filters.order_by === "asc" ? (
+                                        <MdToggleOff size={28} className="text-gray-400" />
+                                    ) : (
+                                        <MdToggleOn size={28} className="text-blue-400" />
+                                    )}
+                                </button>
                                 <input
                                     type="text"
                                     placeholder="Search Profile ID / Name"
