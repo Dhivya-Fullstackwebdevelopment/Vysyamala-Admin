@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import { RiArrowDropDownLine } from 'react-icons/ri';
-import { apiAxios } from '../../api/apiUrl'; // Ensure this path is correct\
+import { apiAxios } from '../../api/apiUrl'; // Ensure this path is correct
 import '../../index.css';
 
 // --- Styles & Constants ---
@@ -23,9 +23,13 @@ const MarriageDashboard: React.FC = () => {
     const [profileOwners, setProfileOwners] = useState<ProfileOwner[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [tableData, setTableData] = useState<any[]>([]);
-
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const [scrollSource, setScrollSource] = useState<'card' | 'filter' | null>(null);
+    const [applyFilters, setApplyFilters] = useState(false);
+    const [originalTableData, setOriginalTableData] = useState<MarriageProfile[]>([]);
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
     const SuperAdminID = localStorage.getItem('id') || sessionStorage.getItem('id');
+    const tableRef = useRef<HTMLDivElement>(null);
 
     const [filters, setFilters] = useState({
         particulars: "",
@@ -33,7 +37,8 @@ const MarriageDashboard: React.FC = () => {
         toDate: "",
         owner: SuperAdminID || "",
         profileId: "",
-        countFilter: ""
+        searchQuery: "",
+        countFilter: "",
     });
 
     const [triggerFetch, setTriggerFetch] = useState(true);
@@ -49,100 +54,289 @@ const MarriageDashboard: React.FC = () => {
     }, []);
 
     // --- Fetch Main Dashboard Data ---
-    const fetchDashboardData = useCallback(async () => {
+    const fetchDashboardData = useCallback(async (currentFilters = filters) => {
+        // 1. Abort existing request
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // 2. Create new controller
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
+        // 3. FORCE LOADING STATES IMMEDIATELY
         setTableLoading(true);
-        if (!stats) setLoading(true);
+        setTableData([]); // Clear previous records to prevent "ghosting"
 
         const params = new URLSearchParams();
-        if (filters.particulars) params.append('particular_id', filters.particulars);
-        if (filters.fromDate) params.append('from_date', filters.fromDate);
-        if (filters.toDate) params.append('to_date', filters.toDate);
-        if (filters.profileId) params.append('profile_id', filters.profileId);
-        if (filters.countFilter) params.append('countFilter', filters.countFilter);
+        if (currentFilters.particulars) params.append('particular_id', currentFilters.particulars);
+        if (currentFilters.fromDate) params.append('from_date', currentFilters.fromDate);
+        if (currentFilters.toDate) params.append('to_date', currentFilters.toDate);
+        if (currentFilters.profileId) params.append('profile_id', currentFilters.profileId);
+        if (currentFilters.countFilter) params.append('countFilter', currentFilters.countFilter);
 
-        const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
+        const ownerId = (RoleID === "7") ? currentFilters.owner : (SuperAdminID || "");
         if (ownerId) params.append("owner", ownerId);
 
         try {
-            const response = await apiAxios.get('api/marriage-report/', { params });
+            const response = await apiAxios.get('api/marriage-report/', {
+                params: Object.fromEntries(params.entries()),
+                signal: controller.signal
+            });
             if (response.data.status) {
+                setOriginalTableData(response.data.data);
+                setTableData(response.data.data);
                 setStats(response.data);
-                setTableData(response.data.data || []);
             }
-        } catch (e) {
-            console.error("Dashboard Fetch Error:", e);
+        } catch (e: any) {
+            // If aborted, we exit quietly because the NEXT call has already set its own loading state
+            if (e.name === 'CanceledError' || e.name === 'AbortError' || e.code === "ERR_CANCELED") {
+                return;
+            }
+            console.error("Fetch error:", e);
         } finally {
-            setLoading(false);
-            setTableLoading(false);
-            setTriggerFetch(false);
+            if (abortControllerRef.current === controller) {
+                setTableLoading(false);
+                setLoading(false);
+                setApplyFilters(false);
+            }
         }
-    }, [filters, RoleID, SuperAdminID, stats]);
+    }, [filters, RoleID, SuperAdminID]);
 
     useEffect(() => {
-        fetchProfileOwners();
-    }, [fetchProfileOwners]);
+        if (applyFilters) {
+            if (scrollSource === 'card' && tableRef.current) {
+                tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            // This will now use the latest state if triggered by "Apply Filters" button
+            fetchDashboardData();
+        }
+    }, [applyFilters, scrollSource, fetchDashboardData]);
+
+    // 3. Initial Load
 
     useEffect(() => {
-        if (triggerFetch) fetchDashboardData();
-    }, [triggerFetch, fetchDashboardData]);
+        setLoading(true);       // This triggers the FullWidthLoadingSpinner
+        setTableLoading(true);
+        fetchDashboardData();
+    }, []);
 
-    // --- Handlers ---
-    const handleApplyFilters = () => setTriggerFetch(true);
+
+    const handleCardClick = (key: string) => {
+        setTableLoading(true);
+
+        // 1. Determine the new filter state immediately
+        const updatedFilters = {
+            ...filters,
+            countFilter: filters.countFilter === key ? "" : key,
+            searchQuery: ""
+        };
+        console.log("updatedFilters", updatedFilters)
+        // 2. Update the state for the UI/Inputs
+        setFilters(updatedFilters);
+        // setScrollSource('card');
+        if (tableRef.current) {
+            tableRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // 3. Trigger the fetch IMMEDIATELY with the new values
+        // Don't wait for applyFilters useEffect
+        fetchDashboardData(updatedFilters);
+    };
 
     const handleReset = () => {
+        // Show loading on both sections
+        setLoading(true);
+        setTableLoading(true);
+
         setFilters({
             particulars: "",
             fromDate: "",
             toDate: "",
-            owner: RoleID === "7" ? "" : (SuperAdminID || ""),
             profileId: "",
-            countFilter: ""
+            owner: RoleID === "7" ? "" : (SuperAdminID || ""),
+            searchQuery: "",
+            countFilter: "",
         });
-        setTriggerFetch(true);
+
+        setScrollSource('filter');
+        setApplyFilters(true);
     };
 
-    const handleCardClick = (key: string) => {
-        setFilters(prev => ({ ...prev, countFilter: prev.countFilter === key ? "" : key }));
-        setTriggerFetch(true);
+    const handleApplyFilters = () => {
+        setLoading(true);
+        setTableLoading(true);
+        setScrollSource('filter');
+        setApplyFilters(true);
     };
+
+
+    useEffect(() => {
+        if (applyFilters) {
+            // If it was a card click, scroll first, then fetch
+            if (scrollSource === 'card' && tableRef.current) {
+                tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // Small delay to let the scroll animation start before the heavy API call
+                setTimeout(() => {
+                    fetchDashboardData();
+                }, 100);
+            } else {
+                // Filter/Reset click: just fetch
+                fetchDashboardData();
+            }
+        }
+    }, [applyFilters, scrollSource, fetchDashboardData]);
+
+    useEffect(() => {
+        if (tableLoading) return; // Don't filter while the API is fetching new data
+
+        if (!filters.searchQuery || filters.searchQuery.trim() === '') {
+            setTableData(originalTableData);
+            return;
+        }
+
+        const searchTerm = filters.searchQuery.toLowerCase().trim();
+        const filtered = originalTableData.filter((profile) => {
+            const profileId = (profile.ProfileId || '').toString().toLowerCase();
+            const profileName = (profile.Profile_name || '').toString().toLowerCase();
+            return profileId.includes(searchTerm) || profileName.includes(searchTerm);
+        });
+
+        setTableData(filtered);
+    }, [filters.searchQuery, originalTableData, tableLoading]);
+
+    useEffect(() => {
+        if (RoleID === "7") {
+            fetchProfileOwners();
+        }
+    }, [RoleID, fetchProfileOwners]);
 
     // --- Helper for Mapping KPI Data ---
     const getVal = (path: string, defaultValue: any = 0) => {
         return path.split('.').reduce((o, i) => (o ? o[i] : defaultValue), stats);
     };
 
-    const KPICard = ({ label, value, colorClass, kpiKey, subTn, subNonTn }: any) => (
-        <motion.div
-            whileHover={{ y: -3 }}
-            onClick={() => kpiKey && handleCardClick(kpiKey)}
-            className={`${colorClass} p-5 rounded-2xl min-h-[120px] border border-[#E3E6EE] flex flex-col justify-center cursor-pointer transition-all shadow-sm 
-            ${filters.countFilter === kpiKey && kpiKey ? 'border-2 border-black/40' : ''}`}
-        >
-            <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
-            <div className="flex items-baseline gap-2">
-                <h2 className="text-3xl text-start font-bold">{value}</h2>
-                {subTn !== undefined && (
-                    <div className="flex text-xs font-bold text-gray-500 gap-1">
-                        <span>- {subTn}</span>
-                        <span className="opacity-40">/</span>
-                        <span>{subNonTn}</span>
-                    </div>
-                )}
-            </div>
-            <p className="text-[9px] opacity-60 text-start mt-1">Click to view profiles</p>
-        </motion.div>
-    );
+    const KPICard = ({ label, value, colorClass, kpiKey, subTn, subNonTn }: any) => {
+        // Determine active states for UI highlighting
+        const isActive = filters.countFilter === kpiKey;
+        const isTnActive = filters.countFilter === `${kpiKey}_tn`;
+        const isOthActive = filters.countFilter === `${kpiKey}_tn_oth`;
 
-    if (loading) return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-            <CircularProgress />
+        return (
+            <motion.div
+                whileHover={{ y: -3 }}
+                onClick={() => kpiKey && handleCardClick(kpiKey)}
+                className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
+            ${isActive ? 'border-4 border-black/30 shadow-md' : 'border-[#E3E6EE]'}`}
+            >
+                <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
+                <div className="flex items-baseline gap-2">
+                    {/* Total Count */}
+                    <h2 className={`text-3xl text-start font-bold ${isActive ? 'underline decoration-2' : ''}`}>
+                        {value}
+                    </h2>
+
+                    {/* Sub-counts for TN and Others */}
+                    {subTn !== undefined && (
+                        <div className="flex text-sm font-bold text-gray-500 items-center gap-1">
+                            <span className="mx-1">-</span>
+                            <span
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevents clicking the main card
+                                    handleCardClick(`${kpiKey}_tn`);
+                                }}
+                                className={`hover:text-black transition-all px-1 ${isTnActive ? 'text-black underline decoration-2 underline-offset-4' : ''}`}
+                            >
+                                {subTn}
+                            </span>
+                            <span className="opacity-40">/</span>
+                            <span
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCardClick(`${kpiKey}_tn_oth`);
+                                }}
+                                className={`hover:text-black transition-all px-1 ${isOthActive ? 'text-black underline decoration-2 underline-offset-4' : ''}`}
+                            >
+                                {subNonTn}
+                            </span>
+                        </div>
+                    )}
+                </div>
+                <p className="text-[9px] opacity-60 text-start mt-1">
+                    {isActive || isTnActive || isOthActive ? "Currently Filtering" : "Click to view profiles"}
+                </p>
+            </motion.div>
+        );
+    };
+
+    const FullWidthLoadingSpinner = () => (
+        <Box
+            className="container-fluid mx-auto px-4 sm:px-6 lg:px-8"
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 12, // Increased padding for visibility
+                width: '100%',
+                backgroundColor: '#fff', // White background
+                borderRadius: '1rem',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+                mb: 4, // margin bottom to separate from the table
+            }}
+        >
+            <CircularProgress color="primary" size={40} />
+            <Typography variant="h6" sx={{ mt: 3, color: '#0A1735', fontWeight: 600 }}>
+                Loading...
+            </Typography>
         </Box>
     );
 
+    const LoadingSpinner = () => (
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 8,
+                minHeight: '200px',
+                width: '100%',
+            }}
+        >
+            <CircularProgress color="primary" size={30} />
+            <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                Loading Dashboard Data...
+            </Typography>
+        </Box>
+    );
+
+
+    if (loading && !stats) {
+        return <LoadingSpinner />;
+    }
+
     return (
         <div className="min-h-screen bg-[#F5F7FB] font-inter text-black p-4 md:p-8">
-            <header className="flex flex-wrap justify-between items-start mb-6 gap-4">
+            {/* <header className="flex flex-wrap justify-between items-start mb-6 gap-4">
                 <h2 className="text-2xl font-bold text-[#0A1735]">Marriage Dashboard</h2>
+            </header> */}
+            <header className="flex flex-wrap justify-between items-start mb-6 gap-4">
+                <div className="text-left">
+                    <h2 className="text-2xl font-bold mb-1">Marriage Dashboard</h2>
+                    {/* <p className="text-gray-500 m-0 text-base">Overview of registration profiles, engagement and staff performance.</p> */}
+                </div>
+                <div className="flex gap-3">
+                    <button
+                        className={`${BTN_DARK} flex items-center gap-2 disabled:opacity-70`}
+                    >
+                        Download Report
+                    </button>
+                </div>
             </header>
 
             {/* --- Filters --- */}
@@ -188,17 +382,64 @@ const MarriageDashboard: React.FC = () => {
             </section>
 
             {/* --- KPI Sections --- */}
-            <div className="space-y-6">
-                {/* Section 1: Overall Summary */}
-                <div className={DASHBOARD_CONTAINER}>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {loading ? (
+                <section className="mt-4">
+                    <FullWidthLoadingSpinner />
+                </section>
+            ) : (
+                <>
+                    <div className="space-y-6">
+                        {/* Section 1: Overall Summary */}
+                        <div className={DASHBOARD_CONTAINER}>
+                            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <KPICard label="Total" value={getVal('total_profiles')} colorClass="bg-slate-50 border border-slate-200" kpiKey="total" />
                         <KPICard label="Premium - TN/OTH" value={getVal('plan_counts.premium.total')} subTn={getVal('plan_counts.premium.tn')} subNonTn={getVal('plan_counts.premium.non-tn')} colorClass="bg-emerald-50 border border-emerald-200" kpiKey="premium" />
                         <KPICard label="Free + Offer - TN/OTH" value={getVal('plan_counts.free_offer.total')} subTn={getVal('plan_counts.free_offer.tn')} subNonTn={getVal('plan_counts.free_offer.non-tn')} colorClass="bg-sky-50 border border-sky-200 " kpiKey="free" />
                         <KPICard label="Prospect - TN/OTH" value={getVal('plan_counts.propect.total')} subTn={getVal('plan_counts.propect.tn')} subNonTn={getVal('plan_counts.propect.non-tn')} colorClass="bg-rose-50 border border-rose-200" kpiKey="prospect" />
-                    </div>
-                </div>
-                {/* <div className={DASHBOARD_CONTAINER}>
+                    </div> */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <KPICard
+                                    label="Total"
+                                    value={getVal('total_profiles')}
+                                    colorClass="bg-slate-50"
+                                    kpiKey="total"
+                                />
+                                <KPICard
+                                    label="Premium - TN/OTH"
+                                    value={getVal('plan_counts.premium.total')}
+                                    subTn={getVal('plan_counts.premium.tn')}
+                                    subNonTn={getVal('plan_counts.premium.non-tn')}
+                                    colorClass="bg-emerald-50"
+                                    kpiKey="premium"
+                                />
+                                <KPICard
+                                    label="Free + Offer - TN/OTH"
+                                    value={getVal('plan_counts.free_offer.total')}
+                                    subTn={getVal('plan_counts.free_offer.tn')}
+                                    subNonTn={getVal('plan_counts.free_offer.non-tn')}
+                                    colorClass="bg-sky-50"
+                                    kpiKey="free"
+                                />
+                                <KPICard
+                                    label="Prospect - TN/OTH"
+                                    value={getVal('plan_counts.propect.total')}
+                                    subTn={getVal('plan_counts.propect.tn')}
+                                    subNonTn={getVal('plan_counts.propect.non-tn')}
+                                    colorClass="bg-rose-50"
+                                    kpiKey="propect"
+                                />
+                            </div>
+
+                            {/* ... Work Stats ... */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
+                                <KPICard label="Today’s Work" value={getVal('work_counts.today_work')} colorClass="bg-green-50" kpiKey="today_work" />
+                                <KPICard label="Pending Work" value={getVal('work_counts.pending_work')} colorClass="bg-orange-50" kpiKey="pending_work" />
+                                <KPICard label="Today’s Action" value={getVal('task_counts.today_task')} colorClass="bg-indigo-50" kpiKey="today_task" />
+                                <KPICard label="Pending Action" value={getVal('task_counts.pending_task')} colorClass="bg-rose-50" kpiKey="pending_task" />
+                                <KPICard label="Assigned Work" value={getVal('assigned_to_me')} colorClass="bg-teal-50" kpiKey="assigned_to_me" />
+                            </div>
+                        </div>
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}> Premium - Settlement Type</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Thru Vysyamala" value="12" colorClass="bg-[#F0FDF4]" />
@@ -208,8 +449,8 @@ const MarriageDashboard: React.FC = () => {
                     </div>
                 </div> */}
 
-                {/* 📝 REGISTRATION DASHBOARD */}
-                {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* 📝 REGISTRATION DASHBOARD */}
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>Total - FOP(Free + Offer + Prospect)</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Thru Vysyamala" value="12" colorClass="bg-[#F1F7FF]" />
@@ -219,7 +460,7 @@ const MarriageDashboard: React.FC = () => {
                     </div>
                 </div> */}
 
-                {/* <div className={DASHBOARD_CONTAINER}>
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <h3 className={HEADER_TEXT}>Status</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         <KPICard label="Upcoming Marriage" value="14" colorClass="bg-orange-50" />
@@ -227,10 +468,10 @@ const MarriageDashboard: React.FC = () => {
                     </div>
                 </div> */}
 
-                <div className={DASHBOARD_CONTAINER}>
+                        {/* <div className={DASHBOARD_CONTAINER}>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
 
-                        {/* <KPICard
+                        <KPICard
                             label="M.Date Not Entered"
                             value="5"
                             colorClass="bg-purple-50 border-purple-200"
@@ -258,7 +499,7 @@ const MarriageDashboard: React.FC = () => {
                             label="Instagram Interested"
                             value="3"
                             colorClass="bg-pink-50 border-pink-200"
-                        /> */}
+                        />
 
                         <KPICard
                             label="Today’s Work"
@@ -290,126 +531,144 @@ const MarriageDashboard: React.FC = () => {
                             colorClass="bg-teal-50 border-teal-200"
                         />
                     </div>
-                </div>
-            </div>
+                </div> */}
+                    </div>
 
-            {/* --- Table Section --- */}
-            {/* 📋 TABLE SECTION */}
-            <section className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h5 className="text-lg font-semibold text-[#0A1735]">📋 List View ({tableData.length})</h5>
-                </div>
+                    {/* --- Table Section --- */}
+                    {/* 📋 TABLE SECTION */}
+                    <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
+                        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                            <h5 className="text-lg font-semibold text-[#0A1735]">📋 List View ({tableData.length})</h5>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Search Profile ID / Name"
+                                    value={filters.searchQuery}
+                                    onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                                    className="w-[250px] h-10 px-4 rounded-full border border-gray-300 text-sm focus:outline-none focus:border-gray-500 transition"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setFilters({ ...filters, searchQuery: "" });
+                                        setScrollSource('filter');
+                                        setApplyFilters(true);  // 👈 reload table after clearing
+                                    }}
+                                    className="h-10 px-4 rounded-full bg-white border border-gray-300 text-sm font-semibold hover:bg-gray-50 transition">Clear</button>
+                            </div>
+                        </div>
 
-                <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-                    <table className="min-w-full border-separate border-spacing-0 table-auto">
-                        <thead className="sticky top-0 z-20">
-                            <tr className="bg-gray-50">
-                                {[
-                                    "Profile ID", "Deleted Date", "Name", "Age", "Mode", "State", "City", "Owner",
-                                    "Marriage Date", "Engagement Date", "Groom/Bride ID",
-                                    // "Groom/Bride Name",
-                                    // "Groom/Bride City",
-                                    //  "Groom/Bride Father Name", 
-                                    "Marriage Settled Thru",
-                                    "Marriage Photo", "Engagement Photo", "Marriage Invitation",
-                                    // "Marriage Location",
-                                    // "Marriage Comments", 
-                                    // "Admin Marriage Comments", 
-                                    "LCD (Last Call Date)",
-                                    "Last Call Comments", "NCD (Next Call Date)"
-                                ].map((col, index) => (
-                                    <th
-                                        key={col}
-                                        className={`sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] border-b-0 whitespace-nowrap 
+                        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                            <table className="min-w-full border-separate border-spacing-0 table-auto">
+                                <thead className="sticky top-0 z-20">
+                                    <tr className="bg-gray-50">
+                                        {[
+                                            "Profile ID", "Deleted Date", "Name", "Age", "Mode", "State", "City", "Owner",
+                                            "Marriage Date", "Engagement Date", "Groom/Bride ID",
+                                            // "Groom/Bride Name",
+                                            // "Groom/Bride City",
+                                            //  "Groom/Bride Father Name", 
+                                            "Marriage Settled Thru",
+                                            "Marriage Photo", "Engagement Photo", "Marriage Invitation",
+                                            // "Marriage Location",
+                                            // "Marriage Comments", 
+                                            // "Admin Marriage Comments", 
+                                            "LCD (Last Call Date)",
+                                            "Last Call Comments", "NCD (Next Call Date)"
+                                        ].map((col, index) => (
+                                            <th
+                                                key={col}
+                                                className={`sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] border-b-0 whitespace-nowrap 
                                 ${index === 0 ? 'rounded-tl-xl' : ''}`}
-                                    >
-                                        {col}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tableLoading ? (
-                                <tr>
-                                    <td colSpan={24} className="py-20 text-center">
-                                        <CircularProgress size={30} />
-                                        <p className="mt-2 text-sm text-gray-500">Fetching Marriage Records...</p>
-                                    </td>
-                                </tr>
-                            ) : tableData.length > 0 ? (
-                                tableData.map((row) => (
-                                    <tr key={row.ProfileId} className="hover:bg-gray-50 transition-colors">
-                                        {/* Profile ID */}
-                                        <th className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1] whitespace-nowrap left-0 bg-white z-10 group-hover:bg-gray-50">
-                                            <a href={`/viewProfile?profileId=${row.ProfileId}`} target="_blank" rel="noreferrer" className="hover:underline">
-                                                {row.ProfileId}
-                                            </a>
-                                        </th>
-                                        {/* Deleted Date (dh_date_time) */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">
-                                            {row.dh_date_time ? new Date(row.dh_date_time.replace("T", " ")).toLocaleDateString('en-CA') : 'N/A'}
-                                        </td>
-                                        {/* Name */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap font-medium">{row.Profile_name}</td>
-                                        {/* Age */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{row.age}</td>
-                                        {/* Mode (Plan Name) */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.plan_name || 'N/A'}</td>
-                                        {/* State */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.state || 'N/A'}</td>
-                                        {/* City */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.Profile_city || 'N/A'}</td>
-                                        {/* Owner */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.owner_name || 'N/A'}</td>
-                                        {/* Marriage Date */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.marriagedate || 'N/A'}</td>
-                                        {/* Engagement Date */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.engagementdate || 'N/A'}</td>
-                                        {/* Groom/Bride ID */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap font-mono">{row.groombridevysysaid || 'N/A'}</td>
-                                        {/* Groom/Bride Name */}
-                                        {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
-                                        {/* Groom/Bride City */}
-                                        {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
-                                        {/* Groom/Bride Father Name */}
-                                        {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
-                                        {/* Marriage Settled Thru */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.settledthru || 'N/A'}</td>
-                                        {/* Marriage Photo */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.marriagephotodetails || 'N/A'}</td>
-                                        {/* Engagement Photo */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.engagementphotodetails || 'N/A'}</td>
-                                        {/* Marriage Invitation */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.marriageinvitationdetails || 'N/A'}</td>
-                                        {/* Marriage Location */}
-                                        {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
-                                        {/* Marriage Comments */}
-                                        {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] min-w-[200px] italic text-gray-500">N/A</td> */}
-                                        {/* Admin Marriage Comments */}
-                                        {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] min-w-[200px]">N/A</td> */}
-                                        {/* LCD (Last Call Date) */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">
-                                            {row.last_call_date ? new Date(row.last_call_date).toLocaleDateString('en-CA') : 'N/A'}
-                                        </td>
-                                        {/* Last Call Comments */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] min-w-[200px]">{row.last_call_comments || 'N/A'}</td>
-                                        {/* NCD (Next Call Date) */}
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">
-                                            {row.next_call_date ? new Date(row.next_call_date).toLocaleDateString('en-CA') : 'N/A'}
-                                        </td>
+                                            >
+                                                {col}
+                                            </th>
+                                        ))}
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={24} className="text-center py-10 font-semibold text-gray-400">
-                                        No matching records found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                                </thead>
+                                <tbody>
+                                    {tableLoading ? (
+                                        <tr>
+                                            <td colSpan={24} className="py-20 text-center">
+                                                <CircularProgress size={30} />
+                                                <p className="mt-2 text-sm text-gray-500">Loading Marriage Profiles...</p>
+                                            </td>
+                                        </tr>
+                                    ) : tableData.length > 0 ? (
+                                        tableData.map((row) => (
+                                            <tr key={row.ProfileId} className="hover:bg-gray-50 transition-colors">
+                                                {/* Profile ID */}
+                                                <th className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1] whitespace-nowrap left-0 bg-white z-10 group-hover:bg-gray-50">
+                                                    <a href={`/viewProfile?profileId=${row.ProfileId}`} target="_blank" rel="noreferrer" className="hover:underline">
+                                                        {row.ProfileId}
+                                                    </a>
+                                                </th>
+                                                {/* Deleted Date (dh_date_time) */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">
+                                                    {row.dh_date_time ? new Date(row.dh_date_time.replace("T", " ")).toLocaleDateString('en-CA') : 'N/A'}
+                                                </td>
+                                                {/* Name */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap font-medium">{row.Profile_name}</td>
+                                                {/* Age */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{row.age}</td>
+                                                {/* Mode (Plan Name) */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.plan_name || 'N/A'}</td>
+                                                {/* State */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.state || 'N/A'}</td>
+                                                {/* City */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.Profile_city || 'N/A'}</td>
+                                                {/* Owner */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.owner_name || 'N/A'}</td>
+                                                {/* Marriage Date */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.marriagedate || 'N/A'}</td>
+                                                {/* Engagement Date */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.engagementdate || 'N/A'}</td>
+                                                {/* Groom/Bride ID */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap font-mono">{row.groombridevysysaid || 'N/A'}</td>
+                                                {/* Groom/Bride Name */}
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
+                                                {/* Groom/Bride City */}
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
+                                                {/* Groom/Bride Father Name */}
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
+                                                {/* Marriage Settled Thru */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.settledthru || 'N/A'}</td>
+                                                {/* Marriage Photo */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.marriagephotodetails || 'N/A'}</td>
+                                                {/* Engagement Photo */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.engagementphotodetails || 'N/A'}</td>
+                                                {/* Marriage Invitation */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.marriageinvitationdetails || 'N/A'}</td>
+                                                {/* Marriage Location */}
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
+                                                {/* Marriage Comments */}
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] min-w-[200px] italic text-gray-500">N/A</td> */}
+                                                {/* Admin Marriage Comments */}
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] min-w-[200px]">N/A</td> */}
+                                                {/* LCD (Last Call Date) */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">
+                                                    {row.last_call_date ? new Date(row.last_call_date).toLocaleDateString('en-CA') : 'N/A'}
+                                                </td>
+                                                {/* Last Call Comments */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] min-w-[200px]">{row.last_call_comments || 'N/A'}</td>
+                                                {/* NCD (Next Call Date) */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">
+                                                    {row.next_call_date ? new Date(row.next_call_date).toLocaleDateString('en-CA') : 'N/A'}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={24} className="text-center py-10 font-semibold text-gray-400">
+                                                No matching records found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </>
+            )}
         </div >
     );
 };
