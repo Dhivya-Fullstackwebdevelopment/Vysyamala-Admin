@@ -80,15 +80,30 @@ const DeleteDashboard: React.FC = () => {
     }, []);
 
     // --- Handlers ---
-    const handleCardClick = (filterValue: string, isHidden?: boolean, isPending?: boolean) => {
+    const handleCardClick = (
+        filterValue: string,
+        isTn?: boolean,
+        isOth?: boolean,
+        isHidden?: boolean,
+        isPending?: boolean
+    ) => {
+        let finalCountFilter = filterValue;
+
+        // Logic for TN / OTH suffixes
+        if (isTn) finalCountFilter = `${filterValue}_tn`;
+        if (isOth) finalCountFilter = `${filterValue}_tn_oth`;
+
+        // Special logic for Hidden/Pending Current Month
+        // If it's a "hidden" card click, we use 'hidden_current_month' as countFilter
+        // If it's "pending", we use 'pending_current_month' AND set the 'pending=1' param
+
         const updatedFilters = {
             ...filters,
-            // If they click 'tn', we set countFilter. 
-            // If they click 'non_tn', we set countFilter to 'non_tn'
-            countFilter: filters.countFilter === filterValue ? "" : filterValue,
+            countFilter: filters.countFilter === finalCountFilter ? "" : finalCountFilter,
             hidden: isHidden ? "1" : "",
             pending: isPending ? "1" : ""
         };
+
         setFilters(updatedFilters);
 
         if (tableRef.current) {
@@ -114,24 +129,45 @@ const DeleteDashboard: React.FC = () => {
 
     // --- Components ---
     const KPICard = ({ label, value, colorClass, kpiKey, subTn, subNonTn, isHidden, isPending }: any) => {
-        const isActive = filters.countFilter === kpiKey;
+        // Check if this card or its sub-filters are active
+        const isActive = filters.countFilter === kpiKey ||
+            filters.countFilter === `${kpiKey}_tn` ||
+            filters.countFilter === `${kpiKey}_tn_oth`;
 
         return (
             <motion.div
                 whileHover={{ y: -3 }}
-                onClick={() => handleCardClick(kpiKey, isHidden, isPending)}
+                // Main card click (Overall count)
+                onClick={() => handleCardClick(kpiKey, false, false, isHidden, isPending)}
                 className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
-                ${isActive ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
+            ${isActive ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
             >
                 <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
                 <div className="flex items-baseline gap-2">
                     <h2 className="text-3xl text-start font-bold">{value}</h2>
+
                     {subTn !== undefined && (
                         <div className="flex text-sm font-bold text-gray-500 items-center gap-1">
                             <span className="mx-1">-</span>
-                            <span className="hover:text-black transition-all px-1">{subTn}</span>
+                            <span
+                                className={`hover:text-black transition-all px-1 ${filters.countFilter === `${kpiKey}_tn` ? 'text-black underline' : ''}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCardClick(kpiKey, true, false); // Trigger _tn
+                                }}
+                            >
+                                {subTn}
+                            </span>
                             <span className="opacity-40">/</span>
-                            <span className="hover:text-black transition-all px-1">{subNonTn}</span>
+                            <span
+                                className={`hover:text-black transition-all px-1 ${filters.countFilter === `${kpiKey}_tn_oth` ? 'text-black underline' : ''}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCardClick(kpiKey, false, true); // Trigger _tn_oth
+                                }}
+                            >
+                                {subNonTn}
+                            </span>
                         </div>
                     )}
                 </div>
@@ -209,7 +245,7 @@ const DeleteDashboard: React.FC = () => {
                                     value={
                                         <div className="flex gap-2">
                                             <span
-                                                className={` cursor-pointer ${filters.countFilter === 'tn' ? 'text-blue-600' : ''}`}
+                                                className={` cursor-pointer ${filters.countFilter === 'tn' ? 'text-black underline' : ''}`}
                                                 onClick={(e: React.MouseEvent) => {
                                                     e.stopPropagation();
                                                     handleCardClick('tn');
@@ -219,7 +255,7 @@ const DeleteDashboard: React.FC = () => {
                                             </span>
                                             <span className="opacity-30">/</span>
                                             <span
-                                                className={` cursor-pointer ${filters.countFilter === 'non_tn' ? 'text-red-600' : ''}`}
+                                                className={` cursor-pointer ${filters.countFilter === 'non_tn' ? 'text-black underline' : ''}`}
                                                 onClick={(e: React.MouseEvent) => {
                                                     e.stopPropagation();
                                                     handleCardClick('non_tn');
@@ -262,7 +298,7 @@ const DeleteDashboard: React.FC = () => {
                                     subTn={apiData?.plan_counts?.prospect?.tn}
                                     subNonTn={apiData?.plan_counts?.prospect?.non_tn}
                                     colorClass="bg-rose-50"
-                                    kpiKey="prospect"
+                                    kpiKey="propect"
                                 />
                                 <KPICard label="Current Month Delete" value={apiData?.current_month_deletions || 0} colorClass="bg-orange-50" kpiKey="current_month_deletions" />
                                 <KPICard label="Duplicate" value={apiData?.status_counts?.duplicate || 0} colorClass="bg-indigo-50" kpiKey="duplicate" />
@@ -274,8 +310,20 @@ const DeleteDashboard: React.FC = () => {
                                     colorClass="bg-indigo-50"
                                     kpiKey="others"
                                 />
-                                <KPICard label="Hidden / Current Month Hidden" value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`} colorClass="bg-purple-50" kpiKey="hidden_current_month" isHidden={true} />
-                                <KPICard label="Pending / Current Month Pending" value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`} colorClass="bg-teal-50" kpiKey="pending_current_month" isPending={true} />
+                                <KPICard
+                                    label="Hidden / Current Month Hidden"
+                                    value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`}
+                                    colorClass="bg-purple-50"
+                                    kpiKey="hidden_current_month"
+                                    isHidden={true}
+                                />
+                                <KPICard
+                                    label="Pending / Current Month Pending"
+                                    value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`}
+                                    colorClass="bg-teal-50"
+                                    kpiKey="pending_current_month"
+                                    isPending={true}
+                                />
                             </div>
                         </div>
                     </div>
