@@ -130,41 +130,41 @@ const DeleteDashboard: React.FC = () => {
 
             {/* --- Filters Section --- */}
             <section className={DASHBOARD_CONTAINER}>
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        <div className="text-start">
-                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">From Date</label>
-                            <input type="date" value={filters.fromDate} onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
-                        </div>
-                        <div className="text-start">
-                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">To Date</label>
-                            <input type="date" value={filters.toDate} onChange={(e) => setFilters({ ...filters, toDate: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
-                        </div>
-                        {RoleID === "7" && (
-                            <div className="text-start">
-                                <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Owner</label>
-                                <select value={filters.owner} onChange={(e) => setFilters({ ...filters, owner: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white">
-                                    <option value="">Select Owner</option>
-                                    {profileOwners.map(o => <option key={o.id} value={o.id}>{o.username}</option>)}
-                                </select>
-                            </div>
-                        )}
-                        <div className="text-start">
-                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Profile ID</label>
-                            <input type="text" value={filters.profileId} onChange={(e) => setFilters({ ...filters, profileId: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="text-start">
+                        <label className="block text-sm font-semibold text-[#3A3E47] mb-1">From Date</label>
+                        <input type="date" value={filters.fromDate} onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
                     </div>
-                    <div className="flex justify-end gap-3 mt-6">
-                        {/* <button className={BTN_OUTLINE}>Reset</button>
+                    <div className="text-start">
+                        <label className="block text-sm font-semibold text-[#3A3E47] mb-1">To Date</label>
+                        <input type="date" value={filters.toDate} onChange={(e) => setFilters({ ...filters, toDate: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                    {RoleID === "7" && (
+                        <div className="text-start">
+                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Owner</label>
+                            <select value={filters.owner} onChange={(e) => setFilters({ ...filters, owner: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white">
+                                <option value="">Select Owner</option>
+                                {profileOwners.map(o => <option key={o.id} value={o.id}>{o.username}</option>)}
+                            </select>
+                        </div>
+                    )}
+                    <div className="text-start">
+                        <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Profile ID</label>
+                        <input type="text" value={filters.profileId} onChange={(e) => setFilters({ ...filters, profileId: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                    {/* <button className={BTN_OUTLINE}>Reset</button>
                     <button className={BTN_DARK}>Apply Filters</button> */}
-                        <button onClick={resetFilters} className={BTN_OUTLINE}>Reset</button>
-                        <button onClick={() => fetchDashboardData()} className={BTN_DARK}>Apply Filters</button>
-                    </div>
-                </section>
+                    <button onClick={resetFilters} className={BTN_OUTLINE}>Reset</button>
+                    <button onClick={() => fetchDashboardData()} className={BTN_DARK}>Apply Filters</button>
+                </div>
+            </section>
 
-                {loading ? (
-                    <div className="flex justify-center py-20"><CircularProgress /></div>
-                ) : (
-                     <>
+            {loading ? (
+                <div className="flex justify-center py-20"><CircularProgress /></div>
+            ) : (
+                <>
                     <div className="space-y-8 ">
                         <div className={DASHBOARD_CONTAINER}>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -262,51 +262,59 @@ const DeleteDashboard: React.FC = () => {
                         </div>
                     </div>
 
-            {/* --- Table Section --- */}
-                <section className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
-                    <h5 className="text-lg font-semibold text-[#0A1735] mb-6">📋 List View ({apiData?.data?.length || 0})</h5>
-                    <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
-                        <table className="min-w-full border-separate border-spacing-0 table-auto">
-                            <thead className="sticky top-0 z-20 bg-gray-50">
-                                <tr>
-                                    {["Profile ID", "Name", "City", "State",
-                                        "Mode",
-                                        "Delete Date",
-                                        "Creation Date",
-                                        "Owner",
-                                        "Secondary Delete Status",
-                                        "Secondary Delete Others Comments",
-                                    ].map((col) => (
-                                        <th key={col} className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1] whitespace-nowrap">{col}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {apiData?.data?.map((item: any) => (
-                                    <tr key={item.ProfileId} className="hover:bg-gray-50">
-                                        <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{item.ProfileId}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_name}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_city}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.state}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.plan_name}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.dh_date_time}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.DateOfJoin}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.owner_name || 'N/A'}</td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.sub_status_id === 21 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                                                {item.sub_status_name}
-                                            </span>
-                                        </td>
-                                        <td className="px-3 py-3 text-sm border border-[#e5ebf1]">comments</td>
+                    {/* --- Table Section --- */}
+                    <section className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
+                        <h5 className="text-lg font-semibold text-[#0A1735] mb-6">📋 List View ({apiData?.data?.length || 0})</h5>
+                        <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
+                            <table className="min-w-full border-separate border-spacing-0 table-auto">
+                                <thead className="sticky top-0 z-20 bg-gray-50">
+                                    <tr>
+                                        {["Profile ID", "Name", "City", "State",
+                                            "Mode",
+                                            "Delete Date",
+                                            "Creation Date",
+                                            "Owner",
+                                            "Secondary Delete Status",
+                                            "Secondary Delete Others Comments",
+                                        ].map((col) => (
+                                            <th key={col} className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1] whitespace-nowrap">{col}</th>
+                                        ))}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </>
+                                </thead>
+                                <tbody>
+                                    {apiData?.data?.map((item: any) => (
+                                        <tr key={item.ProfileId} className="hover:bg-gray-50">
+                                            <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{item.ProfileId}</td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_name || 'N/A'}</td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_city || 'N/A'}</td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.state || 'N/A'}</td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.plan_name || 'N/A'}</td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
+                                                {item.dh_date_time
+                                                    ? new Date(item.dh_date_time.replace("T", " ")).toLocaleDateString('en-CA')
+                                                    : "N/A"}
+                                            </td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
+                                                {item.DateOfJoin
+                                                    ? new Date(item.DateOfJoin.replace("T", " ")).toLocaleDateString('en-CA')
+                                                    : "N/A"}
+                                            </td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.owner_name || 'N/A'}</td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.sub_status_id === 21 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                                    {item.sub_status_name || 'N/A'}
+                                                </span>
+                                            </td>
+                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">comments</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </>
             )
-}
+            }
         </div >
     );
 };
