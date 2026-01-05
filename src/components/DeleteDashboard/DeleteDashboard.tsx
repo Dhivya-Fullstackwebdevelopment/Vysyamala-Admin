@@ -488,47 +488,64 @@ const DeleteDashboard: React.FC = () => {
                                     label="Hidden / Current Month Hidden"
                                     colorClass="bg-purple-50"
                                     kpiKey="hidden_current_month"
-                                    // Card Body Click: Sets hidden=1, clears countFilter
                                     onClick={() => handleCardClick("hidden_main", false, false, true, false)}
                                     value={
                                         <div className="flex gap-1">
-                                            <span className="hover:underline" onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleCardClick("hidden_main", false, false, true, false);
-                                            }}>
+                                            {/* Total Hidden Span */}
+                                            <span
+                                                className={`hover:underline ${filters.hidden === "1" && !filters.countFilter ? 'underline decoration-2 underline-offset-4 font-black' : ''}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("hidden_main", false, false, true, false);
+                                                }}
+                                            >
                                                 {apiData?.other_status_counts?.hidden || 0}
                                             </span>
+
                                             <span className="opacity-30">/</span>
-                                            {/* Current Month Click: Sets hidden=1 AND countFilter="hidden_current_month" */}
-                                            <span className="hover:underline" onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleCardClick("hidden_current_month", false, false, true, false);
-                                            }}>
+
+                                            {/* Current Month Hidden Span */}
+                                            <span
+                                                className={`hover:underline ${filters.countFilter === "hidden_current_month" ? 'underline decoration-2 underline-offset-4 font-black' : ''}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("hidden_current_month", false, false, true, false);
+                                                }}
+                                            >
                                                 {apiData?.other_status_counts?.hidden_current_month || 0}
                                             </span>
                                         </div>
                                     }
                                 />
+
                                 <KPICards
                                     label="Pending / Current Month Pending"
                                     colorClass="bg-teal-50"
                                     kpiKey="pending_current_month"
-                                    // Card Body Click: Sets pending=1, clears countFilter
                                     onClick={() => handleCardClick("pending_main", false, false, false, true)}
                                     value={
                                         <div className="flex gap-1">
-                                            <span className="hover:underline" onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleCardClick("pending_main", false, false, false, true);
-                                            }}>
+                                            {/* Total Pending Span */}
+                                            <span
+                                                className={`hover:underline ${filters.pending === "1" && !filters.countFilter ? 'underline decoration-2 underline-offset-4 font-black' : ''}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("pending_main", false, false, false, true);
+                                                }}
+                                            >
                                                 {apiData?.other_status_counts?.pending || 0}
                                             </span>
+
                                             <span className="opacity-30">/</span>
-                                            {/* Current Month Click: Sets pending=1 AND countFilter="pending_current_month" */}
-                                            <span className="hover:underline" onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleCardClick("pending_current_month", false, false, false, true);
-                                            }}>
+
+                                            {/* Current Month Pending Span */}
+                                            <span
+                                                className={`hover:underline ${filters.countFilter === "pending_current_month" ? 'underline decoration-2 underline-offset-4 font-black' : ''}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("pending_current_month", false, false, false, true);
+                                                }}
+                                            >
                                                 {apiData?.other_status_counts?.pending_current_month || 0}
                                             </span>
                                         </div>
