@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import { apiAxios } from '../../api/apiUrl';
@@ -17,13 +17,18 @@ interface ProfileOwner {
 const DeleteDashboard: React.FC = () => {
     // --- State Management ---
     const [apiData, setApiData] = useState<any>(null);
+    const [originalTableData, setOriginalTableData] = useState<any[]>([]); // To keep master list for searching
+    const [filteredTableData, setFilteredTableData] = useState<any[]>([]); // Data actually displayed in table
     const [loading, setLoading] = useState(true);
     const [tableLoading, setTableLoading] = useState(false);
     const [profileOwners, setProfileOwners] = useState<ProfileOwner[]>([]);
+
     const tableRef = useRef<HTMLDivElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
     const SuperAdminID = localStorage.getItem('id') || sessionStorage.getItem('id');
+
     const [scrollSource, setScrollSource] = useState<'card' | 'filter' | null>(null);
     const [applyFilters, setApplyFilters] = useState(false);
 
@@ -50,57 +55,75 @@ const DeleteDashboard: React.FC = () => {
 
     // --- Main Fetch Function ---
     const fetchDashboardData = useCallback(async (currentFilters = filters) => {
+        // Abort previous request if it exists
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setTableLoading(true);
+
         try {
-            const params = new URLSearchParams();
-            if (currentFilters.fromDate) params.append('from_date', currentFilters.fromDate);
-            if (currentFilters.toDate) params.append('to_date', currentFilters.toDate);
-            if (currentFilters.owner) params.append('owner', currentFilters.owner);
-            if (currentFilters.profileId) params.append('profile_id', currentFilters.profileId);
-            if (currentFilters.countFilter) params.append('countFilter', currentFilters.countFilter);
-            if (currentFilters.hidden) params.append('hidden', currentFilters.hidden);
-            if (currentFilters.pending) params.append('pending', currentFilters.pending);
+            const params: any = {};
+            if (currentFilters.fromDate) params.from_date = currentFilters.fromDate;
+            if (currentFilters.toDate) params.to_date = currentFilters.toDate;
+            if (currentFilters.owner) params.owner = currentFilters.owner;
+            if (currentFilters.profileId) params.profile_id = currentFilters.profileId;
+            if (currentFilters.countFilter) params.countFilter = currentFilters.countFilter;
+            if (currentFilters.hidden) params.hidden = currentFilters.hidden;
+            if (currentFilters.pending) params.pending = currentFilters.pending;
 
-            // Using your endpoint
-            const response = await fetch(`https://app.vysyamala.com/api/delete-report/?${params.toString()}`);
-            const result = await response.json();
+            const response = await apiAxios.get('api/delete-report/', {
+                params,
+                signal: controller.signal
+            });
 
-            if (result.status) {
-                setApiData(result);
+            if (response.data.status) {
+                setApiData(response.data);
+                setOriginalTableData(response.data.data || []);
+                setFilteredTableData(response.data.data || []);
             }
-        } catch (error) {
-            console.error("Fetch Error:", error);
+        } catch (error: any) {
+            if (error.name !== 'CanceledError') {
+                console.error("Fetch Error:", error);
+            }
         } finally {
-            setLoading(false);
-            setTableLoading(false);
+            if (abortControllerRef.current === controller) {
+                setLoading(false);
+                setTableLoading(false);
+                setApplyFilters(false);
+            }
         }
     }, [filters]);
 
-    // Initial Load
+    // 1. Initial Load
     useEffect(() => {
         if (RoleID === "7") fetchProfileOwners();
         fetchDashboardData();
     }, []);
 
+    // 2. Client-side Search Logic
+    useEffect(() => {
+        if (!filters.searchQuery) {
+            setFilteredTableData(originalTableData);
+            return;
+        }
+        const search = filters.searchQuery.toLowerCase();
+        const filtered = originalTableData.filter(item =>
+            item.ProfileId?.toString().toLowerCase().includes(search) ||
+            item.Profile_name?.toLowerCase().includes(search)
+        );
+        setFilteredTableData(filtered);
+    }, [filters.searchQuery, originalTableData]);
+
+    // 3. Filter Application and Scroll Logic
     useEffect(() => {
         if (applyFilters) {
             if (scrollSource === 'card' && tableRef.current) {
                 tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-            // This will now use the latest state if triggered by "Apply Filters" button
             fetchDashboardData();
         }
     }, [applyFilters, scrollSource, fetchDashboardData]);
-
-    // 3. Initial Load
-
-    useEffect(() => {
-        setLoading(true);       // This triggers the FullWidthLoadingSpinner
-        setTableLoading(true);
-        fetchDashboardData();
-    }, []);
-
-    
 
     // --- Handlers ---
     const handleCardClick = (
@@ -111,43 +134,29 @@ const DeleteDashboard: React.FC = () => {
         isPending?: boolean
     ) => {
         let finalCountFilter = filterValue;
-
-        // Apply TN/OTH logic if applicable
         if (isTn) finalCountFilter = `${filterValue}_tn`;
         if (isOth) finalCountFilter = `${filterValue}_tn_oth`;
 
-        // NEW LOGIC:
-        // 1. If it's the main Hidden/Pending (no specific filterValue passed from parent)
-        // 2. If it's the Current Month version (filterValue exists AND isHidden/isPending is true)
-
         const updatedFilters = {
             ...filters,
-            // If it's just the general Hidden/Pending card, we don't want a countFilter
-            // If it's "current_month_...", we keep the filterValue
             countFilter: (filterValue === "hidden_main" || filterValue === "pending_main")
                 ? ""
                 : (filters.countFilter === finalCountFilter ? "" : finalCountFilter),
-
             hidden: isHidden ? "1" : "",
             pending: isPending ? "1" : "",
             searchQuery: ""
         };
 
         setFilters(updatedFilters);
-
-        if (tableRef.current) {
-            tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        fetchDashboardData(updatedFilters);
-    };
-
-    const handleApplyFilters = () => {
-        setLoading(true);
-        setTableLoading(true);
-        setScrollSource('filter');
+        setScrollSource('card');
         setApplyFilters(true);
     };
 
+    const handleApplyFilters = () => {
+        setLoading(true); // Show full spinner on filter click as per requirement
+        setScrollSource('filter');
+        setApplyFilters(true);
+    };
 
     const resetFilters = () => {
         const defaultFilters = {
@@ -167,7 +176,6 @@ const DeleteDashboard: React.FC = () => {
 
     // --- Components ---
     const KPICard = ({ label, value, colorClass, kpiKey, subTn, subNonTn, isHidden, isPending }: any) => {
-        // Check if this card or its sub-filters are active
         const isActive = filters.countFilter === kpiKey ||
             filters.countFilter === `${kpiKey}_tn` ||
             filters.countFilter === `${kpiKey}_tn_oth`;
@@ -175,7 +183,6 @@ const DeleteDashboard: React.FC = () => {
         return (
             <motion.div
                 whileHover={{ y: -3 }}
-                // Main card click (Overall count)
                 onClick={() => handleCardClick(kpiKey, false, false, isHidden, isPending)}
                 className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
             ${isActive ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
@@ -183,26 +190,19 @@ const DeleteDashboard: React.FC = () => {
                 <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
                 <div className="flex items-baseline gap-2">
                     <h2 className="text-3xl text-start font-bold">{value}</h2>
-
                     {subTn !== undefined && (
                         <div className="flex text-sm font-bold text-gray-500 items-center gap-1">
                             <span className="mx-1">-</span>
                             <span
-                                className={`hover:text-black transition-all px-1 ${filters.countFilter === `${kpiKey}_tn` ? 'text-black underline' : ''}`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCardClick(kpiKey, true, false); // Trigger _tn
-                                }}
+                                className={`hover:text-black transition-all px-1 ${filters.countFilter === `${kpiKey}_tn` ? 'text-black underline underline-offset-4' : ''}`}
+                                onClick={(e) => { e.stopPropagation(); handleCardClick(kpiKey, true, false); }}
                             >
                                 {subTn}
                             </span>
                             <span className="opacity-40">/</span>
                             <span
-                                className={`hover:text-black transition-all px-1 ${filters.countFilter === `${kpiKey}_tn_oth` ? 'text-black underline' : ''}`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCardClick(kpiKey, false, true); // Trigger _tn_oth
-                                }}
+                                className={`hover:text-black transition-all px-1 ${filters.countFilter === `${kpiKey}_tn_oth` ? 'text-black underline underline-offset-4' : ''}`}
+                                onClick={(e) => { e.stopPropagation(); handleCardClick(kpiKey, false, true); }}
                             >
                                 {subNonTn}
                             </span>
@@ -215,11 +215,50 @@ const DeleteDashboard: React.FC = () => {
     };
 
     const FullWidthLoadingSpinner = () => (
-        <Box className="w-full flex flex-col justify-center items-center py-12 bg-white rounded-xl shadow-sm border border-[#E3E6EE] mb-8">
+        <Box
+            className="container-fluid mx-auto px-4 sm:px-6 lg:px-8"
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 12, // Increased padding for visibility
+                width: '100%',
+                backgroundColor: '#fff', // White background
+                borderRadius: '1rem',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+                mb: 4, // margin bottom to separate from the table
+            }}
+        >
             <CircularProgress color="primary" size={40} />
-            <Typography variant="h6" sx={{ mt: 3, color: '#0A1735', fontWeight: 600 }}>Loading Dashboard Data...</Typography>
+            <Typography variant="h6" sx={{ mt: 3, color: '#0A1735', fontWeight: 600 }}>
+                Loading...
+            </Typography>
         </Box>
     );
+
+    const LoadingSpinner = () => (
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 8,
+                minHeight: '200px',
+                width: '100%',
+            }}
+        >
+            <CircularProgress color="primary" size={30} />
+            <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                Loading Dashboard Data...
+            </Typography>
+        </Box>
+    );
+
+    if (loading && !apiData) {
+        return <LoadingSpinner />;
+    }
 
     return (
         <div className="min-h-screen bg-[#F5F7FB] font-inter text-black p-4 md:p-8">
@@ -263,6 +302,7 @@ const DeleteDashboard: React.FC = () => {
                 </div>
             </section>
 
+            {/* {loading && !apiData ? ( */}
             {loading ? (
                 <FullWidthLoadingSpinner />
             ) : (
@@ -271,112 +311,46 @@ const DeleteDashboard: React.FC = () => {
                         <div className={DASHBOARD_CONTAINER}>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <KPICard label="Total Delete" value={apiData?.overall_count || 0} colorClass="bg-slate-50" kpiKey="" />
-                                {/* <KPICard
-                                    label="TN / Others"
-                                    value={`${apiData?.state_counts?.tn || 0} / ${apiData?.state_counts?.non_tn || 0}`}
-                                    colorClass="bg-red-50"
-                                    kpiKey="tn"
-                                /> */}
                                 <KPICard
                                     label="TN / Others"
-                                    // We pass a custom value display
                                     value={
                                         <div className="flex gap-2">
                                             <span
-                                                className={` cursor-pointer ${filters.countFilter === 'tn' ? 'text-black underline' : ''}`}
-                                                onClick={(e: React.MouseEvent) => {
-                                                    e.stopPropagation();
-                                                    handleCardClick('tn');
-                                                }}
+                                                className={` cursor-pointer hover:underline ${filters.countFilter === 'tn' ? 'text-black underline' : ''}`}
+                                                onClick={(e) => { e.stopPropagation(); handleCardClick('tn'); }}
                                             >
                                                 {apiData?.state_counts?.tn || 0}
                                             </span>
                                             <span className="opacity-30">/</span>
                                             <span
-                                                className={` cursor-pointer ${filters.countFilter === 'non_tn' ? 'text-black underline' : ''}`}
-                                                onClick={(e: React.MouseEvent) => {
-                                                    e.stopPropagation();
-                                                    handleCardClick('non_tn');
-                                                }}
+                                                className={` cursor-pointer hover:underline ${filters.countFilter === 'non_tn' ? 'text-black underline' : ''}`}
+                                                onClick={(e) => { e.stopPropagation(); handleCardClick('non_tn'); }}
                                             >
                                                 {apiData?.state_counts?.non_tn || 0}
                                             </span>
                                         </div>
                                     }
                                     colorClass="bg-red-50"
-                                    kpiKey="tn" // Neutral key so the parent click doesn't conflict
+                                    kpiKey="tn_group"
                                 />
-                                <KPICard
-                                    label="Premium - TN/OTH"
-                                    value={apiData?.plan_counts?.premium?.total || 0}
-                                    subTn={apiData?.plan_counts?.premium?.tn}
-                                    subNonTn={apiData?.plan_counts?.premium?.non_tn}
-                                    colorClass="bg-emerald-50"
-                                    kpiKey="premium"
-                                />
-                                <KPICard
-                                    label="Free - TN/OTH"
-                                    value={apiData?.plan_counts?.free?.total || 0}
-                                    subTn={apiData?.plan_counts?.free?.tn}
-                                    subNonTn={apiData?.plan_counts?.free?.non_tn}
-                                    colorClass="bg-sky-50"
-                                    kpiKey="free"
-                                />
-                                <KPICard
-                                    label="Offer - TN/OTH"
-                                    value={apiData?.plan_counts?.offer?.total || 0}
-                                    subTn={apiData?.plan_counts?.offer?.tn}
-                                    subNonTn={apiData?.plan_counts?.offer?.non_tn}
-                                    colorClass="bg-pink-50"
-                                    kpiKey="offer"
-                                />
-                                <KPICard
-                                    label="Prospect - TN/OTH"
-                                    value={apiData?.plan_counts?.prospect?.total || 0}
-                                    subTn={apiData?.plan_counts?.prospect?.tn}
-                                    subNonTn={apiData?.plan_counts?.prospect?.non_tn}
-                                    colorClass="bg-rose-50"
-                                    kpiKey="propect"
-                                />
+                                <KPICard label="Premium - TN/OTH" value={apiData?.plan_counts?.premium?.total || 0} subTn={apiData?.plan_counts?.premium?.tn} subNonTn={apiData?.plan_counts?.premium?.non_tn} colorClass="bg-emerald-50" kpiKey="premium" />
+                                <KPICard label="Free - TN/OTH" value={apiData?.plan_counts?.free?.total || 0} subTn={apiData?.plan_counts?.free?.tn} subNonTn={apiData?.plan_counts?.free?.non_tn} colorClass="bg-sky-50" kpiKey="free" />
+                                <KPICard label="Offer - TN/OTH" value={apiData?.plan_counts?.offer?.total || 0} subTn={apiData?.plan_counts?.offer?.tn} subNonTn={apiData?.plan_counts?.offer?.non_tn} colorClass="bg-pink-50" kpiKey="offer" />
+                                <KPICard label="Prospect - TN/OTH" value={apiData?.plan_counts?.prospect?.total || 0} subTn={apiData?.plan_counts?.prospect?.tn} subNonTn={apiData?.plan_counts?.prospect?.non_tn} colorClass="bg-rose-50" kpiKey="propect" />
                                 <KPICard label="Current Month Delete" value={apiData?.current_month_deletions || 0} colorClass="bg-orange-50" kpiKey="current_month_deletions" />
                                 <KPICard label="Duplicate" value={apiData?.status_counts?.duplicate || 0} colorClass="bg-indigo-50" kpiKey="duplicate" />
                                 <KPICard label="Fake" value={apiData?.status_counts?.fake || 0} colorClass="bg-rose-50" kpiKey="fake" />
                                 <KPICard label="Marriage Settled" value={apiData?.status_counts?.marriage || 0} colorClass="bg-teal-50" kpiKey="marriage" />
-                                <KPICard
-                                    label="Others"
-                                    value={apiData?.status_counts?.others || 0}
-                                    colorClass="bg-indigo-50"
-                                    kpiKey="others"
-                                />
-                                {/* <KPICard
-                                    label="Hidden / Current Month Hidden"
-                                    value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`}
-                                    colorClass="bg-purple-50"
-                                    kpiKey="hidden_current_month"
-                                    isHidden={true}
-                                /> */}
+                                <KPICard label="Others" value={apiData?.status_counts?.others || 0} colorClass="bg-indigo-50" kpiKey="others" />
                                 <KPICard
                                     label="Hidden / Current Month Hidden"
-                                    // Display value split into two clickable spans
                                     value={
                                         <div className="flex gap-1">
-                                            <span
-                                                className="hover:underline"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCardClick("hidden_main", false, false, true, false); // pending=0, hidden=1, countFilter=""
-                                                }}
-                                            >
+                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("hidden_main", false, false, true, false); }}>
                                                 {apiData?.other_status_counts?.hidden || 0}
                                             </span>
                                             <span className="opacity-30">/</span>
-                                            <span
-                                                className="hover:underline"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCardClick("hidden_current_month", false, false, true, false); // pending=0, hidden=1, countFilter=hidden_current_month
-                                                }}
-                                            >
+                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("hidden_current_month", false, false, true, false); }}>
                                                 {apiData?.other_status_counts?.hidden_current_month || 0}
                                             </span>
                                         </div>
@@ -384,34 +358,15 @@ const DeleteDashboard: React.FC = () => {
                                     colorClass="bg-purple-50"
                                     kpiKey="hidden_current_month"
                                 />
-                                {/* <KPICard
-                                    label="Pending / Current Month Pending"
-                                    value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`}
-                                    colorClass="bg-teal-50"
-                                    kpiKey="pending_current_month"
-                                    isPending={true}
-                                /> */}
                                 <KPICard
                                     label="Pending / Current Month Pending"
                                     value={
                                         <div className="flex gap-1">
-                                            <span
-                                                className="hover:underline"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCardClick("pending_main", false, false, false, true); // pending=1, hidden=0, countFilter=""
-                                                }}
-                                            >
+                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("pending_main", false, false, false, true); }}>
                                                 {apiData?.other_status_counts?.pending || 0}
                                             </span>
                                             <span className="opacity-30">/</span>
-                                            <span
-                                                className="hover:underline"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCardClick("pending_current_month", false, false, false, true); // pending=1, hidden=0, countFilter=pending_current_month
-                                                }}
-                                            >
+                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("pending_current_month", false, false, false, true); }}>
                                                 {apiData?.other_status_counts?.pending_current_month || 0}
                                             </span>
                                         </div>
@@ -426,7 +381,7 @@ const DeleteDashboard: React.FC = () => {
                     {/* --- Table Section --- */}
                     <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
                         <div className="flex justify-between items-center mb-6">
-                            <h5 className="text-lg font-semibold text-[#0A1735]">📋 List View ({apiData?.data?.length || 0})</h5>
+                            <h5 className="text-lg font-semibold text-[#0A1735]">📋 List View ({filteredTableData.length})</h5>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
@@ -436,12 +391,11 @@ const DeleteDashboard: React.FC = () => {
                                     className="w-[250px] h-10 px-4 rounded-full border border-gray-300 text-sm focus:outline-none focus:border-gray-500 transition"
                                 />
                                 <button
-                                    onClick={() => {
-                                        setFilters({ ...filters, searchQuery: "" });
-                                        setScrollSource('filter');
-                                        setApplyFilters(true);  // 👈 reload table after clearing
-                                    }}
-                                    className="h-10 px-4 rounded-full bg-white border border-gray-300 text-sm font-semibold hover:bg-gray-50 transition">Clear</button>
+                                    onClick={() => setFilters({ ...filters, searchQuery: "" })}
+                                    className="h-10 px-4 rounded-full bg-white border border-gray-300 text-sm font-semibold hover:bg-gray-50 transition"
+                                >
+                                    Clear
+                                </button>
                             </div>
                         </div>
 
@@ -449,12 +403,11 @@ const DeleteDashboard: React.FC = () => {
                             <table className="min-w-full border-separate border-spacing-0 table-auto">
                                 <thead className="sticky top-0 z-20 bg-gray-50">
                                     <tr>
-                                        {["Profile ID", "Name", "City", "State", "Mode", "Delete Date", "Creation Date", "Owner", "Secondary Delete Status",
-                                            "Secondary Delete Others Comments",].map((col, idx) => (
-                                                <th key={col} className={`sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap ${idx === 0 ? 'rounded-tl-xl' : ''}`}>
-                                                    {col}
-                                                </th>
-                                            ))}
+                                        {["Profile ID", "Name", "City", "State", "Mode", "Delete Date", "Creation Date", "Owner", "Status"].map((col, idx) => (
+                                            <th key={col} className={`sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap ${idx === 0 ? 'rounded-tl-xl' : ''}`}>
+                                                {col}
+                                            </th>
+                                        ))}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -465,8 +418,8 @@ const DeleteDashboard: React.FC = () => {
                                                 <p className="mt-2 text-sm text-gray-500">Loading Profiles...</p>
                                             </td>
                                         </tr>
-                                    ) : apiData?.data?.length > 0 ? (
-                                        apiData.data.map((item: any) => (
+                                    ) : filteredTableData.length > 0 ? (
+                                        filteredTableData.map((item: any) => (
                                             <tr key={item.ProfileId} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">
                                                     <a href={`/viewProfile?profileId=${item.ProfileId}`} target="_blank" rel="noreferrer" className="hover:underline">
@@ -489,7 +442,6 @@ const DeleteDashboard: React.FC = () => {
                                                         {item.sub_status_name || 'N/A'}
                                                     </span>
                                                 </td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">static</td>
                                             </tr>
                                         ))
                                     ) : (
