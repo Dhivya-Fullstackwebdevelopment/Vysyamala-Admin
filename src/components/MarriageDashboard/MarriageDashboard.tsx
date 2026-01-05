@@ -201,14 +201,14 @@ const MarriageDashboard: React.FC = () => {
 
     const handleCardClick = (key: string) => {
         setTableLoading(true);
-
+        const newFilterValue = (key === "total_reset") ? "" : key;
         // 1. Determine the new filter state immediately
         const updatedFilters = {
             ...filters,
-            countFilter: filters.countFilter === key ? "" : key,
+            countFilter: filters.countFilter === newFilterValue ? "" : newFilterValue,
             searchQuery: "",
             genderFilter: "",
-            order_by: "asc",
+            order_by: "desc",
         };
         console.log("updatedFilters", updatedFilters)
         // 2. Update the state for the UI/Inputs
@@ -240,7 +240,7 @@ const MarriageDashboard: React.FC = () => {
             searchQuery: "",
             countFilter: "",
             genderFilter: "",
-            order_by: "asc",
+            order_by: "desc",
         });
 
         setScrollSource('filter');
@@ -303,21 +303,24 @@ const MarriageDashboard: React.FC = () => {
 
     const KPICard = ({ label, value, colorClass, kpiKey, subTn, subNonTn }: any) => {
         // Determine active states for UI highlighting
-        const isActive = filters.countFilter === kpiKey;
         const isTnActive = filters.countFilter === `${kpiKey}_tn`;
         const isOthActive = filters.countFilter === `${kpiKey}_tn_oth`;
+
+        // The card is "Active" if any of its children are filtered or the main category is active
+        // But for the "Total" click (empty string), we check if the countFilter is actually empty
+        const isMainActive = filters.countFilter === kpiKey && kpiKey !== "";
 
         return (
             <motion.div
                 whileHover={{ y: -3 }}
                 onClick={() => kpiKey && handleCardClick(kpiKey)}
                 className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
-            ${isActive ? 'border-4 border-black/30 shadow-md' : 'border-[#E3E6EE]'}`}
+            ${(isMainActive || isTnActive || isOthActive) ? 'border-4 border-black/30 shadow-md' : 'border-[#E3E6EE]'}`}
             >
                 <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
                 <div className="flex items-baseline gap-2">
                     {/* Total Count */}
-                    <h2 className={`text-3xl text-start font-bold ${isActive ? 'underline decoration-2' : ''}`}>
+                    <h2 className={`text-3xl text-start font-bold `}>
                         {value}
                     </h2>
 
@@ -348,7 +351,7 @@ const MarriageDashboard: React.FC = () => {
                     )}
                 </div>
                 <p className="text-[9px] opacity-60 text-start mt-1">
-                    {isActive || isTnActive || isOthActive ? "Currently Filtering" : "Click to view profiles"}
+                    Click to view profiles
                 </p>
             </motion.div>
         );
@@ -490,7 +493,7 @@ const MarriageDashboard: React.FC = () => {
                     </div> */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <KPICard
-                                    label="Total"
+                                    label="Total Profiles"
                                     value={getVal('total_profiles')}
                                     colorClass="bg-slate-50"
                                     kpiKey=""
@@ -648,7 +651,7 @@ const MarriageDashboard: React.FC = () => {
                                 {/* Sort Toggle (ASC/DESC) */}
                                 <button
                                     onClick={() => {
-                                        const nextOrder = filters.order_by === "desc" ? "asc" : "desc";
+                                        const nextOrder = filters.order_by === "asc" ? "desc" : "asc";
                                         const newFilters = { ...filters, order_by: nextOrder };
                                         setFilters(newFilters);
                                         fetchDashboardData(newFilters);
@@ -659,7 +662,7 @@ const MarriageDashboard: React.FC = () => {
                                         }`}
                                 >
                                     <span>Sort Deleted Date</span>
-                                    {filters.order_by === "asc" ? (
+                                    {filters.order_by === "desc" ? (
                                         <MdToggleOff size={28} className="text-gray-400" />
                                     ) : (
                                         <MdToggleOn size={28} className="text-blue-400" />
