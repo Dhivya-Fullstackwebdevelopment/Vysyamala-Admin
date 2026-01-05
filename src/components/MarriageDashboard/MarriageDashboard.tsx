@@ -201,19 +201,22 @@ const MarriageDashboard: React.FC = () => {
 
     const handleCardClick = (key: string) => {
         setTableLoading(true);
-        const newFilterValue = (key === "total_reset") ? "" : key;
-        // 1. Determine the new filter state immediately
+
+        // If key is empty string (Total Profiles), we want to set countFilter to ""
+        // Otherwise, use the key provided. 
+        // We toggle it off (reset to "") if the user clicks the already active filter.
+        const newFilterValue = filters.countFilter === key ? "" : key;
+
         const updatedFilters = {
             ...filters,
-            countFilter: filters.countFilter === newFilterValue ? "" : newFilterValue,
+            countFilter: newFilterValue,
             searchQuery: "",
             genderFilter: "",
-            order_by: "desc",
+            order_by: "desc", // Keep your default sort
         };
-        console.log("updatedFilters", updatedFilters)
-        // 2. Update the state for the UI/Inputs
+
         setFilters(updatedFilters);
-        // setScrollSource('card');
+
         if (tableRef.current) {
             tableRef.current.scrollIntoView({
                 behavior: 'smooth',
@@ -221,8 +224,7 @@ const MarriageDashboard: React.FC = () => {
             });
         }
 
-        // 3. Trigger the fetch IMMEDIATELY with the new values
-        // Don't wait for applyFilters useEffect
+        // Trigger fetch with the explicit updated object
         fetchDashboardData(updatedFilters);
     };
 
@@ -302,38 +304,38 @@ const MarriageDashboard: React.FC = () => {
     };
 
     const KPICard = ({ label, value, colorClass, kpiKey, subTn, subNonTn }: any) => {
-        // Determine active states for UI highlighting
+        // 1. Determine active states
         const isTnActive = filters.countFilter === `${kpiKey}_tn`;
         const isOthActive = filters.countFilter === `${kpiKey}_tn_oth`;
 
-        // The card is "Active" if any of its children are filtered or the main category is active
-        // But for the "Total" click (empty string), we check if the countFilter is actually empty
-        const isMainActive = filters.countFilter === kpiKey && kpiKey !== "";
+        // 2. Main highlight logic: 
+        // Card is highlighted if the exact kpiKey is active OR one of its sub-counts is active
+        const isAnyActiveInCard = filters.countFilter === kpiKey || isTnActive || isOthActive;
 
         return (
             <motion.div
                 whileHover={{ y: -3 }}
-                onClick={() => kpiKey && handleCardClick(kpiKey)}
+                // We pass the kpiKey (which is "" for Total Profiles)
+                onClick={() => handleCardClick(kpiKey)}
                 className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
-            ${(isMainActive || isTnActive || isOthActive) ? 'border-4 border-black/30 shadow-md' : 'border-[#E3E6EE]'}`}
+            ${isAnyActiveInCard ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
             >
                 <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
                 <div className="flex items-baseline gap-2">
-                    {/* Total Count */}
-                    <h2 className={`text-3xl text-start font-bold `}>
+                    {/* 3. Removed underline from h2 as requested */}
+                    <h2 className={`text-3xl text-start font-bold`}>
                         {value}
                     </h2>
 
-                    {/* Sub-counts for TN and Others */}
                     {subTn !== undefined && (
                         <div className="flex text-sm font-bold text-gray-500 items-center gap-1">
                             <span className="mx-1">-</span>
                             <span
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Prevents clicking the main card
+                                    e.stopPropagation(); // Don't trigger the main card click
                                     handleCardClick(`${kpiKey}_tn`);
                                 }}
-                                className={`hover:text-black transition-all px-1 ${isTnActive ? 'text-black underline decoration-2 underline-offset-4' : ''}`}
+                                className={`hover:text-black transition-all px-1 ${isTnActive ? 'text-black underline underline-offset-4 decoration-2' : ''}`}
                             >
                                 {subTn}
                             </span>
@@ -343,7 +345,7 @@ const MarriageDashboard: React.FC = () => {
                                     e.stopPropagation();
                                     handleCardClick(`${kpiKey}_tn_oth`);
                                 }}
-                                className={`hover:text-black transition-all px-1 ${isOthActive ? 'text-black underline decoration-2 underline-offset-4' : ''}`}
+                                className={`hover:text-black transition-all px-1 ${isOthActive ? 'text-black underline underline-offset-4 decoration-2' : ''}`}
                             >
                                 {subNonTn}
                             </span>
@@ -351,7 +353,7 @@ const MarriageDashboard: React.FC = () => {
                     )}
                 </div>
                 <p className="text-[9px] opacity-60 text-start mt-1">
-                    Click to view profiles
+                    {isAnyActiveInCard ? "Currently Filtering" : "Click to view profiles"}
                 </p>
             </motion.div>
         );
