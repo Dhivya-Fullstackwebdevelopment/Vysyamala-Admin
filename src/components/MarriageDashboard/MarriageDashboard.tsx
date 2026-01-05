@@ -356,7 +356,7 @@ const MarriageDashboard: React.FC = () => {
                     )}
                 </div>
                 <p className="text-[9px] opacity-60 text-start mt-1">
-                    {isAnyActiveInCard ? "Currently Filtering" : "Click to view profiles"}
+                   click to view profiles
                 </p>
             </motion.div>
         );

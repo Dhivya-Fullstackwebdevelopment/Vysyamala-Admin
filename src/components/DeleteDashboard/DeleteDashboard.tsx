@@ -80,10 +80,11 @@ const DeleteDashboard: React.FC = () => {
         fetchDashboardData();
     }, []);
 
-    const handleCardClick = (key: string, isHidden?: boolean, isPending?: boolean) => {
+    const handleCardClick = (filterValue: string, isHidden?: boolean, isPending?: boolean) => {
         const updatedFilters = {
             ...filters,
-            countFilter: filters.countFilter === key ? "" : key,
+            // If the same filter is clicked again, clear it; otherwise, set it
+            countFilter: filters.countFilter === filterValue ? "" : filterValue,
             hidden: isHidden ? "1" : "",
             pending: isPending ? "1" : ""
         };
@@ -103,15 +104,39 @@ const DeleteDashboard: React.FC = () => {
         setTimeout(fetchDashboardData, 100);
     };
 
-    // --- Components ---
-    const KPICard = ({ label, value, colorClass, onClick, isActive }: any) => (
+    const KPICard = ({ label, value, colorClass, onClick, tnValue, nonTnValue, categoryKey }: any) => (
         <motion.div
             whileHover={{ y: -5 }}
-            onClick={onClick}
-            className={`${colorClass} p-5 rounded-2xl min-h-[140px] border flex flex-col justify-center cursor-pointer transition shadow-sm ${isActive ? 'ring-4 ring-black/10 border-black/20' : 'border-[#E3E6EE]'}`}
+            className={`${colorClass} p-5 rounded-2xl min-h-[140px] border flex flex-col justify-center transition shadow-sm border-[#E3E6EE]`}
         >
             <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
-            <h2 className="text-2xl text-start font-bold mb-1">{value}</h2>
+
+            {/* If we have sub-values (TN/OTH), we style them specifically */}
+            {tnValue !== undefined ? (
+                <div className="flex flex-col gap-1">
+                    <h2 className="text-xl font-bold cursor-pointer hover:underline" onClick={() => onClick(categoryKey)}>
+                        {value}
+                    </h2>
+                    <div className="flex gap-2 text-sm font-semibold">
+                        <span
+                            className="bg-white/50 px-2 py-1 rounded cursor-pointer hover:bg-white"
+                            onClick={() => onClick(categoryKey, false, false, 'tn')}
+                        >
+                            {tnValue}
+                        </span>
+                        <span
+                            className="bg-white/50 px-2 py-1 rounded cursor-pointer hover:bg-white"
+                            onClick={() => onClick(categoryKey, false, false, 'non_tn')}
+                        >
+                            {nonTnValue}
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <h2 className="text-2xl text-start font-bold mb-1 cursor-pointer" onClick={() => onClick(categoryKey)}>
+                    {value}
+                </h2>
+            )}
         </motion.div>
     );
 
@@ -179,35 +204,51 @@ const DeleteDashboard: React.FC = () => {
                                     label="TN / Others"
                                     value={`${apiData?.state_counts?.tn} / ${apiData?.state_counts?.non_tn}`}
                                     colorClass="bg-red-50 border-red-200"
-                                    onClick={() => handleCardClick("tn")}
+                                    onTotalClick={() => handleCardClick("tn_others_total")}
+                                    onTnClick={() => handleCardClick("tn")}
+                                    onOthersClick={() => handleCardClick("non_tn")}
                                 />
 
                                 <KPICard
                                     label="Premium - TN/OTH"
-                                    value={`${apiData?.plan_counts?.premium?.total} - ${apiData?.plan_counts?.premium?.tn}/${apiData?.plan_counts?.premium?.non_tn}`}
+                                    value={apiData?.plan_counts?.premium?.total}
+                                    tnValue={apiData?.plan_counts?.premium?.tn}
+                                    nonTnValue={apiData?.plan_counts?.premium?.non_tn}
+                                    categoryKey="premium"
                                     colorClass="bg-[#F5F3FF] border-purple-200"
-                                    onClick={() => handleCardClick("premium")}
+                                    onClick={handleCardClick}
                                 />
 
                                 <KPICard
                                     label="Free - TN/OTH"
-                                    value={`${apiData?.plan_counts?.free?.total} - ${apiData?.plan_counts?.free?.tn}/${apiData?.plan_counts?.free?.non_tn}`}
+                                    value={apiData?.plan_counts?.free?.total}
+                                    tnValue={apiData?.plan_counts?.free?.tn}
+                                    nonTnValue={apiData?.plan_counts?.free?.non_tn}
+                                    categoryKey="free"
                                     colorClass="bg-blue-50 border-blue-200"
-                                    onClick={() => handleCardClick("free")}
+                                    onClick={handleCardClick}
                                 />
 
+                                {/* Offer Card */}
                                 <KPICard
                                     label="Offer - TN/OTH"
-                                    value={`${apiData?.plan_counts?.offer?.total} - ${apiData?.plan_counts?.offer?.tn}/${apiData?.plan_counts?.offer?.non_tn}`}
+                                    value={apiData?.plan_counts?.offer?.total}
+                                    tnValue={apiData?.plan_counts?.offer?.tn}
+                                    nonTnValue={apiData?.plan_counts?.offer?.non_tn}
+                                    categoryKey="offer"
                                     colorClass="bg-pink-50 border-pink-200"
-                                    onClick={() => handleCardClick("offer")}
+                                    onClick={handleCardClick}
                                 />
 
+                                {/* Prospect Card */}
                                 <KPICard
                                     label="Prospect - TN/OTH"
-                                    value={`${apiData?.plan_counts?.prospect?.total} - ${apiData?.plan_counts?.prospect?.tn}/${apiData?.plan_counts?.prospect?.non_tn}`}
+                                    value={apiData?.plan_counts?.prospect?.total}
+                                    tnValue={apiData?.plan_counts?.prospect?.tn}
+                                    nonTnValue={apiData?.plan_counts?.prospect?.non_tn}
+                                    categoryKey="prospect"
                                     colorClass="bg-green-50 border-green-200"
-                                    onClick={() => handleCardClick("propect")}
+                                    onClick={handleCardClick}
                                 />
 
                                 <KPICard
