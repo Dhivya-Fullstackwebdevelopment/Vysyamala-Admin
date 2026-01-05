@@ -422,7 +422,7 @@ const EditViewProfile: React.FC<pageProps> = ({
     return isPlanStatusNotHiding || isPrimaryStatusInOverrideRange;
     //return isPrimaryStatusInOverrideRange;
   }, [planStatus, primaryStatusValue]);
-  
+
   useEffect(() => {
     // Convert boolean to string for storage
     const value = shouldShowMembershipDates ? "true" : "false";
@@ -593,6 +593,7 @@ const EditViewProfile: React.FC<pageProps> = ({
       setValue('profileView.membership_fromdate', data.membership_fromdate ?? '');
       setValue('profileView.membership_todate', data.membership_todate ?? '');
       setValue('profileView.membership_status', data.membership_status ?? '');
+      setValue('profileView.others', data.others ?? '');
 
       if (data?.DateOfJoin) {
         const formattedDate = new Date(data.DateOfJoin)
@@ -612,6 +613,13 @@ const EditViewProfile: React.FC<pageProps> = ({
     }
   }, [EditData, initialApiStatus]);
 
+  // Reset "others" field to empty string if it's hidden
+  useEffect(() => {
+    const currentPrimary = Number(primaryStatus);
+    if (![12, 17, 22].includes(currentPrimary)) {
+      setValue('profileView.others', '');
+    }
+  }, [primaryStatus, setValue]);
 
   useLayoutEffect(() => {
     if (EditData && EditData.length > 0) {
@@ -1192,10 +1200,11 @@ const EditViewProfile: React.FC<pageProps> = ({
                                 )}
                             </div>
 
-                            <div className="flex mt-5 justify-center">
+                            <div className="flex mt-5 mb-4 justify-center">
                               {[12, 17, 22].includes(Number(primaryStatus)) && (
                                 <input
                                   type="text"
+                                  {...register('profileView.others')}
                                   placeholder="Enter your reasons"
                                   className="w-70 h-10 border-2 border-blue-500 rounded-lg px-4 focus:outline-none focus:border-blue-700 transition duration-300"
                                 />

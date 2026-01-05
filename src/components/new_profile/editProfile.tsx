@@ -634,7 +634,8 @@ const EditProfile = () => {
             membership_status: data.profileView.membership_status,
             visit_count: data.profileView.visit_count === null || "" || 0 ? 0 : data.profileView.visit_count,
             exp_int_count: data.profileView.exp_int_count === null || "" || 0 ? 0 : data.profileView.exp_int_count,
-            exp_int_lock: data.profileView.exp_int_lock === null || data.profileView.exp_int_lock === 0 ? 0 : data.profileView.exp_int_lock
+            exp_int_lock: data.profileView.exp_int_lock === null || data.profileView.exp_int_lock === 0 ? 0 : data.profileView.exp_int_lock,
+            others: data.profileView.others,
           },
         };
         console.log("API Payload:", editDataProfileView);

@@ -87,6 +87,7 @@ export const EditSchemaProfileView = z.object({
         ]).nullable(),
 
         admin_user_id: z.number().nullable().optional(), // Add this field
+        others: z.string().optional(),
         // mobile_otp_verify: z.union([z.string(), z.number()]).optional()
         // profile_image: z
         // .instanceof(File, { message: "File must be selected" }) // Ensures it's a file
@@ -144,6 +145,7 @@ export interface profileView {
         membership_todate: string | null;
         membership_fromdate: string | null;
         membership_status: string;
+        others: string;
     }
 
 }
