@@ -172,6 +172,63 @@ const DeleteDashboard: React.FC = () => {
     }, [applyFilters, scrollSource, fetchDashboardData]);
 
     // --- Handlers ---
+    // const handleCardClick = (
+    //     filterValue: string,
+    //     isTn?: boolean,
+    //     isOth?: boolean,
+    //     isHidden?: boolean,
+    //     isPending?: boolean
+    // ) => {
+    //     let finalCountFilter = filterValue;
+    //     if (isTn) finalCountFilter = `${filterValue}_tn`;
+    //     if (isOth) finalCountFilter = `${filterValue}_tn_oth`;
+
+    //     const updatedFilters = {
+    //         ...filters,
+    //         countFilter: (filterValue === "hidden_main" || filterValue === "pending_main")
+    //             ? ""
+    //             : (filters.countFilter === finalCountFilter ? "" : finalCountFilter),
+    //         hidden: isHidden ? "1" : "",
+    //         pending: isPending ? "1" : "",
+    //         searchQuery: ""
+    //     };
+
+    //     setFilters(updatedFilters);
+    //     setScrollSource('card');
+    //     setApplyFilters(true);
+    // };
+    // const handleCardClick = (
+    //     filterValue: string,
+    //     isTn?: boolean,
+    //     isOth?: boolean,
+    //     isHidden?: boolean,
+    //     isPending?: boolean
+    // ) => {
+    //     let finalCountFilter = filterValue;
+    //     if (isTn) finalCountFilter = `${filterValue}_tn`;
+    //     if (isOth) finalCountFilter = `${filterValue}_tn_oth`;
+
+    //     // Logic for Pending/Hidden: 
+    //     // If it's the "Main" card (pending_main or hidden_main), we clear countFilter 
+    //     // so the API doesn't get confused, and just send the flag.
+    //     const isMainFlagOnly = filterValue === "hidden_main" || filterValue === "pending_main";
+
+    //     const updatedFilters = {
+    //         ...filters,
+    //         // Set countFilter only if it's NOT a main flag-only click
+    //         countFilter: isMainFlagOnly ? "" : finalCountFilter,
+    //         // Set the binary flags
+    //         hidden: isHidden ? "1" : "",
+    //         pending: isPending ? "1" : "",
+    //         searchQuery: ""
+    //     };
+
+    //     setFilters(updatedFilters);
+    //     setScrollSource('card');
+    //     setApplyFilters(true);
+    // };
+
+
     const handleCardClick = (
         filterValue: string,
         isTn?: boolean,
@@ -183,11 +240,15 @@ const DeleteDashboard: React.FC = () => {
         if (isTn) finalCountFilter = `${filterValue}_tn`;
         if (isOth) finalCountFilter = `${filterValue}_tn_oth`;
 
+        // 1. Determine if this is a "Main" click (Flag only) 
+        // or a "Current Month" click (Flag + Filter)
+        const isMainFlag = filterValue === "hidden_main" || filterValue === "pending_main";
+
         const updatedFilters = {
             ...filters,
-            countFilter: (filterValue === "hidden_main" || filterValue === "pending_main")
-                ? ""
-                : (filters.countFilter === finalCountFilter ? "" : finalCountFilter),
+            // If Main, clear countFilter. If Current Month, set it.
+            countFilter: isMainFlag ? "" : finalCountFilter,
+            // Always set the flags if they are passed as true
             hidden: isHidden ? "1" : "",
             pending: isPending ? "1" : "",
             searchQuery: ""
@@ -254,6 +315,28 @@ const DeleteDashboard: React.FC = () => {
                             </span>
                         </div>
                     )}
+                </div>
+                <p className="text-[9px] opacity-60 text-start mt-1">click to view profiles</p>
+            </motion.div>
+        );
+    };
+
+    const KPICards = ({ label, value, colorClass, kpiKey, onClick }: any) => {
+        // Determine if card is active based on either countFilter OR flags
+        const isActive = filters.countFilter === kpiKey ||
+            (kpiKey === "hidden_current_month" && filters.hidden === "1") ||
+            (kpiKey === "pending_current_month" && filters.pending === "1");
+
+        return (
+            <motion.div
+                whileHover={{ y: -3 }}
+                onClick={onClick} // This handles the "Main Card" click
+                className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
+            ${isActive ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
+            >
+                <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
+                <div className="flex items-baseline gap-2">
+                    <div className="text-3xl text-start font-bold">{value}</div>
                 </div>
                 <p className="text-[9px] opacity-60 text-start mt-1">click to view profiles</p>
             </motion.div>
@@ -401,37 +484,55 @@ const DeleteDashboard: React.FC = () => {
                                 <KPICard label="Fake" value={apiData?.status_counts?.fake || 0} colorClass="bg-rose-50" kpiKey="fake" />
                                 <KPICard label="Marriage Settled" value={apiData?.status_counts?.marriage || 0} colorClass="bg-teal-50" kpiKey="marriage" />
                                 <KPICard label="Others" value={apiData?.status_counts?.others || 0} colorClass="bg-indigo-50" kpiKey="others" />
-                                <KPICard
+                                <KPICards
                                     label="Hidden / Current Month Hidden"
+                                    colorClass="bg-purple-50"
+                                    kpiKey="hidden_current_month"
+                                    // Card Body Click: Sets hidden=1, clears countFilter
+                                    onClick={() => handleCardClick("hidden_main", false, false, true, false)}
                                     value={
                                         <div className="flex gap-1">
-                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("hidden_main", false, false, true, false); }}>
+                                            <span className="hover:underline" onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCardClick("hidden_main", false, false, true, false);
+                                            }}>
                                                 {apiData?.other_status_counts?.hidden || 0}
                                             </span>
                                             <span className="opacity-30">/</span>
-                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("hidden_current_month", false, false, true, false); }}>
+                                            {/* Current Month Click: Sets hidden=1 AND countFilter="hidden_current_month" */}
+                                            <span className="hover:underline" onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCardClick("hidden_current_month", false, false, true, false);
+                                            }}>
                                                 {apiData?.other_status_counts?.hidden_current_month || 0}
                                             </span>
                                         </div>
                                     }
-                                    colorClass="bg-purple-50"
-                                    kpiKey="hidden_current_month"
                                 />
-                                <KPICard
+                                <KPICards
                                     label="Pending / Current Month Pending"
+                                    colorClass="bg-teal-50"
+                                    kpiKey="pending_current_month"
+                                    // Card Body Click: Sets pending=1, clears countFilter
+                                    onClick={() => handleCardClick("pending_main", false, false, false, true)}
                                     value={
                                         <div className="flex gap-1">
-                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("pending_main", false, false, false, true); }}>
+                                            <span className="hover:underline" onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCardClick("pending_main", false, false, false, true);
+                                            }}>
                                                 {apiData?.other_status_counts?.pending || 0}
                                             </span>
                                             <span className="opacity-30">/</span>
-                                            <span className="hover:underline" onClick={(e) => { e.stopPropagation(); handleCardClick("pending_current_month", false, false, false, true); }}>
+                                            {/* Current Month Click: Sets pending=1 AND countFilter="pending_current_month" */}
+                                            <span className="hover:underline" onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCardClick("pending_current_month", false, false, false, true);
+                                            }}>
                                                 {apiData?.other_status_counts?.pending_current_month || 0}
                                             </span>
                                         </div>
                                     }
-                                    colorClass="bg-teal-50"
-                                    kpiKey="pending_current_month"
                                 />
                             </div>
                         </div>
@@ -462,11 +563,18 @@ const DeleteDashboard: React.FC = () => {
                             <table className="min-w-full border-separate border-spacing-0 table-auto">
                                 <thead className="sticky top-0 z-20 bg-gray-50">
                                     <tr>
-                                        {["Profile ID", "Name", "City", "State", "Mode", "Delete Date", "Creation Date", "Owner", "Status"].map((col, idx) => (
+                                        {["Profile ID", "Name", "City", "State", "Mode", "Delete Date", "Creation Date", "Owner", "Secondary Delete Status"].map((col, idx) => (
                                             <th key={col} className={`sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap ${idx === 0 ? 'rounded-tl-xl' : ''}`}>
                                                 {col}
                                             </th>
                                         ))}
+                                        <th className="sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap">
+                                            {filters.hidden === "1"
+                                                ? "Secondary Hidden Status Comments"
+                                                : filters.pending === "1"
+                                                    ? "Secondary Pending Status Comments"
+                                                    : "Secondary Delete Status Comments"}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -496,10 +604,14 @@ const DeleteDashboard: React.FC = () => {
                                                     {item.DateOfJoin ? new Date(item.DateOfJoin.replace("T", " ")).toLocaleDateString('en-CA') : "N/A"}
                                                 </td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.owner_name || 'N/A'}</td>
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
-                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${item.sub_status_id === 21 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                        {item.sub_status_name || 'N/A'}
-                                                    </span>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.sub_status_name || 'N/A'}</td>
+                                                {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.delete_others || 'N/A'}</td> */}
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] italic text-gray-700">
+                                                    {filters.hidden === "1"
+                                                        ? (item.hide_others || 'N/A')
+                                                        : filters.pending === "1"
+                                                            ? (item.pending_others || 'N/A')
+                                                            : (item.delete_others || 'N/A')}
                                                 </td>
                                             </tr>
                                         ))
