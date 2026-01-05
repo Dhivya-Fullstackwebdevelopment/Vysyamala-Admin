@@ -563,11 +563,18 @@ const DeleteDashboard: React.FC = () => {
                             <table className="min-w-full border-separate border-spacing-0 table-auto">
                                 <thead className="sticky top-0 z-20 bg-gray-50">
                                     <tr>
-                                        {["Profile ID", "Name", "City", "State", "Mode", "Delete Date", "Creation Date", "Owner", "Secondary Delete Status"].map((col, idx) => (
+                                        {["Profile ID", "Name", "City", "State", "Mode", "Delete Date", "Creation Date", "Owner"].map((col, idx) => (
                                             <th key={col} className={`sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap ${idx === 0 ? 'rounded-tl-xl' : ''}`}>
                                                 {col}
                                             </th>
                                         ))}
+                                        <th className="sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap">
+                                            {filters.hidden === "1"
+                                                ? "Secondary Hidden Status"
+                                                : filters.pending === "1"
+                                                    ? "Secondary Pending Status"
+                                                    : "Secondary Delete Status"}
+                                        </th>
                                         <th className="sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap">
                                             {filters.hidden === "1"
                                                 ? "Secondary Hidden Status Comments"
