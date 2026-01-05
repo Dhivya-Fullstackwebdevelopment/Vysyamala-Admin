@@ -237,6 +237,12 @@ const DeleteDashboard: React.FC = () => {
                                 <KPICard label="Duplicate" value={apiData?.status_counts?.duplicate || 0} colorClass="bg-indigo-50" kpiKey="duplicate" />
                                 <KPICard label="Fake" value={apiData?.status_counts?.fake || 0} colorClass="bg-rose-50" kpiKey="fake" />
                                 <KPICard label="Marriage Settled" value={apiData?.status_counts?.marriage || 0} colorClass="bg-teal-50" kpiKey="marriage" />
+                                <KPICard
+                                    label="Others"
+                                    value={apiData?.status_counts?.others || 0}
+                                    colorClass="bg-indigo-50"
+                                    kpiKey="others" 
+                                />
                                 <KPICard label="Hidden / Current Month Hidden" value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`} colorClass="bg-purple-50" kpiKey="hidden_current_month" isHidden={true} />
                                 <KPICard label="Pending / Current Month Pending" value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`} colorClass="bg-teal-50" kpiKey="pending_current_month" isPending={true} />
                             </div>
