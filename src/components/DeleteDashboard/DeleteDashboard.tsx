@@ -89,17 +89,22 @@ const DeleteDashboard: React.FC = () => {
     ) => {
         let finalCountFilter = filterValue;
 
-        // Logic for TN / OTH suffixes
+        // Apply TN/OTH logic if applicable
         if (isTn) finalCountFilter = `${filterValue}_tn`;
         if (isOth) finalCountFilter = `${filterValue}_tn_oth`;
 
-        // Special logic for Hidden/Pending Current Month
-        // If it's a "hidden" card click, we use 'hidden_current_month' as countFilter
-        // If it's "pending", we use 'pending_current_month' AND set the 'pending=1' param
+        // NEW LOGIC:
+        // 1. If it's the main Hidden/Pending (no specific filterValue passed from parent)
+        // 2. If it's the Current Month version (filterValue exists AND isHidden/isPending is true)
 
         const updatedFilters = {
             ...filters,
-            countFilter: filters.countFilter === finalCountFilter ? "" : finalCountFilter,
+            // If it's just the general Hidden/Pending card, we don't want a countFilter
+            // If it's "current_month_...", we keep the filterValue
+            countFilter: (filterValue === "hidden_main" || filterValue === "pending_main")
+                ? ""
+                : (filters.countFilter === finalCountFilter ? "" : finalCountFilter),
+
             hidden: isHidden ? "1" : "",
             pending: isPending ? "1" : ""
         };
@@ -310,19 +315,76 @@ const DeleteDashboard: React.FC = () => {
                                     colorClass="bg-indigo-50"
                                     kpiKey="others"
                                 />
-                                <KPICard
+                                {/* <KPICard
                                     label="Hidden / Current Month Hidden"
                                     value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`}
                                     colorClass="bg-purple-50"
                                     kpiKey="hidden_current_month"
                                     isHidden={true}
-                                />
+                                /> */}
                                 <KPICard
+                                    label="Hidden / Current Month Hidden"
+                                    // Display value split into two clickable spans
+                                    value={
+                                        <div className="flex gap-1">
+                                            <span
+                                                className="hover:underline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("hidden_main", false, false, true, false); // pending=0, hidden=1, countFilter=""
+                                                }}
+                                            >
+                                                {apiData?.other_status_counts?.hidden || 0}
+                                            </span>
+                                            <span className="opacity-30">/</span>
+                                            <span
+                                                className="hover:underline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("hidden_current_month", false, false, true, false); // pending=0, hidden=1, countFilter=hidden_current_month
+                                                }}
+                                            >
+                                                {apiData?.other_status_counts?.hidden_current_month || 0}
+                                            </span>
+                                        </div>
+                                    }
+                                    colorClass="bg-purple-50"
+                                    kpiKey="hidden_current_month"
+                                />
+                                {/* <KPICard
                                     label="Pending / Current Month Pending"
                                     value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`}
                                     colorClass="bg-teal-50"
                                     kpiKey="pending_current_month"
                                     isPending={true}
+                                /> */}
+                                <KPICard
+                                    label="Pending / Current Month Pending"
+                                    value={
+                                        <div className="flex gap-1">
+                                            <span
+                                                className="hover:underline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("pending_main", false, false, false, true); // pending=1, hidden=0, countFilter=""
+                                                }}
+                                            >
+                                                {apiData?.other_status_counts?.pending || 0}
+                                            </span>
+                                            <span className="opacity-30">/</span>
+                                            <span
+                                                className="hover:underline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick("pending_current_month", false, false, false, true); // pending=1, hidden=0, countFilter=pending_current_month
+                                                }}
+                                            >
+                                                {apiData?.other_status_counts?.pending_current_month || 0}
+                                            </span>
+                                        </div>
+                                    }
+                                    colorClass="bg-teal-50"
+                                    kpiKey="pending_current_month"
                                 />
                             </div>
                         </div>
