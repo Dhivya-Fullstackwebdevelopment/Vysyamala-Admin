@@ -1,34 +1,38 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-    CircularProgress,
-    Typography
-} from '@mui/material';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
-import { RiArrowDropDownLine } from 'react-icons/ri';
-import '../../index.css';
 import { apiAxios } from '../../api/apiUrl';
-import { ProfileOwner } from '../RegistrationDashboard/RegistrationDashboard';
+import '../../index.css';
 
 // --- Styles & Constants ---
 const DASHBOARD_CONTAINER = "bg-white rounded-xl border border-[#E3E6EE] p-7 shadow-sm mb-8";
-const BTN_DARK = "bg-[#0A1735] text-white px-6 py-2 rounded-full font-semibold text-sm hover:bg-[#1f2d50] transition shadow-sm border-none cursor-pointer disabled:bg-gray-400";
+const BTN_DARK = "bg-[#0A1735] text-white px-6 py-2 rounded-full font-semibold text-sm hover:bg-[#1f2d50] transition shadow-sm border-none cursor-pointer disabled:opacity-70";
 const BTN_OUTLINE = "bg-white border border-gray-300 text-[#0A1735] px-6 py-2 rounded-full font-semibold text-sm hover:bg-gray-50 transition shadow-sm cursor-pointer";
+
+interface ProfileOwner {
+    id: string;
+    username: string;
+}
 
 const DeleteDashboard: React.FC = () => {
     // --- State Management ---
     const [apiData, setApiData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [tableLoading, setTableLoading] = useState(false);
     const [profileOwners, setProfileOwners] = useState<ProfileOwner[]>([]);
+    const tableRef = useRef<HTMLDivElement>(null);
+
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
     const SuperAdminID = localStorage.getItem('id') || sessionStorage.getItem('id');
+
     const [filters, setFilters] = useState({
         fromDate: '',
         toDate: '',
         owner: SuperAdminID || "",
         profileId: '',
         countFilter: '',
-        hidden: '',      // For hidden=1
-        pending: ''      // For pending=1
+        hidden: '',
+        pending: ''
     });
 
     // --- Fetch Staff/Owners ---
@@ -41,28 +45,21 @@ const DeleteDashboard: React.FC = () => {
         }
     }, []);
 
-    useEffect(() => {
-        if (RoleID === "7") {
-            fetchProfileOwners();
-        }
-    }, [RoleID, fetchProfileOwners]);
-
-
-    // --- API Fetch Function ---
+    // --- Main Fetch Function ---
     const fetchDashboardData = useCallback(async (currentFilters = filters) => {
-        setLoading(true);
+        setTableLoading(true);
         try {
-            // Constructing URL with query params if filters exist
-            const queryParams = new URLSearchParams();
-            if (currentFilters.fromDate) queryParams.append('from_date', currentFilters.fromDate);
-            if (currentFilters.toDate) queryParams.append('to_date', currentFilters.toDate);
-            if (currentFilters.owner) queryParams.append('owner', currentFilters.owner);
-            if (currentFilters.profileId) queryParams.append('profile_id', currentFilters.profileId);
-            if (currentFilters.countFilter) queryParams.append('countFilter', currentFilters.countFilter);
-            if (currentFilters.hidden) queryParams.append('hidden', currentFilters.hidden);
-            if (currentFilters.pending) queryParams.append('pending', currentFilters.pending);
+            const params = new URLSearchParams();
+            if (currentFilters.fromDate) params.append('from_date', currentFilters.fromDate);
+            if (currentFilters.toDate) params.append('to_date', currentFilters.toDate);
+            if (currentFilters.owner) params.append('owner', currentFilters.owner);
+            if (currentFilters.profileId) params.append('profile_id', currentFilters.profileId);
+            if (currentFilters.countFilter) params.append('countFilter', currentFilters.countFilter);
+            if (currentFilters.hidden) params.append('hidden', currentFilters.hidden);
+            if (currentFilters.pending) params.append('pending', currentFilters.pending);
 
-            const response = await fetch(`https://app.vysyamala.com/api/delete-report/?${queryParams.toString()}`);
+            // Using your endpoint
+            const response = await fetch(`https://app.vysyamala.com/api/delete-report/?${params.toString()}`);
             const result = await response.json();
 
             if (result.status) {
@@ -72,88 +69,94 @@ const DeleteDashboard: React.FC = () => {
             console.error("Fetch Error:", error);
         } finally {
             setLoading(false);
+            setTableLoading(false);
         }
     }, [filters]);
 
     // Initial Load
     useEffect(() => {
+        if (RoleID === "7") fetchProfileOwners();
         fetchDashboardData();
     }, []);
 
+    // --- Handlers ---
     const handleCardClick = (filterValue: string, isHidden?: boolean, isPending?: boolean) => {
         const updatedFilters = {
             ...filters,
-            // If the same filter is clicked again, clear it; otherwise, set it
             countFilter: filters.countFilter === filterValue ? "" : filterValue,
             hidden: isHidden ? "1" : "",
             pending: isPending ? "1" : ""
         };
         setFilters(updatedFilters);
+
+        if (tableRef.current) {
+            tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         fetchDashboardData(updatedFilters);
     };
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
-    };
-
     const resetFilters = () => {
-        const defaultFilters = { fromDate: '', toDate: '', owner: SuperAdminID || "", profileId: '', countFilter: '', hidden: '', pending: '' };
+        const defaultFilters = {
+            fromDate: '',
+            toDate: '',
+            owner: RoleID === "7" ? "" : (SuperAdminID || ""),
+            profileId: '',
+            countFilter: '',
+            hidden: '',
+            pending: ''
+        };
         setFilters(defaultFilters);
-        // Re-fetch after state clears
-        setTimeout(fetchDashboardData, 100);
+        setLoading(true);
+        fetchDashboardData(defaultFilters);
     };
 
-    const KPICard = ({ label, value, colorClass, onClick, tnValue, nonTnValue, categoryKey }: any) => (
-        <motion.div
-            whileHover={{ y: -5 }}
-            className={`${colorClass} p-5 rounded-2xl min-h-[140px] border flex flex-col justify-center transition shadow-sm border-[#E3E6EE]`}
-        >
-            <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
+    // --- Components ---
+    const KPICard = ({ label, value, colorClass, kpiKey, subTn, subNonTn, isHidden, isPending }: any) => {
+        const isActive = filters.countFilter === kpiKey;
 
-            {/* If we have sub-values (TN/OTH), we style them specifically */}
-            {tnValue !== undefined ? (
-                <div className="flex flex-col gap-1">
-                    <h2 className="text-xl font-bold cursor-pointer hover:underline" onClick={() => onClick(categoryKey)}>
-                        {value}
-                    </h2>
-                    <div className="flex gap-2 text-sm font-semibold">
-                        <span
-                            className="bg-white/50 px-2 py-1 rounded cursor-pointer hover:bg-white"
-                            onClick={() => onClick(categoryKey, false, false, 'tn')}
-                        >
-                            {tnValue}
-                        </span>
-                        <span
-                            className="bg-white/50 px-2 py-1 rounded cursor-pointer hover:bg-white"
-                            onClick={() => onClick(categoryKey, false, false, 'non_tn')}
-                        >
-                            {nonTnValue}
-                        </span>
-                    </div>
+        return (
+            <motion.div
+                whileHover={{ y: -3 }}
+                onClick={() => handleCardClick(kpiKey, isHidden, isPending)}
+                className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
+                ${isActive ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
+            >
+                <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
+                <div className="flex items-baseline gap-2">
+                    <h2 className="text-3xl text-start font-bold">{value}</h2>
+                    {subTn !== undefined && (
+                        <div className="flex text-sm font-bold text-gray-500 items-center gap-1">
+                            <span className="mx-1">-</span>
+                            <span className="hover:text-black transition-all px-1">{subTn}</span>
+                            <span className="opacity-40">/</span>
+                            <span className="hover:text-black transition-all px-1">{subNonTn}</span>
+                        </div>
+                    )}
                 </div>
-            ) : (
-                <h2 className="text-2xl text-start font-bold mb-1 cursor-pointer" onClick={() => onClick(categoryKey)}>
-                    {value}
-                </h2>
-            )}
-        </motion.div>
+                <p className="text-[9px] opacity-60 text-start mt-1">click to view profiles</p>
+            </motion.div>
+        );
+    };
+
+    const FullWidthLoadingSpinner = () => (
+        <Box className="w-full flex flex-col justify-center items-center py-12 bg-white rounded-xl shadow-sm border border-[#E3E6EE] mb-8">
+            <CircularProgress color="primary" size={40} />
+            <Typography variant="h6" sx={{ mt: 3, color: '#0A1735', fontWeight: 600 }}>Loading Dashboard Data...</Typography>
+        </Box>
     );
 
     return (
         <div className="min-h-screen bg-[#F5F7FB] font-inter text-black p-4 md:p-8">
-
-            {/* --- Header Section --- */}
             <header className="flex flex-wrap justify-between items-start mb-6 gap-4">
                 <div className="text-left">
-                    <h2 className="text-2xl font-bold mb-1 text-[#0A1735]">Delete Dashboard</h2>
+                    <h2 className="text-2xl font-bold mb-1">Delete Dashboard</h2>
                 </div>
                 <div className="flex gap-3">
                     <button className={BTN_DARK}>Download Report</button>
                 </div>
             </header>
 
-            {/* --- Filters Section --- */}
+            {/* --- Filters --- */}
             <section className={DASHBOARD_CONTAINER}>
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="text-start">
@@ -179,184 +182,129 @@ const DeleteDashboard: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
-                    {/* <button className={BTN_OUTLINE}>Reset</button>
-                    <button className={BTN_DARK}>Apply Filters</button> */}
                     <button onClick={resetFilters} className={BTN_OUTLINE}>Reset</button>
                     <button onClick={() => fetchDashboardData()} className={BTN_DARK}>Apply Filters</button>
                 </div>
             </section>
 
             {loading ? (
-                <div className="flex justify-center py-20"><CircularProgress /></div>
+                <FullWidthLoadingSpinner />
             ) : (
                 <>
-                    <div className="space-y-8 ">
+                    <div className="space-y-6">
                         <div className={DASHBOARD_CONTAINER}>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                <KPICard
-                                    label="Total Delete"
-                                    value={apiData?.overall_count || 0}
-                                    colorClass="bg-purple-50 border-purple-200"
-                                    onClick={() => handleCardClick("")} // No filter
-                                />
-
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <KPICard label="Total Delete" value={apiData?.overall_count || 0} colorClass="bg-slate-50" kpiKey="" />
                                 <KPICard
                                     label="TN / Others"
-                                    value={`${apiData?.state_counts?.tn} / ${apiData?.state_counts?.non_tn}`}
-                                    colorClass="bg-red-50 border-red-200"
-                                    onTotalClick={() => handleCardClick("tn_others_total")}
-                                    onTnClick={() => handleCardClick("tn")}
-                                    onOthersClick={() => handleCardClick("non_tn")}
+                                    value={`${apiData?.state_counts?.tn || 0} / ${apiData?.state_counts?.non_tn || 0}`}
+                                    colorClass="bg-red-50"
+                                    kpiKey="tn"
                                 />
-
                                 <KPICard
                                     label="Premium - TN/OTH"
-                                    value={apiData?.plan_counts?.premium?.total}
-                                    tnValue={apiData?.plan_counts?.premium?.tn}
-                                    nonTnValue={apiData?.plan_counts?.premium?.non_tn}
-                                    categoryKey="premium"
-                                    colorClass="bg-[#F5F3FF] border-purple-200"
-                                    onClick={handleCardClick}
+                                    value={apiData?.plan_counts?.premium?.total || 0}
+                                    subTn={apiData?.plan_counts?.premium?.tn}
+                                    subNonTn={apiData?.plan_counts?.premium?.non_tn}
+                                    colorClass="bg-emerald-50"
+                                    kpiKey="premium"
                                 />
-
                                 <KPICard
                                     label="Free - TN/OTH"
-                                    value={apiData?.plan_counts?.free?.total}
-                                    tnValue={apiData?.plan_counts?.free?.tn}
-                                    nonTnValue={apiData?.plan_counts?.free?.non_tn}
-                                    categoryKey="free"
-                                    colorClass="bg-blue-50 border-blue-200"
-                                    onClick={handleCardClick}
+                                    value={apiData?.plan_counts?.free?.total || 0}
+                                    subTn={apiData?.plan_counts?.free?.tn}
+                                    subNonTn={apiData?.plan_counts?.free?.non_tn}
+                                    colorClass="bg-sky-50"
+                                    kpiKey="free"
                                 />
-
-                                {/* Offer Card */}
                                 <KPICard
                                     label="Offer - TN/OTH"
-                                    value={apiData?.plan_counts?.offer?.total}
-                                    tnValue={apiData?.plan_counts?.offer?.tn}
-                                    nonTnValue={apiData?.plan_counts?.offer?.non_tn}
-                                    categoryKey="offer"
-                                    colorClass="bg-pink-50 border-pink-200"
-                                    onClick={handleCardClick}
+                                    value={apiData?.plan_counts?.offer?.total || 0}
+                                    subTn={apiData?.plan_counts?.offer?.tn}
+                                    subNonTn={apiData?.plan_counts?.offer?.non_tn}
+                                    colorClass="bg-pink-50"
+                                    kpiKey="offer"
                                 />
-
-                                {/* Prospect Card */}
                                 <KPICard
                                     label="Prospect - TN/OTH"
-                                    value={apiData?.plan_counts?.prospect?.total}
-                                    tnValue={apiData?.plan_counts?.prospect?.tn}
-                                    nonTnValue={apiData?.plan_counts?.prospect?.non_tn}
-                                    categoryKey="prospect"
-                                    colorClass="bg-green-50 border-green-200"
-                                    onClick={handleCardClick}
+                                    value={apiData?.plan_counts?.prospect?.total || 0}
+                                    subTn={apiData?.plan_counts?.prospect?.tn}
+                                    subNonTn={apiData?.plan_counts?.prospect?.non_tn}
+                                    colorClass="bg-rose-50"
+                                    kpiKey="prospect"
                                 />
-
-                                <KPICard
-                                    label="Current Month Delete"
-                                    value={apiData?.current_month_deletions || 0}
-                                    colorClass="bg-orange-50 border-orange-200"
-                                    onClick={() => handleCardClick("current_month_deletions")}
-                                />
-
-                                <KPICard
-                                    label="Duplicate"
-                                    value={apiData?.status_counts?.duplicate || 0}
-                                    colorClass="bg-indigo-50 border-indigo-200"
-                                    onClick={() => handleCardClick("duplicate")}
-                                />
-
-                                <KPICard
-                                    label="Fake"
-                                    value={apiData?.status_counts?.fake || 0}
-                                    colorClass="bg-rose-50 border-rose-200"
-                                    onClick={() => handleCardClick("fake")}
-                                />
-
-                                <KPICard
-                                    label="Got married - Marriage settled"
-                                    value={apiData?.status_counts?.marriage || 0}
-                                    colorClass="bg-teal-50 border-teal-200"
-                                    onClick={() => handleCardClick("marriage")}
-                                />
-
-                                <KPICard
-                                    label="Others"
-                                    value={apiData?.status_counts?.others || 0}
-                                    colorClass="bg-indigo-50 border-indigo-200"
-                                    onClick={() => handleCardClick("others")}
-                                />
-
-                                <KPICard
-                                    label="Hidden /Current Month Hidden"
-                                    value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`}
-                                    colorClass="bg-rose-50 border-rose-200"
-                                    onClick={() => handleCardClick("hidden_current_month", true, false)} // Pass hidden=1
-                                />
-
-                                <KPICard
-                                    label="Pending /Current month Pending"
-                                    value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`}
-                                    colorClass="bg-teal-50 border-teal-200"
-                                    onClick={() => handleCardClick("pending_current_month", false, true)} // Pass pending=1
-                                />
+                                <KPICard label="Current Month Delete" value={apiData?.current_month_deletions || 0} colorClass="bg-orange-50" kpiKey="current_month_deletions" />
+                                <KPICard label="Duplicate" value={apiData?.status_counts?.duplicate || 0} colorClass="bg-indigo-50" kpiKey="duplicate" />
+                                <KPICard label="Fake" value={apiData?.status_counts?.fake || 0} colorClass="bg-rose-50" kpiKey="fake" />
+                                <KPICard label="Marriage Settled" value={apiData?.status_counts?.marriage || 0} colorClass="bg-teal-50" kpiKey="marriage" />
+                                <KPICard label="Hidden / Current Month Hidden" value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`} colorClass="bg-purple-50" kpiKey="hidden_current_month" isHidden={true} />
+                                <KPICard label="Pending / Current Month Pending" value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`} colorClass="bg-teal-50" kpiKey="pending_current_month" isPending={true} />
                             </div>
                         </div>
                     </div>
 
                     {/* --- Table Section --- */}
-                    <section className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
-                        <h5 className="text-lg font-semibold text-[#0A1735] mb-6">📋 List View ({apiData?.data?.length || 0})</h5>
-                        <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
+                    <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <h5 className="text-lg font-semibold text-[#0A1735]">📋 List View ({apiData?.data?.length || 0})</h5>
+                        </div>
+
+                        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
                             <table className="min-w-full border-separate border-spacing-0 table-auto">
                                 <thead className="sticky top-0 z-20 bg-gray-50">
                                     <tr>
-                                        {["Profile ID", "Name", "City", "State",
-                                            "Mode",
-                                            "Delete Date",
-                                            "Creation Date",
-                                            "Owner",
-                                            "Secondary Delete Status",
-                                            "Secondary Delete Others Comments",
-                                        ].map((col) => (
-                                            <th key={col} className="sticky px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase border border-[#e5ebf1] whitespace-nowrap">{col}</th>
-                                        ))}
+                                        {["Profile ID", "Name", "City", "State", "Mode", "Delete Date", "Creation Date", "Owner", "Secondary Delete Status",
+                                            "Secondary Delete Others Comments",].map((col, idx) => (
+                                                <th key={col} className={`sticky px-3 py-3 text-left text-[11px] font-bold text-gray-600 uppercase tracking-wider border border-[#e5ebf1] whitespace-nowrap ${idx === 0 ? 'rounded-tl-xl' : ''}`}>
+                                                    {col}
+                                                </th>
+                                            ))}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {apiData?.data?.map((item: any) => (
-                                        <tr key={item.ProfileId} className="hover:bg-gray-50">
-                                            <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{item.ProfileId}</td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_name || 'N/A'}</td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_city || 'N/A'}</td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.state || 'N/A'}</td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.plan_name || 'N/A'}</td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
-                                                {item.dh_date_time
-                                                    ? new Date(item.dh_date_time.replace("T", " ")).toLocaleDateString('en-CA')
-                                                    : "N/A"}
+                                    {tableLoading ? (
+                                        <tr>
+                                            <td colSpan={9} className="py-20 text-center">
+                                                <CircularProgress size={30} />
+                                                <p className="mt-2 text-sm text-gray-500">Updating List...</p>
                                             </td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
-                                                {item.DateOfJoin
-                                                    ? new Date(item.DateOfJoin.replace("T", " ")).toLocaleDateString('en-CA')
-                                                    : "N/A"}
-                                            </td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.owner_name || 'N/A'}</td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.sub_status_id === 21 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                                                    {item.sub_status_name || 'N/A'}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-3 text-sm border border-[#e5ebf1]">comments</td>
                                         </tr>
-                                    ))}
+                                    ) : apiData?.data?.length > 0 ? (
+                                        apiData.data.map((item: any) => (
+                                            <tr key={item.ProfileId} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{item.ProfileId}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] font-medium">{item.Profile_name || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_city || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.state || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.plan_name || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
+                                                    {item.dh_date_time ? new Date(item.dh_date_time.replace("T", " ")).toLocaleDateString('en-CA') : "N/A"}
+                                                </td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
+                                                    {item.DateOfJoin ? new Date(item.DateOfJoin.replace("T", " ")).toLocaleDateString('en-CA') : "N/A"}
+                                                </td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.owner_name || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">
+                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${item.sub_status_id === 21 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                        {item.sub_status_name || 'N/A'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1]">static</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={9} className="text-center py-10 font-semibold text-gray-400">No records found.</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </section>
                 </>
-            )
-            }
-        </div >
+            )}
+        </div>
     );
 };
+
 export default DeleteDashboard;
