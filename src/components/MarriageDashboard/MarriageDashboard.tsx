@@ -52,6 +52,7 @@ const MarriageDashboard: React.FC = () => {
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
     const SuperAdminID = localStorage.getItem('id') || sessionStorage.getItem('id');
     const tableRef = useRef<HTMLDivElement>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const [filters, setFilters] = useState({
         particulars: "",
@@ -128,6 +129,56 @@ const MarriageDashboard: React.FC = () => {
             }
         }
     }, [filters, RoleID, SuperAdminID]);
+
+    const handleDownloadReport = async () => {
+        setIsDownloading(true);
+
+        try {
+            const params = new URLSearchParams();
+
+            // Same params as fetchDashboardData
+            if (filters.fromDate) params.append('from_date', filters.fromDate);
+            if (filters.toDate) params.append('to_date', filters.toDate);
+            if (filters.countFilter) params.append('countFilter', filters.countFilter);
+
+            if (filters.genderFilter) params.append('genderFilter', filters.genderFilter);
+            if (filters.order_by) params.append('order_by', filters.order_by);
+
+            const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
+            if (ownerId) params.append("owner", ownerId);
+
+            // 🔑 IMPORTANT: export flag
+            params.append('export', 'excel');
+
+            const response = await apiAxios.get('api/marriage-report/', {
+                params: Object.fromEntries(params.entries()),
+                responseType: 'blob',
+            });
+
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute(
+                'download',
+                `Marriage_Report_${new Date().toISOString().slice(0, 10)}.xlsx`
+            );
+
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error("Prospect Excel download failed:", error);
+            alert("Failed to download the report. Please try again.");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     useEffect(() => {
         if (applyFilters) {
@@ -363,9 +414,19 @@ const MarriageDashboard: React.FC = () => {
                 <div className="flex gap-3">
                     <button
                         className={`${BTN_DARK} flex items-center gap-2 disabled:opacity-70`}
+                        onClick={handleDownloadReport}
+                        disabled={isDownloading}
                     >
-                        Download Report
+                        {isDownloading ? (
+                            <>
+                                <CircularProgress size={16} color="inherit" />
+                                <span>Downloading...</span>
+                            </>
+                        ) : (
+                            "Download Report"
+                        )}
                     </button>
+
                 </div>
             </header>
 
@@ -432,7 +493,7 @@ const MarriageDashboard: React.FC = () => {
                                     label="Total"
                                     value={getVal('total_profiles')}
                                     colorClass="bg-slate-50"
-                                    kpiKey="total"
+                                    kpiKey=""
                                 />
                                 <KPICard
                                     label="Premium - TN/OTH"
