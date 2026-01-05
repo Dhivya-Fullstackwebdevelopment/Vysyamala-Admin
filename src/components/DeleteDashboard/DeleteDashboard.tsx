@@ -31,6 +31,7 @@ const DeleteDashboard: React.FC = () => {
 
     const [scrollSource, setScrollSource] = useState<'card' | 'filter' | null>(null);
     const [applyFilters, setApplyFilters] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false); // 👈 New state for download
 
     const [filters, setFilters] = useState({
         fromDate: '',
@@ -95,6 +96,51 @@ const DeleteDashboard: React.FC = () => {
         }
     }, [filters]);
 
+    const handleDownloadReport = async () => {
+        setIsDownloading(true);
+        try {
+            const params = new URLSearchParams();
+            if (filters.fromDate) params.append('from_date', filters.fromDate);
+            if (filters.toDate) params.append('to_date', filters.toDate);
+            if (filters.profileId) params.append('profile_id', filters.profileId);
+            if (filters.countFilter) params.append('countFilter', filters.countFilter);
+            if (filters.hidden) params.append('hidden', filters.hidden);
+            if (filters.pending) params.append('pending', filters.pending);
+
+            const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
+            if (ownerId) params.append("owner", ownerId);
+
+            // 🔑 IMPORTANT: Add export flag
+            params.append('export', 'excel');
+
+            const response = await apiAxios.get('api/delete-report/', {
+                params: Object.fromEntries(params.entries()),
+                responseType: 'blob', // 👈 Required for file downloads
+            });
+
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute(
+                'download',
+                `Delete_Report_${new Date().toISOString().slice(0, 10)}.xlsx`
+            );
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error("Excel download failed:", error);
+            alert("Failed to download report.");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
     // 1. Initial Load
     useEffect(() => {
         if (RoleID === "7") fetchProfileOwners();
@@ -267,7 +313,20 @@ const DeleteDashboard: React.FC = () => {
                     <h2 className="text-2xl font-bold mb-1">Delete Dashboard</h2>
                 </div>
                 <div className="flex gap-3">
-                    <button className={BTN_DARK}>Download Report</button>
+                    <button
+                        className={`${BTN_DARK} flex items-center gap-2`}
+                        onClick={handleDownloadReport}
+                        disabled={isDownloading}
+                    >
+                        {isDownloading ? (
+                            <>
+                                <CircularProgress size={16} color="inherit" />
+                                <span>Downloading...</span>
+                            </>
+                        ) : (
+                            "Download Report"
+                        )}
+                    </button>
                 </div>
             </header>
 
