@@ -83,6 +83,8 @@ const DeleteDashboard: React.FC = () => {
     const handleCardClick = (filterValue: string, isHidden?: boolean, isPending?: boolean) => {
         const updatedFilters = {
             ...filters,
+            // If they click 'tn', we set countFilter. 
+            // If they click 'non_tn', we set countFilter to 'non_tn'
             countFilter: filters.countFilter === filterValue ? "" : filterValue,
             hidden: isHidden ? "1" : "",
             pending: isPending ? "1" : ""
@@ -195,11 +197,40 @@ const DeleteDashboard: React.FC = () => {
                         <div className={DASHBOARD_CONTAINER}>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <KPICard label="Total Delete" value={apiData?.overall_count || 0} colorClass="bg-slate-50" kpiKey="" />
-                                <KPICard
+                                {/* <KPICard
                                     label="TN / Others"
                                     value={`${apiData?.state_counts?.tn || 0} / ${apiData?.state_counts?.non_tn || 0}`}
                                     colorClass="bg-red-50"
                                     kpiKey="tn"
+                                /> */}
+                                <KPICard
+                                    label="TN / Others"
+                                    // We pass a custom value display
+                                    value={
+                                        <div className="flex gap-2">
+                                            <span
+                                                className={` cursor-pointer ${filters.countFilter === 'tn' ? 'text-blue-600' : ''}`}
+                                                onClick={(e: React.MouseEvent) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick('tn');
+                                                }}
+                                            >
+                                                {apiData?.state_counts?.tn || 0}
+                                            </span>
+                                            <span className="opacity-30">/</span>
+                                            <span
+                                                className={` cursor-pointer ${filters.countFilter === 'non_tn' ? 'text-red-600' : ''}`}
+                                                onClick={(e: React.MouseEvent) => {
+                                                    e.stopPropagation();
+                                                    handleCardClick('non_tn');
+                                                }}
+                                            >
+                                                {apiData?.state_counts?.non_tn || 0}
+                                            </span>
+                                        </div>
+                                    }
+                                    colorClass="bg-red-50"
+                                    kpiKey="tn" // Neutral key so the parent click doesn't conflict
                                 />
                                 <KPICard
                                     label="Premium - TN/OTH"
@@ -241,7 +272,7 @@ const DeleteDashboard: React.FC = () => {
                                     label="Others"
                                     value={apiData?.status_counts?.others || 0}
                                     colorClass="bg-indigo-50"
-                                    kpiKey="others" 
+                                    kpiKey="others"
                                 />
                                 <KPICard label="Hidden / Current Month Hidden" value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`} colorClass="bg-purple-50" kpiKey="hidden_current_month" isHidden={true} />
                                 <KPICard label="Pending / Current Month Pending" value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`} colorClass="bg-teal-50" kpiKey="pending_current_month" isPending={true} />
