@@ -136,7 +136,7 @@ const DeleteDashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
                     <button className={BTN_OUTLINE}>Reset</button>
-                    <button  className={BTN_DARK}>Apply Filters</button>
+                    <button className={BTN_DARK}>Apply Filters</button>
                 </div>
             </section>
 
@@ -179,13 +179,14 @@ const DeleteDashboard: React.FC = () => {
 
                                 <KPICard
                                     label="Hidden /Current Month Hidden"
-                                    value={apiData?.other_status_counts?.hidden || 0}
+                                    value={`${apiData?.other_status_counts?.hidden || 0} / ${apiData?.other_status_counts?.hidden_current_month || 0}`}
                                     colorClass="bg-rose-50 border-rose-200"
                                 />
 
                                 <KPICard
                                     label="Pending /Current month Pending"
-                                    value={apiData?.other_status_counts?.pending || 0}
+                                    // value={apiData?.other_status_counts?.pending || 0}
+                                    value={`${apiData?.other_status_counts?.pending || 0} / ${apiData?.other_status_counts?.pending_current_month || 0}`}
                                     colorClass="bg-teal-50 border-teal-200"
                                 />
                             </div>

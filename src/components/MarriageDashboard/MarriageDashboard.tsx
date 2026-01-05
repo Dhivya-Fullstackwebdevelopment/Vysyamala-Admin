@@ -63,11 +63,11 @@ const MarriageDashboard: React.FC = () => {
         searchQuery: "",
         countFilter: "",
         genderFilter: "",
-        order_by: "asc",
+        order_by: "desc",
     });
 
-    const [triggerFetch, setTriggerFetch] = useState(true);
-
+    const yesNo = (value: number | null | undefined) =>
+        value === 1 ? "Yes" : value === 0 ? "No" : "N/A";
     // --- Fetch Staff/Owners ---
     const fetchProfileOwners = useCallback(async () => {
         try {
@@ -195,7 +195,10 @@ const MarriageDashboard: React.FC = () => {
     useEffect(() => {
         setLoading(true);       // This triggers the FullWidthLoadingSpinner
         setTableLoading(true);
-        fetchDashboardData();
+        fetchDashboardData({
+            ...filters,
+            order_by: "desc"
+        });
     }, []);
 
 
@@ -653,20 +656,22 @@ const MarriageDashboard: React.FC = () => {
                                 {/* Sort Toggle (ASC/DESC) */}
                                 <button
                                     onClick={() => {
-                                        const nextOrder = filters.order_by === "asc" ? "desc" : "asc";
+                                        const nextOrder = filters.order_by === "desc" ? "asc" : "desc";
                                         const newFilters = { ...filters, order_by: nextOrder };
                                         setFilters(newFilters);
                                         fetchDashboardData(newFilters);
                                     }}
                                     className={`h-10 px-4 rounded-full border transition flex items-center gap-3 text-sm font-semibold shadow-sm ${filters.order_by === "asc"
-                                        ? "bg-white border-gray-300 text-gray-700"
-                                        : "bg-[#0A1735] border-[#0A1735] text-white"
+                                        ? "bg-[#0A1735] border-[#0A1735] text-white" // ON style for ASC
+                                        : "bg-white border-gray-300 text-gray-700"   // OFF style for DESC
                                         }`}
                                 >
                                     <span>Sort Deleted Date</span>
                                     {filters.order_by === "desc" ? (
+                                        // When DESC, show OFF icon
                                         <MdToggleOff size={28} className="text-gray-400" />
                                     ) : (
+                                        // When ASC, show ON icon
                                         <MdToggleOn size={28} className="text-blue-400" />
                                     )}
                                 </button>
@@ -763,9 +768,9 @@ const MarriageDashboard: React.FC = () => {
                                                 {/* Marriage Settled Thru */}
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">{row.settledthru || 'N/A'}</td>
                                                 {/* Marriage Photo */}
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.marriagephotodetails || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{yesNo(row.marriagephotodetails)}</td>
                                                 {/* Engagement Photo */}
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.engagementphotodetails || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{yesNo(row.engagementphotodetails)}</td>
                                                 {/* Marriage Invitation */}
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.marriageinvitationdetails || 'N/A'}</td>
                                                 {/* Marriage Location */}
