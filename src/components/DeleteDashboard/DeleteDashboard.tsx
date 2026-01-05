@@ -24,6 +24,8 @@ const DeleteDashboard: React.FC = () => {
 
     const RoleID = localStorage.getItem('role_id') || sessionStorage.getItem('role_id');
     const SuperAdminID = localStorage.getItem('id') || sessionStorage.getItem('id');
+    const [scrollSource, setScrollSource] = useState<'card' | 'filter' | null>(null);
+    const [applyFilters, setApplyFilters] = useState(false);
 
     const [filters, setFilters] = useState({
         fromDate: '',
@@ -32,7 +34,8 @@ const DeleteDashboard: React.FC = () => {
         profileId: '',
         countFilter: '',
         hidden: '',
-        pending: ''
+        pending: '',
+        searchQuery: "",
     });
 
     // --- Fetch Staff/Owners ---
@@ -79,6 +82,26 @@ const DeleteDashboard: React.FC = () => {
         fetchDashboardData();
     }, []);
 
+    useEffect(() => {
+        if (applyFilters) {
+            if (scrollSource === 'card' && tableRef.current) {
+                tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            // This will now use the latest state if triggered by "Apply Filters" button
+            fetchDashboardData();
+        }
+    }, [applyFilters, scrollSource, fetchDashboardData]);
+
+    // 3. Initial Load
+
+    useEffect(() => {
+        setLoading(true);       // This triggers the FullWidthLoadingSpinner
+        setTableLoading(true);
+        fetchDashboardData();
+    }, []);
+
+    
+
     // --- Handlers ---
     const handleCardClick = (
         filterValue: string,
@@ -106,7 +129,8 @@ const DeleteDashboard: React.FC = () => {
                 : (filters.countFilter === finalCountFilter ? "" : finalCountFilter),
 
             hidden: isHidden ? "1" : "",
-            pending: isPending ? "1" : ""
+            pending: isPending ? "1" : "",
+            searchQuery: ""
         };
 
         setFilters(updatedFilters);
@@ -117,6 +141,14 @@ const DeleteDashboard: React.FC = () => {
         fetchDashboardData(updatedFilters);
     };
 
+    const handleApplyFilters = () => {
+        setLoading(true);
+        setTableLoading(true);
+        setScrollSource('filter');
+        setApplyFilters(true);
+    };
+
+
     const resetFilters = () => {
         const defaultFilters = {
             fromDate: '',
@@ -125,7 +157,8 @@ const DeleteDashboard: React.FC = () => {
             profileId: '',
             countFilter: '',
             hidden: '',
-            pending: ''
+            pending: '',
+            searchQuery: ""
         };
         setFilters(defaultFilters);
         setLoading(true);
@@ -226,7 +259,7 @@ const DeleteDashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
                     <button onClick={resetFilters} className={BTN_OUTLINE}>Reset</button>
-                    <button onClick={() => fetchDashboardData()} className={BTN_DARK}>Apply Filters</button>
+                    <button onClick={handleApplyFilters} className={BTN_DARK}>Apply Filters</button>
                 </div>
             </section>
 
@@ -394,6 +427,22 @@ const DeleteDashboard: React.FC = () => {
                     <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
                         <div className="flex justify-between items-center mb-6">
                             <h5 className="text-lg font-semibold text-[#0A1735]">📋 List View ({apiData?.data?.length || 0})</h5>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Search Profile ID / Name"
+                                    value={filters.searchQuery}
+                                    onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+                                    className="w-[250px] h-10 px-4 rounded-full border border-gray-300 text-sm focus:outline-none focus:border-gray-500 transition"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setFilters({ ...filters, searchQuery: "" });
+                                        setScrollSource('filter');
+                                        setApplyFilters(true);  // 👈 reload table after clearing
+                                    }}
+                                    className="h-10 px-4 rounded-full bg-white border border-gray-300 text-sm font-semibold hover:bg-gray-50 transition">Clear</button>
+                            </div>
                         </div>
 
                         <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
@@ -413,13 +462,17 @@ const DeleteDashboard: React.FC = () => {
                                         <tr>
                                             <td colSpan={9} className="py-20 text-center">
                                                 <CircularProgress size={30} />
-                                                <p className="mt-2 text-sm text-gray-500">Updating List...</p>
+                                                <p className="mt-2 text-sm text-gray-500">Loading Profiles...</p>
                                             </td>
                                         </tr>
                                     ) : apiData?.data?.length > 0 ? (
                                         apiData.data.map((item: any) => (
                                             <tr key={item.ProfileId} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">{item.ProfileId}</td>
+                                                <td className="px-3 py-3 text-sm font-bold text-blue-600 border border-[#e5ebf1]">
+                                                    <a href={`/viewProfile?profileId=${item.ProfileId}`} target="_blank" rel="noreferrer" className="hover:underline">
+                                                        {item.ProfileId}
+                                                    </a>
+                                                </td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] font-medium">{item.Profile_name || 'N/A'}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.Profile_city || 'N/A'}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1]">{item.state || 'N/A'}</td>
