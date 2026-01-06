@@ -158,26 +158,31 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
           console.log("Marriagedetailsdata", Marriagedetailsdata);
 
           if (Marriagedetailsdata.length > 0) {
-            const Marriage = Marriagedetailsdata[0];
-
-            // Use shouldValidate and shouldDirty to ensure the form registers the change
+            const marriage = Marriagedetailsdata[0];
             const options = { shouldValidate: true, shouldDirty: true };
 
-            // Mapping API (no underscores) to Form (with underscores)
-            setValue("marriage_date", Marriage.marriagedate || "", options);
-            setValue("groombridefathername", Marriage.groombridefathername || "", options);
-            setValue("groom_bride_vysyamala_id", Marriage.groombridevysysaid || "", options);
-            setValue("engagement_date", Marriage.engagementdate || "", options);
-            setValue("marriage_photo_details", Marriage.marriagephotodetails || "", options);
-            setValue("engagement_photo_details", Marriage.engagementphotodetails || "", options);
-            setValue("admin_marriage_comments", Marriage.adminmarriagecomments || "", options);
-            setValue("groom_bride_name", Marriage.groombridename || "", options);
-            setValue("groombridecity", Marriage.groombridecity || "", options);
-            setValue("settled_thru", Marriage.settledthru || "", options);
-            setValue("marriage_comments", Marriage.marriagecomments || "", options);
-            setValue("marriage_invitation_details", Marriage.marriageinvitationdetails || "", options);
-            setValue("engagement_invitation_details", Marriage.engagementinvitationdetails || "", options);
-            setValue("admin_settled_thru", Marriage.adminsettledthru || "", options);
+            setValue("marriage_date", marriage.marriage_date ?? "", options);
+            setValue("groom_bride_name", marriage.groom_bride_name ?? "", options);
+            setValue("groombridefathername", marriage.groombridefathername ?? "", options);
+            setValue("groombridecity", marriage.groombridecity ?? "", options);
+            setValue("groom_bride_vysyamala_id", marriage.groom_bride_vysyamala_id ?? "", options);
+
+            setValue("settled_thru", marriage.settled_thru ?? "", options);
+            setValue("others", marriage.others ?? "", options);
+
+            setValue("admin_settled_thru", marriage.admin_settled_thru ?? "", options);
+            setValue("admin_others", marriage.admin_others ?? "", options);
+
+            setValue("engagement_date", marriage.engagement_date ?? "", options);
+            setValue("marriage_comments", marriage.marriage_comments ?? "", options);
+
+            setValue("marriage_photo_details", marriage.marriage_photo_details ?? "", options);
+            setValue("marriage_invitation_details", marriage.marriage_invitation_details ?? "", options);
+            setValue("engagement_photo_details", marriage.engagement_photo_details ?? "", options);
+            setValue("engagement_invitation_details", marriage.engagement_invitation_details ?? "", options);
+
+            setValue("admin_marriage_comments", marriage.admin_marriage_comments ?? "", options);
+            setValue("marriage_location", marriage.marriage_location ?? "", options);
           }
 
         } catch (error) {
