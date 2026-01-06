@@ -790,10 +790,13 @@ export const createMarriageSettleDetails = async (
     GroomBrideName: string,
     GroomBrideCity: string,
     SettledThru: string,
+    SettledThruOthers: string,
     MarriageComments: string,
     MarriageInvitationDetails: string,
     EngagementInvitationDetails: string,
-    AdminSettledThru: string
+    AdminSettledThru: string,
+    AdminSettledThruOthers: string,
+    MarriageLocation: string,
 ) => {
     try {
         const formData = new FormData();
@@ -801,46 +804,55 @@ export const createMarriageSettleDetails = async (
         formData.append("owner_id", OwnerID);
         // Only append if provided
         if (MarriageDate) {
-            formData.append("marriagedate", MarriageDate);
+            formData.append("marriage_date", MarriageDate);
         }
         if (GroomBrideFatherName) {
             formData.append("groombridefathername", GroomBrideFatherName);
         }
         if (GroomBrideVysysaID) {
-            formData.append("groombridevysysaid", GroomBrideVysysaID);
+            formData.append("groom_bride_vysyamala_id", GroomBrideVysysaID);
         }
         if (EngagementDate) {
-            formData.append("engagementdate", EngagementDate);
+            formData.append("engagement_date", EngagementDate);
         }
         if (MarriagePhotoDetails) {
-            formData.append("marriagephotodetails", MarriagePhotoDetails);
+            formData.append("marriage_photo_details", MarriagePhotoDetails);
         }
         if (EngagementPhotoDetails) {
-            formData.append("engagementphotodetails", EngagementPhotoDetails);
+            formData.append("engagement_photo_details", EngagementPhotoDetails);
         }
         if (AdminMarriageComments) {
-            formData.append("adminmarriagecomments", AdminMarriageComments);
+            formData.append("admin_marriage_comments", AdminMarriageComments);
         }
         if (GroomBrideName) {
-            formData.append("groombridename", GroomBrideName);
+            formData.append("groom_bride_name", GroomBrideName);
         }
         if (GroomBrideCity) {
             formData.append("groombridecity", GroomBrideCity);
         }
         if (SettledThru) {
-            formData.append("settledthru", SettledThru);
+            formData.append("settled_thru", SettledThru);
+        }
+        if (SettledThruOthers) {
+            formData.append("others", SettledThruOthers);
         }
         if (MarriageComments) {
-            formData.append("marriagecomments", MarriageComments);
+            formData.append("marriage_comments", MarriageComments);
         }
         if (MarriageInvitationDetails) {
-            formData.append("marriageinvitationdetails", MarriageInvitationDetails);
+            formData.append("marriage_invitation_details", MarriageInvitationDetails);
         }
         if (EngagementInvitationDetails) {
-            formData.append("engagementinvitationdetails", EngagementInvitationDetails);
+            formData.append("engagement_invitation_details", EngagementInvitationDetails);
         }
         if (AdminSettledThru) {
-            formData.append("adminsettledthru", AdminSettledThru);
+            formData.append("admin_settled_thru", AdminSettledThru);
+        }
+        if (AdminSettledThruOthers) {
+            formData.append("admin_others", AdminSettledThruOthers);
+        }
+        if (MarriageLocation) {
+            formData.append("marriage_location", MarriageLocation);
         }
         const response = await apiAxios.post('/api/marriage-settle-details/create/', formData,
             {

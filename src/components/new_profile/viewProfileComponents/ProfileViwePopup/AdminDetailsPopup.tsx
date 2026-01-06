@@ -14,20 +14,23 @@ interface AdminDetaisProps {
 
 //Schema --> MArriageSettled Details
 const marriageSettleDetailsSchema = z.object({
-  marriagedate: z.string().min(1, "Marriage date is required"),
-  groombridename: z.string().optional(),
+  marriage_date: z.string().min(1, "Marriage date is required"),
+  groom_bride_name: z.string().optional(),
   groombridefathername: z.string().optional(),
   groombridecity: z.string().optional(),
-  groombridevysysaid: z.string().optional(),
-  settledthru: z.string().optional(),
-  adminsettledthru: z.string().optional(),
-  engagementdate: z.string().optional(),
-  marriagecomments: z.string().optional(),
-  marriagephotodetails: z.string().optional(),
-  marriageinvitationdetails: z.string().optional(),
-  engagementphotodetails: z.string().optional(),
-  engagementinvitationdetails: z.string().optional(),
-  adminmarriagecomments: z.string().optional(),
+  groom_bride_vysyamala_id: z.string().optional(),
+  settled_thru: z.string().optional(),
+  admin_settled_thru: z.string().optional(),
+  engagement_date: z.string().optional(),
+  marriage_comments: z.string().optional(),
+  marriage_photo_details: z.string().optional(),
+  marriage_invitation_details: z.string().optional(),
+  engagement_photo_details: z.string().optional(),
+  engagement_invitation_details: z.string().optional(),
+  admin_marriage_comments: z.string().optional(),
+  others: z.string().optional(),
+  admin_others: z.string().optional(),
+  marriage_location: z.string().optional(),
 });
 type MarriageDetailsFormData = z.infer<typeof marriageSettleDetailsSchema>;
 
@@ -70,29 +73,35 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
   } = useForm<PaymentDetailsFormData>({
     resolver: zodResolver(paymentDetailsSchema),
   });
+  const settledThru = watch("settled_thru");
+  const adminSettledThru = watch("admin_settled_thru");
+
 
   //Marriga Settle Details submit
   const onSubmit = async (data: MarriageDetailsFormData) => {
     try {
       // You'll need to get these values from somewhere (props or context)
-      const roleId = sessionStorage.getItem('role_id');
+      const roleId = localStorage.getItem('id') || sessionStorage.getItem('id');
       const response = await createMarriageSettleDetails(
         String(profileId),
         String(roleId),
-        data.marriagedate,
+        data.marriage_date,
         data.groombridefathername || "",
-        data.groombridevysysaid || "",
-        data.engagementdate || "",
-        data.marriagephotodetails || "",
-        data.engagementphotodetails || "",
-        data.adminmarriagecomments || "",
-        data.groombridename || "",
+        data.groom_bride_vysyamala_id || "",
+        data.engagement_date || "",
+        data.marriage_photo_details || "",
+        data.engagement_photo_details || "",
+        data.admin_marriage_comments || "",
+        data.groom_bride_name || "",
         data.groombridecity || "",
-        data.settledthru || "",
-        data.marriagecomments || "",
-        data.marriageinvitationdetails || "",
-        data.engagementinvitationdetails || "",
-        data.adminsettledthru || ""
+        data.settled_thru || "",
+        data.others || "",
+        data.marriage_comments || "",
+        data.marriage_invitation_details || "",
+        data.engagement_invitation_details || "",
+        data.admin_settled_thru || "",
+        data.admin_others || "",
+        data.marriage_location || "",
       );
       NotifySuccess(response.message || "Marriage settle details created successfully")
       console.log("Marriage settle details created successfully", response);
@@ -150,20 +159,25 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
 
           if (Marriagedetailsdata.length > 0) {
             const Marriage = Marriagedetailsdata[0];
-            setValue("marriagedate", Marriage.marriagedate || "");
-            setValue("groombridefathername", Marriage.groombridefathername || "");
-            setValue("groombridevysysaid", Marriage.groombridevysysaid || "");
-            setValue("engagementdate", Marriage.engagementdate || "");
-            setValue("marriagephotodetails", Marriage.marriagephotodetails || "");
-            setValue("engagementphotodetails", Marriage.engagementphotodetails || "");
-            setValue("adminmarriagecomments", Marriage.adminmarriagecomments || "");
-            setValue("groombridename", Marriage.groombridename || "");
-            setValue("groombridecity", Marriage.groombridecity || "");
-            setValue("settledthru", Marriage.settledthru || "");
-            setValue("marriagecomments", Marriage.marriagecomments || "");
-            setValue("marriageinvitationdetails", Marriage.marriageinvitationdetails || "");
-            setValue("engagementinvitationdetails", Marriage.engagementinvitationdetails || "");
-            setValue("adminsettledthru", Marriage.adminsettledthru || "");
+
+            // Use shouldValidate and shouldDirty to ensure the form registers the change
+            const options = { shouldValidate: true, shouldDirty: true };
+
+            // Mapping API (no underscores) to Form (with underscores)
+            setValue("marriage_date", Marriage.marriagedate || "", options);
+            setValue("groombridefathername", Marriage.groombridefathername || "", options);
+            setValue("groom_bride_vysyamala_id", Marriage.groombridevysysaid || "", options);
+            setValue("engagement_date", Marriage.engagementdate || "", options);
+            setValue("marriage_photo_details", Marriage.marriagephotodetails || "", options);
+            setValue("engagement_photo_details", Marriage.engagementphotodetails || "", options);
+            setValue("admin_marriage_comments", Marriage.adminmarriagecomments || "", options);
+            setValue("groom_bride_name", Marriage.groombridename || "", options);
+            setValue("groombridecity", Marriage.groombridecity || "", options);
+            setValue("settled_thru", Marriage.settledthru || "", options);
+            setValue("marriage_comments", Marriage.marriagecomments || "", options);
+            setValue("marriage_invitation_details", Marriage.marriageinvitationdetails || "", options);
+            setValue("engagement_invitation_details", Marriage.engagementinvitationdetails || "", options);
+            setValue("admin_settled_thru", Marriage.adminsettledthru || "", options);
           }
 
         } catch (error) {
@@ -177,7 +191,17 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
     }
   }, [profileId, setValue, paymentsetValue]);
 
+  useEffect(() => {
+    if (settledThru !== "Others") {
+      setValue("others", "");
+    }
+  }, [settledThru, setValue]);
 
+  useEffect(() => {
+    if (adminSettledThru !== "Others") {
+      setValue("admin_others", "");
+    }
+  }, [adminSettledThru, setValue]);
 
 
   return (
@@ -376,9 +400,9 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
                   marginLeft: "0px", // Move the error text slightly to the left
                 },
               }}
-              {...register("marriagedate")}
-              error={!!errors.marriagedate}
-              helperText={errors.marriagedate?.message}
+              {...register("marriage_date")}
+              error={!!errors.marriage_date}
+              helperText={errors.marriage_date?.message}
               required
             />
           </Grid>
@@ -389,9 +413,9 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               fullWidth
               variant="outlined"
               InputLabelProps={{ shrink: true }}
-              {...register("groombridename")}
-              error={!!errors.groombridename}
-              helperText={errors.groombridename?.message}
+              {...register("groom_bride_name")}
+              error={!!errors.groom_bride_name}
+              helperText={errors.groom_bride_name?.message}
             />
           </Grid>
 
@@ -428,9 +452,9 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               fullWidth
               variant="outlined"
               InputLabelProps={{ shrink: true }}
-              {...register("groombridevysysaid")}
-              error={!!errors.groombridevysysaid}
-              helperText={errors.groombridevysysaid?.message}
+              {...register("groom_bride_vysyamala_id")}
+              error={!!errors.groom_bride_vysyamala_id}
+              helperText={errors.groom_bride_vysyamala_id?.message}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -441,15 +465,15 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               >Settle Thru</InputLabel>
               {/* <Select
                 label="Settle Thru"
-                {...register("settledthru")}
-                error={!!errors.settledthru}
+                {...register("settled_thru")}
+                error={!!errors.settled_thru}
               > */}
               <Select
-                value={watch("settledthru") || ""}
-                //onChange={(e) => setValue("settledthru", e.target.value)}
+                value={watch("settled_thru") || ""}
+                //onChange={(e) => setValue("settled_thru", e.target.value)}
                 displayEmpty
                 variant="outlined"
-                {...register("settledthru")}
+                {...register("settled_thru")}
               >
                 <MenuItem value="">
                   Select Settle Thru
@@ -462,9 +486,26 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
                 <MenuItem value="Whatsapp Group">Whatsapp Group</MenuItem>
                 <MenuItem value="Others">Others</MenuItem>
               </Select>
-              <FormHelperText>{errors.settledthru?.message}</FormHelperText>
+              <FormHelperText>{errors.settled_thru?.message}</FormHelperText>
             </FormControl>
           </Grid>
+
+          {settledThru === "Others" && (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Specify Settle Thru"
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                {...register("others", {
+                  required: "Please specify the other option"
+                })}
+                error={!!errors.others}
+                helperText={errors.others?.message}
+              />
+            </Grid>
+          )}
+
           {/* <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -474,9 +515,9 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               maxRows={10}
               label="Engagement Date"
               variant="outlined"
-              {...register("engagementdate")}
-              error={!!errors.engagementdate}
-              helperText={errors.engagementdate?.message}
+              {...register("engagement_date")}
+              error={!!errors.engagement_date}
+              helperText={errors.engagement_date?.message}
             />
           </Grid> */}
           <Grid item xs={12} sm={6}>
@@ -489,9 +530,9 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
                 shrink: true,
               }}
 
-              {...register("engagementdate")}
-              error={!!errors.engagementdate}
-              helperText={errors.engagementdate?.message}
+              {...register("engagement_date")}
+              error={!!errors.engagement_date}
+              helperText={errors.engagement_date?.message}
             />
           </Grid>
 
@@ -504,91 +545,91 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               label="Marriage Comments"
               variant="outlined"
               InputLabelProps={{ shrink: true }}
-              {...register("marriagecomments")}
-              error={!!errors.marriagecomments}
-              helperText={errors.marriagecomments?.message}
+              {...register("marriage_comments")}
+              error={!!errors.marriage_comments}
+              helperText={errors.marriage_comments?.message}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.marriagephotodetails}>
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.marriage_photo_details}>
               <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
                 Marriage Photo Details
               </InputLabel>
 
               <Select
-                value={watch("marriagephotodetails") || ""}
+                value={watch("marriage_photo_details") || ""}
                 displayEmpty
                 variant="outlined"
-                {...register("marriagephotodetails")}
+                {...register("marriage_photo_details")}
               >
                 <MenuItem value="">Select</MenuItem>
                 <MenuItem value="Yes">Yes</MenuItem>
                 <MenuItem value="No">No</MenuItem>
               </Select>
 
-              <FormHelperText>{errors.marriagephotodetails?.message}</FormHelperText>
+              <FormHelperText>{errors.marriage_photo_details?.message}</FormHelperText>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.marriageinvitationdetails}>
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.marriage_invitation_details}>
               <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
                 Marriage Invitation Details
               </InputLabel>
 
               <Select
-                value={watch("marriageinvitationdetails") || ""}
+                value={watch("marriage_invitation_details") || ""}
                 displayEmpty
                 variant="outlined"
-                {...register("marriageinvitationdetails")}
+                {...register("marriage_invitation_details")}
               >
                 <MenuItem value="">Select</MenuItem>
                 <MenuItem value="Yes">Yes</MenuItem>
                 <MenuItem value="No">No</MenuItem>
               </Select>
 
-              <FormHelperText>{errors.marriageinvitationdetails?.message}</FormHelperText>
+              <FormHelperText>{errors.marriage_invitation_details?.message}</FormHelperText>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.engagementphotodetails}>
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.engagement_photo_details}>
               <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
                 Engagement Photo Details
               </InputLabel>
 
               <Select
-                value={watch("engagementphotodetails") || ""}
+                value={watch("engagement_photo_details") || ""}
                 displayEmpty
                 variant="outlined"
-                {...register("engagementphotodetails")}
+                {...register("engagement_photo_details")}
               >
                 <MenuItem value="">Select</MenuItem>
                 <MenuItem value="Yes">Yes</MenuItem>
                 <MenuItem value="No">No</MenuItem>
               </Select>
 
-              <FormHelperText>{errors.engagementphotodetails?.message}</FormHelperText>
+              <FormHelperText>{errors.engagement_photo_details?.message}</FormHelperText>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.engagementinvitationdetails}>
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.engagement_invitation_details}>
               <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
                 Engagement Invitation Details
               </InputLabel>
 
               <Select
-                value={watch("engagementinvitationdetails") || ""}
+                value={watch("engagement_invitation_details") || ""}
                 displayEmpty
                 variant="outlined"
-                {...register("engagementinvitationdetails")}
+                {...register("engagement_invitation_details")}
               >
                 <MenuItem value="">Select</MenuItem>
                 <MenuItem value="Yes">Yes</MenuItem>
                 <MenuItem value="No">No</MenuItem>
               </Select>
-              <FormHelperText>{errors.engagementinvitationdetails?.message}</FormHelperText>
+              <FormHelperText>{errors.engagement_invitation_details?.message}</FormHelperText>
             </FormControl>
           </Grid>
 
@@ -601,9 +642,9 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               maxRows={10}  // Expands up to 6 rows
               variant="outlined"
               InputLabelProps={{ shrink: true }}
-              {...register("adminmarriagecomments")}
-              error={!!errors.adminmarriagecomments}
-              helperText={errors.adminmarriagecomments?.message}
+              {...register("admin_marriage_comments")}
+              error={!!errors.admin_marriage_comments}
+              helperText={errors.admin_marriage_comments?.message}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -611,11 +652,11 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
 
               <InputLabel shrink={true} sx={{ backgroundColor: "#fff" }}>Admin Settle Thru</InputLabel>
               <Select
-                value={watch("adminsettledthru") || ""}
-                // onChange={(e) => setValue("adminsettledthru", e.target.value)}
+                value={watch("admin_settled_thru") || ""}
+                // onChange={(e) => setValue("admin_settled_thru ", e.target.value)}
                 displayEmpty
                 variant="outlined"
-                {...register("adminsettledthru")}
+                {...register("admin_settled_thru")}
               >
                 <MenuItem value="">
                   Select Admin Settle Thru
@@ -628,16 +669,32 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
                 <MenuItem value="Whatsapp Group">Whatsapp Group</MenuItem>
                 <MenuItem value="Others">Others</MenuItem>
               </Select>
-              <FormHelperText>{errors.adminsettledthru?.message}</FormHelperText>
+              <FormHelperText>{errors.admin_settled_thru?.message}</FormHelperText>
             </FormControl>
           </Grid>
+          {adminSettledThru === "Others" && (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Specify Admin Settle Thru"
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                {...register("admin_others", {
+                  required: "Please specify the admin settle thru"
+                })}
+                error={!!errors.admin_others}
+                helperText={errors.admin_others?.message}
+              />
+            </Grid>
+          )}
+
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Marriage Location"
               variant="outlined"
               InputLabelProps={{ shrink: true }}
-              // {...register("groombridecity")}
+              {...register("marriage_location")}
               error={!!errors.groombridecity}
               helperText={errors.groombridecity?.message}
             />
