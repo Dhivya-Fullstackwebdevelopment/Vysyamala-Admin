@@ -65,7 +65,7 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
     register: registerPayment,
     handleSubmit: handlePaymentSubmit,
     setValue: paymentsetValue,
-    watch :paymentwatch,
+    watch: paymentwatch,
     formState: { errors: paymentErrors },
   } = useForm<PaymentDetailsFormData>({
     resolver: zodResolver(paymentDetailsSchema),
@@ -168,7 +168,7 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
 
         } catch (error) {
           console.error("Error fetching payment data:", error);
-         NotifyError("Failed to load payment data");
+          NotifyError("Failed to load payment data");
         } finally {
           setLoading(false);
         }
@@ -200,18 +200,18 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
       <Divider sx={{ borderWidth: "3px" }} />
 
 
-      <Box
+      {/* <Box
         className="flex flex-wrap items-center gap-4 p-4 bg-gray-100 rounded-lg"
         sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2 }}
       >
-        {/* Text Field for Course Number */}
+       
         <TextField
           label="Course No"
           variant="outlined"
           placeholder=""
           sx={{ width: '100%', maxWidth: '400px' }}
         />
-        {/* Checkbox for Ward */}
+       
         <FormControlLabel
           control={
             <Checkbox
@@ -226,18 +226,18 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
           sx={{ width: '100%', maxWidth: '400px' }}
         />
         <Button variant="contained" color="success"
-        // onClick={handleCancel}
+       
         >
           Submit
         </Button>
         <Button variant="contained" color="error"
-        // onClick={handleCancel}
+      
         >
           Cancel
         </Button>
-      </Box>
+      </Box> */}
 
-      <DialogTitle>
+      {/* <DialogTitle>
         <Box sx={{ display: "flex", justifyContent: "start", alignItems: "start", color: "red" }}>Payment Details</Box>
       </DialogTitle>
 
@@ -251,12 +251,9 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
           <InputLabel required
             shrink={true}
             sx={{ backgroundColor: "#fff", "& .MuiFormLabel-asterisk": { color: "red" }, }}>Payment Type</InputLabel>
-          {/* <Select
-            label="Payment Type"
-            {...registerPayment("payment_type")}
-          > */}<Select
+          <Select
           value={paymentwatch("payment_type") || ""}
-         // onChange={(e) => paymentsetValue("payment_type", e.target.value)}
+        
           displayEmpty
           variant="outlined"
           {...registerPayment("payment_type")}
@@ -272,7 +269,7 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
         </FormControl>
 
         <Grid container spacing={2}>
-          {/* Name Field */}
+          
           <Grid item xs={12} sm={6}>
             <TextField
               label="Payment Details"
@@ -345,7 +342,7 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               helperText={paymentErrors.discount_amont?.message}
             />
           </Grid>
-          {/* save Button */}
+        
           <div className="w-full py-2 flex justify-end">
             <Button variant="contained" color="primary"
               onClick={handlePaymentSubmit(onPaymentSubmit)}
@@ -355,7 +352,7 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
           </div>
         </Grid>
 
-      </Box>
+      </Box> */}
       <DialogTitle>
         <Box sx={{ display: "flex", justifyContent: "start", alignItems: "start", color: "red" }}>Marriage Settled Details</Box>
       </DialogTitle>
@@ -447,18 +444,22 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
                 {...register("settledthru")}
                 error={!!errors.settledthru}
               > */}
-                 <Select
+              <Select
                 value={watch("settledthru") || ""}
                 //onChange={(e) => setValue("settledthru", e.target.value)}
                 displayEmpty
                 variant="outlined"
                 {...register("settledthru")}
               >
-                <MenuItem value="" disabled>
+                <MenuItem value="">
                   Select Settle Thru
                 </MenuItem>
-                <MenuItem value="Cash">Cash</MenuItem>
+                {/* <MenuItem value="Cash">Cash</MenuItem>
                 <MenuItem value="Online">Online</MenuItem>
+                <MenuItem value="Others">Others</MenuItem> */}
+                <MenuItem value="Vysyamala">Vysyamala</MenuItem>
+                <MenuItem value="Relatives">Relatives</MenuItem>
+                <MenuItem value="Whatsapp Group">Whatsapp Group</MenuItem>
                 <MenuItem value="Others">Others</MenuItem>
               </Select>
               <FormHelperText>{errors.settledthru?.message}</FormHelperText>
@@ -509,62 +510,86 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Marriage Photo Details"
-              multiline
-              fullWidth
-              minRows={1}  // Starts with 1 row
-              maxRows={10}  // Expands up to 6 rows
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              {...register("marriagephotodetails")}
-              error={!!errors.marriagephotodetails}
-              helperText={errors.marriagephotodetails?.message}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Marriage Invitation Details"
-              multiline
-              fullWidth
-              minRows={1}  // Starts with 1 row
-              maxRows={10}  // Expands up to 6 rows
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              {...register("marriageinvitationdetails")}
-              error={!!errors.marriageinvitationdetails}
-              helperText={errors.marriageinvitationdetails?.message}
-            />
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.marriagephotodetails}>
+              <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
+                Marriage Photo Details
+              </InputLabel>
+
+              <Select
+                value={watch("marriagephotodetails") || ""}
+                displayEmpty
+                variant="outlined"
+                {...register("marriagephotodetails")}
+              >
+                <MenuItem value="">Select</MenuItem>
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+
+              <FormHelperText>{errors.marriagephotodetails?.message}</FormHelperText>
+            </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              multiline
-              minRows={1}
-              maxRows={10}
-              label="Engagement Photo Details"
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              {...register("engagementphotodetails")}
-              error={!!errors.engagementphotodetails}
-              helperText={errors.engagementphotodetails?.message}
-            />
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.marriageinvitationdetails}>
+              <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
+                Marriage Invitation Details
+              </InputLabel>
+
+              <Select
+                value={watch("marriageinvitationdetails") || ""}
+                displayEmpty
+                variant="outlined"
+                {...register("marriageinvitationdetails")}
+              >
+                <MenuItem value="">Select</MenuItem>
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+
+              <FormHelperText>{errors.marriageinvitationdetails?.message}</FormHelperText>
+            </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              multiline
-              minRows={1}
-              maxRows={10}
-              label="Engagement Invitation Details"
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              {...register("engagementinvitationdetails")}
-              error={!!errors.engagementinvitationdetails}
-              helperText={errors.engagementinvitationdetails?.message}
-            />
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.engagementphotodetails}>
+              <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
+                Engagement Photo Details
+              </InputLabel>
+
+              <Select
+                value={watch("engagementphotodetails") || ""}
+                displayEmpty
+                variant="outlined"
+                {...register("engagementphotodetails")}
+              >
+                <MenuItem value="">Select</MenuItem>
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+
+              <FormHelperText>{errors.engagementphotodetails?.message}</FormHelperText>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl sx={{ marginBottom: "10px", width: 375 }} error={!!errors.engagementinvitationdetails}>
+              <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
+                Engagement Invitation Details
+              </InputLabel>
+
+              <Select
+                value={watch("engagementinvitationdetails") || ""}
+                displayEmpty
+                variant="outlined"
+                {...register("engagementinvitationdetails")}
+              >
+                <MenuItem value="">Select</MenuItem>
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+              <FormHelperText>{errors.engagementinvitationdetails?.message}</FormHelperText>
+            </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
@@ -587,20 +612,35 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               <InputLabel shrink={true} sx={{ backgroundColor: "#fff" }}>Admin Settle Thru</InputLabel>
               <Select
                 value={watch("adminsettledthru") || ""}
-               // onChange={(e) => setValue("adminsettledthru", e.target.value)}
+                // onChange={(e) => setValue("adminsettledthru", e.target.value)}
                 displayEmpty
                 variant="outlined"
                 {...register("adminsettledthru")}
               >
-                <MenuItem value="" disabled>
+                <MenuItem value="">
                   Select Admin Settle Thru
                 </MenuItem>
-                <MenuItem value="Cash">Cash</MenuItem>
+                {/* <MenuItem value="Cash">Cash</MenuItem>
                 <MenuItem value="Online">Online</MenuItem>
+                <MenuItem value="Others">Others</MenuItem> */}
+                <MenuItem value="Vysyamala">Vysyamala</MenuItem>
+                <MenuItem value="Relatives">Relatives</MenuItem>
+                <MenuItem value="Whatsapp Group">Whatsapp Group</MenuItem>
                 <MenuItem value="Others">Others</MenuItem>
               </Select>
               <FormHelperText>{errors.adminsettledthru?.message}</FormHelperText>
             </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Marriage Location"
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
+              // {...register("groombridecity")}
+              error={!!errors.groombridecity}
+              helperText={errors.groombridecity?.message}
+            />
           </Grid>
 
 
