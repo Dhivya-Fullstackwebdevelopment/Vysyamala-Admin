@@ -73,8 +73,9 @@ export interface FormValues {
     marriedBrother: string;
     selectedSister: string;
     marriedSisters: string;
-    physicallyChalanged: 'Yes' | 'No';
+    physicallyChalanged: 'yes' | 'no';
     Pysically_changed: string;
+    physicallyChallengedDetails?: string;
     no_of_children?: number;
     fatherAlive: string;
     motherAlive: string;
@@ -327,6 +328,10 @@ const AddProfile = () => {
         hobbies: data.FamilyDetailsForm.MyHobbies,
         blood_group: data.FamilyDetailsForm.bloodGroup,
         Pysically_changed: data.FamilyDetailsForm.physicallyChalanged,
+        Physically_challenged_details:
+          data.FamilyDetailsForm.physicallyChalanged === 'yes'
+            ? data.FamilyDetailsForm.physicallyChallengedDetails
+            : null,
         no_of_brother: data.FamilyDetailsForm.selectedBrother,
         no_of_sister: data.FamilyDetailsForm.selectedSister,
         no_of_bro_married: data.FamilyDetailsForm.marriedBrother,

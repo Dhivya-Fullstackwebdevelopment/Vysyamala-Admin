@@ -192,7 +192,7 @@ const FamilyDetailsForm: React.FC<pageProp> = ({
               </div>
               <div className="w-full">
                 <label className="block mb-1 font-bold text-black">
-                  Father Occupation 
+                  Father Occupation
                 </label>
                 <Input
                   required
@@ -682,7 +682,7 @@ const FamilyDetailsForm: React.FC<pageProp> = ({
 
                 <div className="w-full py-1">
                   <label className="block text-black font-medium mb-1">
-                    Physically Challenged{' '}
+                    Physically Challenged add{' '}
                   </label>
                   <div className='flex items-center'>
                     {/* Wrap input and text in a label for clickability */}
@@ -725,9 +725,18 @@ const FamilyDetailsForm: React.FC<pageProp> = ({
     </div>
 )} */}
 
-                {physicallyChalanged === 'Yes' ? (
+                {physicallyChalanged === 'yes' ? (
                   <div className="w-full">
-                    <Input label={'challenged detail'} type={'text'} />
+                    <Input
+                      label="Physically Challenged Details"
+                      type="text"
+                      {...register('FamilyDetailsForm.physicallyChallengedDetails')}
+                    />
+                    {errors?.FamilyDetailsForm?.physicallyChallengedDetails && (
+                      <p className="text-red-600">
+                        {errors.FamilyDetailsForm.physicallyChallengedDetails.message}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   ''

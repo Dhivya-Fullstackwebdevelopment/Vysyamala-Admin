@@ -132,6 +132,7 @@ export const parentSchema = z.object({
     selectedSister: z.string().nullable().optional(),
     marriedSisters: z.string().optional(),
     physicallyChalanged: z.enum(['yes', 'no']).optional(),
+    physicallyChallengedDetails: z.string().optional(),
     // no_of_children: z.number().optional(),
     no_of_children: z.number().int().min(0).max(5).optional().nullable(),
     fatherAlive: z.enum(['yes', 'no']).optional(),
