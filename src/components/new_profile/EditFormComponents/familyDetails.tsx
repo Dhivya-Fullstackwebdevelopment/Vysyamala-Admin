@@ -170,6 +170,34 @@ const FamilyDetails: React.FC<formProps> = ({
   // const onSubmit=(data:FamilyDetailsValues)=>{
   //   console.log("form submitting Data",data)
   // }
+  useEffect(() => {
+    if (EditData && EditData[1]) {
+      const family = EditData[1];
+
+      // Set Physically Challenged Yes/No
+      setValue(
+        'FamilyDetails.physicallyChalanged',
+        family.Pysically_changed || 'no'
+      );
+
+      // Set details ONLY if yes
+      if (family.Pysically_changed === 'yes') {
+        setValue(
+          'FamilyDetails.Physically_challenged_details',
+          family.Physically_challenged_details || ''
+        );
+      } else {
+        // Clear if no
+        setValue(
+          'FamilyDetails.Physically_challenged_details',
+          '',
+          { shouldValidate: false }
+        );
+      }
+    }
+  }, [EditData, setValue]);
+
+
   const { data: SuyaGothram } = useQuery({
     queryKey: ['SuyaGothram'],
     queryFn: fetchSuyaGothram,
@@ -750,7 +778,7 @@ cursor-pointer  ${selectedSister === num.toString() ? 'bg-blue-500 text-white' :
                 {physicallyChalanged === 'yes' ? (
                   <div className="w-full">
                     <Input
-                      {...register('FamilyDetails.challengedDetail')}
+                      {...register('FamilyDetails.Physically_challenged_details')}
                       label={'challenged detail'}
                       type={'text'}
                     />

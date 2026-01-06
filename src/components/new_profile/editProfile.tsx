@@ -34,7 +34,7 @@ const EditProfile = () => {
       FamilyDetails: {
         FamilyName: '',
         physicallyChalanged: 'no',
-        challengedDetail: '',
+        Physically_challenged_details: '',
         PropertyWorth: '',
         SuyaGothram: '',
         EyeWear: '',
@@ -240,6 +240,7 @@ const EditProfile = () => {
         hobbies: data.FamilyDetails.MyHobbies,
         blood_group: data.FamilyDetails.bloodGroup,
         Pysically_changed: data.FamilyDetails.physicallyChalanged,
+        Physically_challenged_details: data.FamilyDetails.Physically_challenged_details,
         no_of_brother: data.FamilyDetails.selectedBrother,
         no_of_sister: data.FamilyDetails.selectedSister,
         no_of_bro_married: data.FamilyDetails.marriedBrother,

@@ -36,7 +36,7 @@ export const EditScheema = z.object({
     PropertyWorth: z.string().nullable().optional(),
     //kg: z.string().optional(),
     weight: z.string().optional(),
-    challengedDetail: z.string().optional(),
+    Physically_challenged_details: z.string().optional(),
     selectedBrother: z.string().optional(),
     marriedBrother: z.string().optional(),
     selectedSister: z.string().optional(),
@@ -88,7 +88,7 @@ export interface FamilyDetailsValues {
     marriedSisters: string | null | undefined | "";
     physicallyChalanged: 'yes' | 'no';
     Pysically_changed: string;
-    challengedDetail: string;
+    Physically_challenged_details: string;
     SuyaGothram: string;
     AncestorOrigin: string;
     AboutMyFamily: string;
