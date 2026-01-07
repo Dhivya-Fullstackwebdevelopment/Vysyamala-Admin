@@ -797,6 +797,8 @@ export const createMarriageSettleDetails = async (
     AdminSettledThru: string,
     AdminSettledThruOthers: string,
     MarriageLocation: string,
+    InstagramAccept: string,
+    WishCardAccept: string,
 ) => {
     try {
         const formData = new FormData();
@@ -834,7 +836,7 @@ export const createMarriageSettleDetails = async (
             formData.append("settled_thru", SettledThru);
         }
         // if (SettledThruOthers) {
-            formData.append("others", SettledThruOthers);
+        formData.append("others", SettledThruOthers);
         // }
         if (MarriageComments) {
             formData.append("marriage_comments", MarriageComments);
@@ -849,10 +851,16 @@ export const createMarriageSettleDetails = async (
             formData.append("admin_settled_thru", AdminSettledThru);
         }
         // if (AdminSettledThruOthers) {
-            formData.append("admin_others", AdminSettledThruOthers);
+        formData.append("admin_others", AdminSettledThruOthers);
         // }
         if (MarriageLocation) {
             formData.append("marriage_location", MarriageLocation);
+        }
+        if (WishCardAccept) {
+            formData.append("wish_card_accept", WishCardAccept);
+        }
+        if (InstagramAccept) {
+            formData.append("instagram_accept", InstagramAccept);
         }
         const response = await apiAxios.post('/api/marriage-settle-details/create/', formData,
             {

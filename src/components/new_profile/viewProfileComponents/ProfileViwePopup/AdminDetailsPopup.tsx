@@ -31,6 +31,8 @@ const marriageSettleDetailsSchema = z.object({
   others: z.string().optional(),
   admin_others: z.string().optional(),
   marriage_location: z.string().optional(),
+  wish_card_accept: z.string().optional(),
+  instagram_accept: z.string().optional(),
 });
 type MarriageDetailsFormData = z.infer<typeof marriageSettleDetailsSchema>;
 
@@ -102,6 +104,8 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
         data.admin_settled_thru || "",
         data.admin_others || "",
         data.marriage_location || "",
+        data.wish_card_accept || "",
+        data.instagram_accept || "",
       );
       NotifySuccess(response.message || "Marriage settle details created successfully")
       console.log("Marriage settle details created successfully", response);
@@ -183,6 +187,8 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
 
             setValue("admin_marriage_comments", marriage.admin_marriage_comments ?? "", options);
             setValue("marriage_location", marriage.marriage_location ?? "", options);
+            setValue("wish_card_accept", marriage.wish_card_accept ?? "", options);
+            setValue("instagram_accept", marriage.instagram_accept ?? "", options);
           }
 
         } catch (error) {
@@ -704,8 +710,48 @@ export const AdminDetailsPopup: React.FC<AdminDetaisProps> = ({ open, onClose })
               helperText={errors.groombridecity?.message}
             />
           </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl sx={{ marginBottom: "10px", width: 375 }}
+              error={!!errors.wish_card_accept}
+            >
+              <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
+                Wishes card accept
+              </InputLabel>
 
+              <Select
+                value={watch("wish_card_accept") || ""}
+                displayEmpty
+                variant="outlined"
+                {...register("wish_card_accept")}
+              >
+                <MenuItem value="">Select</MenuItem>
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+              <FormHelperText>{errors.wish_card_accept?.message}</FormHelperText>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl sx={{ marginBottom: "10px", width: 375 }}
+              error={!!errors.instagram_accept}
+            >
+              <InputLabel shrink sx={{ backgroundColor: "#fff" }}>
+                Instagram accept
+              </InputLabel>
 
+              <Select
+                value={watch("instagram_accept") || ""}
+                displayEmpty
+                variant="outlined"
+                {...register("instagram_accept")}
+              >
+                <MenuItem value="">Select</MenuItem>
+                <MenuItem value="Yes">Yes</MenuItem>
+                <MenuItem value="No">No</MenuItem>
+              </Select>
+              <FormHelperText>{errors.instagram_accept?.message}</FormHelperText>
+            </FormControl>
+          </Grid>
         </Grid>
         <div className="w-full flex justify-end">
           <Button variant="contained" color="primary"
