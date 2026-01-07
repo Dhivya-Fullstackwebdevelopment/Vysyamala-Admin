@@ -356,8 +356,46 @@ const MarriageDashboard: React.FC = () => {
                     )}
                 </div>
                 <p className="text-[9px] opacity-60 text-start mt-1">
-                   click to view profiles
+                    click to view profiles
                 </p>
+            </motion.div>
+        );
+    };
+
+    const KPICards = ({ label, value, subValue, colorClass, kpiKey, subKey, onClick }: any) => {
+        // Check if either the main key or the sub key is currently the active filter
+        const isActive = filters.countFilter === kpiKey || filters.countFilter === subKey;
+
+        return (
+            <motion.div
+                whileHover={{ y: -3 }}
+                className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
+            ${isActive ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
+            >
+                <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
+                <div className="flex items-baseline gap-2">
+                    {/* Main Value (e.g., M.Photo) */}
+                    <span
+                        onClick={(e) => { e.stopPropagation(); onClick(kpiKey); }}
+                        className={`text-3xl font-bold  transition-colors ${filters.countFilter === kpiKey ? 'underline underline-offset-4 decoration-2' : ''}`}
+                    >
+                        {value}
+                    </span>
+
+                    {subValue !== undefined && (
+                        <>
+                            <span className="text-xl text-gray-400">/</span>
+                            {/* Sub Value (e.g., E.Photo) */}
+                            <span
+                                onClick={(e) => { e.stopPropagation(); onClick(subKey); }}
+                                className={`text-2xl font-semibold text-gray-500 transition-colors ${filters.countFilter === subKey ? 'underline underline-offset-4 decoration-2' : ''}`}
+                            >
+                                {subValue}
+                            </span>
+                        </>
+                    )}
+                </div>
+                <p className="text-[9px] opacity-60 text-start mt-1">click numbers to filter</p>
             </motion.div>
         );
     };
@@ -487,16 +525,10 @@ const MarriageDashboard: React.FC = () => {
                 </section>
             ) : (
                 <>
-                    <div className="space-y-6">
-                        {/* Section 1: Overall Summary */}
-                        <div className={DASHBOARD_CONTAINER}>
-                            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <KPICard label="Total" value={getVal('total_profiles')} colorClass="bg-slate-50 border border-slate-200" kpiKey="total" />
-                        <KPICard label="Premium - TN/OTH" value={getVal('plan_counts.premium.total')} subTn={getVal('plan_counts.premium.tn')} subNonTn={getVal('plan_counts.premium.non-tn')} colorClass="bg-emerald-50 border border-emerald-200" kpiKey="premium" />
-                        <KPICard label="Free + Offer - TN/OTH" value={getVal('plan_counts.free_offer.total')} subTn={getVal('plan_counts.free_offer.tn')} subNonTn={getVal('plan_counts.free_offer.non-tn')} colorClass="bg-sky-50 border border-sky-200 " kpiKey="free" />
-                        <KPICard label="Prospect - TN/OTH" value={getVal('plan_counts.propect.total')} subTn={getVal('plan_counts.propect.tn')} subNonTn={getVal('plan_counts.propect.non-tn')} colorClass="bg-rose-50 border border-rose-200" kpiKey="prospect" />
-                    </div> */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-xl border border-[#E3E6EE] p-7 shadow-sm mb-8">
+                        <div className="space-y-6">
+                            {/* Section 1: Overall Summary */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
                                 <KPICard
                                     label="Total Profiles"
                                     value={getVal('total_profiles')}
@@ -527,9 +559,65 @@ const MarriageDashboard: React.FC = () => {
                                     colorClass="bg-rose-50"
                                     kpiKey="propect"
                                 />
+                                {/* </div> */}
+                            </div>
+                            <div className={DASHBOARD_CONTAINER}>
+                                <h3 className={HEADER_TEXT}>Premium – Settlement Type</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
+                                    <KPICard label="Thru Vysyamala" value={getVal('pre_settlement.vysyamala')} colorClass="bg-green-50" kpiKey="pre_settle_vys" />
+                                    <KPICard label="Others" value={getVal('pre_settlement.others')} colorClass="bg-green-50" kpiKey="pre_settle_oth" />
+                                    <KPICard label="Both IDs" value={getVal('pre_settlement.both')} colorClass="bg-green-50" kpiKey="pre_settle_both" />
+                                    <KPICard label="Single ID" value={getVal('pre_settlement.single')} colorClass="bg-green-50" kpiKey="pre_settle_single" />
+                                </div>
+                            </div>
+                            <div className={DASHBOARD_CONTAINER}>
+                                <h3 className={HEADER_TEXT}>Total – FOP (Free + Offer + Prospect)</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
+                                    <KPICard label="Thru Vysyamala" value={getVal('free_offer_settlement.vysyamala')} colorClass="bg-indigo-50" kpiKey="fop_settle_vys" />
+                                    <KPICard label="Others" value={getVal('free_offer_settlement.others')} colorClass="bg-indigo-50" kpiKey="fop_settle_oth" />
+                                    <KPICard label="Both IDs" value={getVal('free_offer_settlement.both')} colorClass="bg-indigo-50" kpiKey="fop_settle_both" />
+                                    <KPICard label="Single ID" value={getVal('free_offer_settlement.single')} colorClass="bg-indigo-50" kpiKey="fop_settle_single" />
+                                </div>
+                            </div>
+                            <div className={DASHBOARD_CONTAINER}>
+                                <h3 className={HEADER_TEXT}>Status</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
+                                    <KPICard label="Upcoming Marriage" value={getVal('marriage_counts.current_month_marriage')} colorClass="bg-green-50" kpiKey="upcoming_marriage_date" />
+                                    <KPICard label="Present Month Marriage" value={getVal('marriage_counts.current_month_marriage')} colorClass="bg-orange-50" kpiKey="current_month_marriage_date" />
+                                </div>
+                            </div>
+                            <div className={DASHBOARD_CONTAINER}>
+                                <h3 className={HEADER_TEXT}>Admin Dependency</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
+                                    <KPICard label="M.Date Not Entered" value={getVal('missing_details.no_marriage_date')} colorClass="bg-orange-50" kpiKey="fop_settle_vys" />
+                                    <KPICard label="E.Date Not Entered" value={getVal('missing_details.no_engagement_date')} colorClass="bg-orange-50" kpiKey="fop_settle_oth" />
+                                    {/* <KPICards label="M.Photo / E.Photo Not Received" value={getVal('missing_details.no_marriage_photo')} colorClass="bg-indigo-50" kpiKey="fop_settle_both" />
+                                    <KPICards label="Card Accepted / Rejected" value={getVal('missing_details.wish_card_accepted')} colorClass="bg-rose-50" kpiKey="fop_settle_single" /> */}
+                                    <KPICards
+                                        label="M.Photo / E.Photo Not Received"
+                                        value={getVal('missing_details.no_marriage_photo')}
+                                        subValue={getVal('missing_details.no_engagement_photo')}
+                                        colorClass="bg-orange-50"
+                                        kpiKey="no_marriage_photo"
+                                        subKey="no_engagement_photo"
+                                        onClick={handleCardClick}
+                                    />
+
+                                    {/* Card Accepted / Rejected */}
+                                    <KPICards
+                                        label="Card Accepted / Rejected"
+                                        value={getVal('missing_details.wish_card_accepted')}
+                                        subValue={getVal('missing_details.wish_card_rejected')}
+                                        colorClass="bg-orange-50"
+                                        kpiKey="wish_card_accepted"
+                                        subKey="wish_card_rejected"
+                                        onClick={handleCardClick}
+                                    />
+                                    <KPICard label="Instagram Interested" value={getVal('missing_details.instagram_accepted')} colorClass="bg-orange-50" kpiKey="fop_settle_single" />
+                                </div>
                             </div>
 
-                            {/* ... Work Stats ... */}
+                            {/* <div className={DASHBOARD_CONTAINER}> */}
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
                                 <KPICard label="Today’s Work" value={getVal('work_counts.today_work')} colorClass="bg-green-50" kpiKey="today_work" />
                                 <KPICard label="Pending Work" value={getVal('work_counts.pending_work')} colorClass="bg-orange-50" kpiKey="pending_work" />
@@ -537,102 +625,9 @@ const MarriageDashboard: React.FC = () => {
                                 <KPICard label="Pending Action" value={getVal('task_counts.pending_task')} colorClass="bg-rose-50" kpiKey="pending_task" />
                                 <KPICard label="Assigned Work" value={getVal('assigned_to_me')} colorClass="bg-teal-50" kpiKey="assigned_to_me" />
                             </div>
+                            {/* </div> */}
                         </div>
-                        {/* <div className={DASHBOARD_CONTAINER}>
-                    <h3 className={HEADER_TEXT}> Premium - Settlement Type</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        <KPICard label="Thru Vysyamala" value="12" colorClass="bg-[#F0FDF4]" />
-                        <KPICard label="Others" value="6" colorClass="bg-[#F0FDF4]" />
-                        <KPICard label="Both IDS" value="8" colorClass="bg-[#F0FDF4]" />
-                        <KPICard label="Single ID" value="5" colorClass="bg-[#F0FDF4]" />
                     </div>
-                </div> */}
-
-                        {/* 📝 REGISTRATION DASHBOARD */}
-                        {/* <div className={DASHBOARD_CONTAINER}>
-                    <h3 className={HEADER_TEXT}>Total - FOP(Free + Offer + Prospect)</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        <KPICard label="Thru Vysyamala" value="12" colorClass="bg-[#F1F7FF]" />
-                        <KPICard label="Others" value="6" colorClass="bg-[#F1F7FF]" />
-                        <KPICard label="Both IDS" value="8" colorClass="bg-[#F1F7FF]" />
-                        <KPICard label="Single ID" value="5" colorClass="bg-[#F1F7FF]" />
-                    </div>
-                </div> */}
-
-                        {/* <div className={DASHBOARD_CONTAINER}>
-                    <h3 className={HEADER_TEXT}>Status</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        <KPICard label="Upcoming Marriage" value="14" colorClass="bg-orange-50" />
-                        <KPICard label="Present Month Marriage" value="9" colorClass="bg-orange-50" />
-                    </div>
-                </div> */}
-
-                        {/* <div className={DASHBOARD_CONTAINER}>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-
-                        <KPICard
-                            label="M.Date Not Entered"
-                            value="5"
-                            colorClass="bg-purple-50 border-purple-200"
-                        />
-
-                        <KPICard
-                            label="E.Date Not Entered"
-                            value="2"
-                            colorClass="bg-red-50 border-red-200"
-                        />
-
-                        <KPICard
-                            label="M.Photo / E.Photo Not Received"
-                            value="4"
-                            colorClass="bg-[#F5F3FF]"
-                        />
-
-                        <KPICard
-                            label="Card Accepted / Rejected"
-                            value="1"
-                            colorClass="bg-blue-50 border-blue-200"
-                        />
-
-                        <KPICard
-                            label="Instagram Interested"
-                            value="3"
-                            colorClass="bg-pink-50 border-pink-200"
-                        />
-
-                        <KPICard
-                            label="Today’s Work"
-                            value={getVal('work_counts.today_work')}
-                            colorClass="bg-green-50 border-green-200"
-                        />
-
-                        <KPICard
-                            label="Pending Work"
-                            value={getVal('work_counts.pending_work')}
-                            colorClass="bg-orange-50 border-orange-200"
-                        />
-
-                        <KPICard
-                            label="Today’s Action"
-                            value={getVal('task_counts.today_task')}
-                            colorClass="bg-indigo-50 border-indigo-200"
-                        />
-
-                        <KPICard
-                            label="Pending Action"
-                            value={getVal('task_counts.pending_task')}
-                            colorClass="bg-rose-50 border-rose-200"
-                        />
-
-                        <KPICard
-                            label="Assigned Work"
-                            value={getVal('assigned_to_me')}
-                            colorClass="bg-teal-50 border-teal-200"
-                        />
-                    </div>
-                </div> */}
-                    </div>
-
                     {/* --- Table Section --- */}
                     {/* 📋 TABLE SECTION */}
                     <section ref={tableRef} className="bg-white rounded-xl border border-[#e6ecf2] shadow-md p-6 mt-8">
@@ -803,7 +798,8 @@ const MarriageDashboard: React.FC = () => {
                         </div>
                     </section>
                 </>
-            )}
+            )
+            }
         </div >
     );
 };
