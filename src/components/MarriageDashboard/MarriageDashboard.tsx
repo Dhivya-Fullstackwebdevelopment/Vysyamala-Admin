@@ -363,21 +363,21 @@ const MarriageDashboard: React.FC = () => {
     };
 
     const KPICards = ({ label, value, subValue, colorClass, kpiKey, subKey, onClick }: any) => {
-        // Check if either the main key or the sub key is currently the active filter
         const isActive = filters.countFilter === kpiKey || filters.countFilter === subKey;
 
         return (
             <motion.div
                 whileHover={{ y: -3 }}
+                // 1. Wrap the whole card in an onClick that passes the 1st parameter (kpiKey)
+                onClick={() => onClick(kpiKey)}
                 className={`${colorClass} p-5 rounded-2xl min-h-[120px] border transition-all shadow-sm flex flex-col justify-center cursor-pointer 
             ${isActive ? 'border-4 border-black/30 shadow-md scale-[1.02]' : 'border-[#E3E6EE]'}`}
             >
                 <h6 className="text-[10px] font-bold mb-1 tracking-wider uppercase opacity-80 text-start">{label}</h6>
                 <div className="flex items-baseline gap-2">
-                    {/* Main Value (e.g., M.Photo) */}
+                    {/* Main Value */}
                     <span
-                        onClick={(e) => { e.stopPropagation(); onClick(kpiKey); }}
-                        className={`text-3xl font-bold  transition-colors ${filters.countFilter === kpiKey ? 'underline underline-offset-4 decoration-2' : ''}`}
+                        className={`text-3xl font-bold transition-colors ${filters.countFilter === kpiKey ? 'underline underline-offset-4 decoration-2' : ''}`}
                     >
                         {value}
                     </span>
@@ -385,9 +385,12 @@ const MarriageDashboard: React.FC = () => {
                     {subValue !== undefined && (
                         <>
                             <span className="text-xl text-gray-400">/</span>
-                            {/* Sub Value (e.g., E.Photo) */}
+                            {/* Sub Value */}
                             <span
-                                onClick={(e) => { e.stopPropagation(); onClick(subKey); }}
+                                onClick={(e) => {
+                                    e.stopPropagation(); // 2. Prevents the main card click from firing
+                                    onClick(subKey);
+                                }}
                                 className={`text-2xl font-semibold text-gray-500 transition-colors ${filters.countFilter === subKey ? 'underline underline-offset-4 decoration-2' : ''}`}
                             >
                                 {subValue}
@@ -395,7 +398,7 @@ const MarriageDashboard: React.FC = () => {
                         </>
                     )}
                 </div>
-                <p className="text-[9px] opacity-60 text-start mt-1">click numbers to filter</p>
+                <p className="text-[9px] opacity-60 text-start mt-1">click card for M.Photo, number for E.Photo</p>
             </motion.div>
         );
     };
@@ -582,8 +585,8 @@ const MarriageDashboard: React.FC = () => {
                             <div className={DASHBOARD_CONTAINER}>
                                 <h3 className={HEADER_TEXT}>Status</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-6">
-                                    <KPICard label="Upcoming Marriage" value={getVal('marriage_counts.current_month_marriage')} colorClass="bg-green-50" kpiKey="upcoming_marriage_date" />
-                                    <KPICard label="Present Month Marriage" value={getVal('marriage_counts.current_month_marriage')} colorClass="bg-orange-50" kpiKey="current_month_marriage_date" />
+                                    <KPICard label="Upcoming Marriage" value={getVal('marriage_counts.current_month_marriage')} colorClass="bg-rose-50" kpiKey="upcoming_marriage_date" />
+                                    <KPICard label="Present Month Marriage" value={getVal('marriage_counts.current_month_marriage')} colorClass="bg-rose-50" kpiKey="current_month_marriage_date" />
                                 </div>
                             </div>
                             <div className={DASHBOARD_CONTAINER}>
