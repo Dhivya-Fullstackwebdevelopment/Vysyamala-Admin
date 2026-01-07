@@ -833,9 +833,9 @@ export const createMarriageSettleDetails = async (
         if (SettledThru) {
             formData.append("settled_thru", SettledThru);
         }
-        if (SettledThruOthers) {
+        // if (SettledThruOthers) {
             formData.append("others", SettledThruOthers);
-        }
+        // }
         if (MarriageComments) {
             formData.append("marriage_comments", MarriageComments);
         }
@@ -848,9 +848,9 @@ export const createMarriageSettleDetails = async (
         if (AdminSettledThru) {
             formData.append("admin_settled_thru", AdminSettledThru);
         }
-        if (AdminSettledThruOthers) {
+        // if (AdminSettledThruOthers) {
             formData.append("admin_others", AdminSettledThruOthers);
-        }
+        // }
         if (MarriageLocation) {
             formData.append("marriage_location", MarriageLocation);
         }
