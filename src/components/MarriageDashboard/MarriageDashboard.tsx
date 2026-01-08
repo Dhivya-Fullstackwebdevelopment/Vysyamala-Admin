@@ -55,7 +55,7 @@ const MarriageDashboard: React.FC = () => {
     const [isDownloading, setIsDownloading] = useState(false);
 
     const [filters, setFilters] = useState({
-        particulars: "",
+        particulars: "4",
         fromDate: "",
         toDate: "",
         owner: SuperAdminID || "",
@@ -159,9 +159,10 @@ const MarriageDashboard: React.FC = () => {
             if (filters.fromDate) params.append('from_date', filters.fromDate);
             if (filters.toDate) params.append('to_date', filters.toDate);
             if (filters.countFilter) params.append('countFilter', filters.countFilter);
-
+            if (filters.particulars) params.append('particular_id', filters.particulars);
             if (filters.genderFilter) params.append('genderFilter', filters.genderFilter);
             if (filters.order_by) params.append('order_by', filters.order_by);
+            if (filters.profileId) params.append('profile_id', filters.profileId);
 
             const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
             if (ownerId) params.append("owner", ownerId);
@@ -216,6 +217,7 @@ const MarriageDashboard: React.FC = () => {
         setTableLoading(true);
         fetchDashboardData({
             ...filters,
+            particulars: "4",
             order_by: "desc"
         });
     }, []);
@@ -523,8 +525,8 @@ const MarriageDashboard: React.FC = () => {
                             onChange={(e) => setFilters({ ...filters, particulars: e.target.value })}
                             className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white outline-none"
                         >
-                            <option value="">All</option>
                             <option value="4">Last One Year</option>
+                            <option value="">All</option>
                             <option value="2">Marriage Date</option>
                             <option value="3">Engagement date</option>
                             <option value="1">Delete Date</option>
