@@ -65,9 +65,18 @@ const MarriageDashboard: React.FC = () => {
         genderFilter: "",
         order_by: "desc",
     });
+    const [dateErrors, setDateErrors] = useState({
+        fromDate: "",
+        toDate: "",
+    });
+    const isDateRequired = ["1", "2", "3"].includes(filters.particulars);
 
     const yesNo = (value: number | null | undefined) =>
         value === 1 ? "Yes" : value === 0 ? "No" : "N/A";
+
+    const showDateFilters =
+        filters.particulars !== "" && filters.particulars !== "4";
+
     // --- Fetch Staff/Owners ---
     const fetchProfileOwners = useCallback(async () => {
         try {
@@ -95,8 +104,18 @@ const MarriageDashboard: React.FC = () => {
 
         const params = new URLSearchParams();
         if (currentFilters.particulars) params.append('particular_id', currentFilters.particulars);
-        if (currentFilters.fromDate) params.append('from_date', currentFilters.fromDate);
-        if (currentFilters.toDate) params.append('to_date', currentFilters.toDate);
+        // Send from_date & to_date ONLY when needed
+        if (
+            currentFilters.particulars &&
+            currentFilters.particulars !== "4"
+        ) {
+            if (currentFilters.fromDate) {
+                params.append('from_date', currentFilters.fromDate);
+            }
+            if (currentFilters.toDate) {
+                params.append('to_date', currentFilters.toDate);
+            }
+        }
         if (currentFilters.profileId) params.append('profile_id', currentFilters.profileId);
         if (currentFilters.countFilter) params.append('countFilter', currentFilters.countFilter);
         if (currentFilters.genderFilter) params.append('genderFilter', currentFilters.genderFilter);
@@ -253,6 +272,21 @@ const MarriageDashboard: React.FC = () => {
     };
 
     const handleApplyFilters = () => {
+        const errors = { fromDate: "", toDate: "" };
+
+        if (isDateRequired) {
+            if (!filters.fromDate) {
+                errors.fromDate = "From date is required";
+            }
+            if (!filters.toDate) {
+                errors.toDate = "To date is required";
+            }
+        }
+
+        setDateErrors(errors);
+
+        // Stop API call if error exists
+        if (errors.fromDate || errors.toDate) return;
         setLoading(true);
         setTableLoading(true);
         setScrollSource('filter');
@@ -489,18 +523,64 @@ const MarriageDashboard: React.FC = () => {
                             onChange={(e) => setFilters({ ...filters, particulars: e.target.value })}
                             className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white outline-none"
                         >
-                            <option value="">Select Particulars</option>
+                            <option value="">All</option>
+                            <option value="4">Last One Year</option>
+                            <option value="2">Marriage Date</option>
+                            <option value="3">Engagement date</option>
                             <option value="1">Delete Date</option>
                         </select>
                     </div>
-                    <div className="text-start">
-                        <label className="block text-sm font-semibold text-[#3A3E47] mb-1">From Date</label>
-                        <input type="date" value={filters.fromDate} onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
-                    </div>
-                    <div className="text-start">
-                        <label className="block text-sm font-semibold text-[#3A3E47] mb-1">To Date</label>
-                        <input type="date" value={filters.toDate} onChange={(e) => setFilters({ ...filters, toDate: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
-                    </div>
+                    {showDateFilters && (
+                        <>
+                            <div className="text-start">
+                                <label className="block text-sm font-semibold text-[#3A3E47] mb-1">From Date
+                                    {isDateRequired && (
+                                        <span className="text-red-500 ml-1">*</span>
+                                    )}
+                                </label>
+                                <input
+                                    type="date"
+                                    value={filters.fromDate}
+                                    onChange={(e) => {
+                                        setFilters({ ...filters, fromDate: e.target.value });
+                                        setDateErrors({ ...dateErrors, fromDate: "" });
+                                    }}
+                                    className={`w-full h-12 px-3 rounded-lg text-sm outline-none
+      ${dateErrors.fromDate ? "border border-red-500" : "border border-gray-300"}
+    `}
+                                />
+                                {dateErrors.fromDate && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                        {dateErrors.fromDate}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="text-start">
+                                <label className="block text-sm font-semibold text-[#3A3E47] mb-1">To Date
+                                    {isDateRequired && (
+                                        <span className="text-red-500 ml-1">*</span>
+                                    )}
+                                </label>
+                                <input
+                                    type="date"
+                                    value={filters.toDate}
+                                    onChange={(e) => {
+                                        setFilters({ ...filters, toDate: e.target.value });
+                                        setDateErrors({ ...dateErrors, toDate: "" });
+                                    }}
+                                    className={`w-full h-12 px-3 rounded-lg text-sm outline-none
+      ${dateErrors.toDate ? "border border-red-500" : "border border-gray-300"}
+    `}
+                                />
+                                {dateErrors.toDate && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                        {dateErrors.toDate}
+                                    </p>
+                                )}
+
+                            </div>
+                        </>
+                    )}
                     {RoleID === "7" && (
                         <div className="text-start">
                             <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Owner</label>
@@ -770,7 +850,7 @@ const MarriageDashboard: React.FC = () => {
                                                 {/* Engagement Photo */}
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{yesNo(row.engagementphotodetails)}</td>
                                                 {/* Marriage Invitation */}
-                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{row.marriageinvitationdetails || 'N/A'}</td>
+                                                <td className="px-3 py-3 text-sm border border-[#e5ebf1] text-center">{yesNo(row.marriage_invitation_details)}</td>
                                                 {/* Marriage Location */}
                                                 {/* <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap">N/A</td> */}
                                                 {/* Marriage Comments */}
