@@ -490,7 +490,7 @@ cursor-pointer  ${buttonClass(
                 {familyDetails.Pysically_changed === 'yes' && (
                   <div className="w-full">
                     <Input
-                      label={'challenged detail'}
+                      label={'Challenged Detail'}
                       value={familyDetails.Physically_challenged_details}
                       type={'text'} 
                       readOnly/>

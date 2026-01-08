@@ -679,42 +679,42 @@ const FamilyDetailsForm: React.FC<pageProp> = ({
                   )}
                 </div> */}
 
-
-                <div className="w-full py-1">
-                  <label className="block text-black font-medium mb-1">
-                    Physically Challenged add{' '}
-                  </label>
-                  <div className='flex items-center'>
-                    {/* Wrap input and text in a label for clickability */}
-                    <label className="text-black px-4 cursor-pointer">
-                      <input
-                        type="radio"
-                        value="yes"
-                        className='mr-2'
-                        {...register('FamilyDetailsForm.physicallyChalanged')}
-                      />
-                      Yes
+                <div className="flex w-full gap-4 max-md:flex-col">
+                  <div className="w-1/2 max-md:w-full py-1">
+                    <label className="block text-black font-medium mb-1">
+                      Physically Challenged{' '}
                     </label>
+                    <div className='flex items-center'>
+                      {/* Wrap input and text in a label for clickability */}
+                      <label className="text-black px-4 cursor-pointer">
+                        <input
+                          type="radio"
+                          value="yes"
+                          className='mr-2'
+                          {...register('FamilyDetailsForm.physicallyChalanged')}
+                        />
+                        Yes
+                      </label>
 
-                    <label className="text-black px-4 cursor-pointer">
-                      <input
-                        type="radio"
-                        value="no"
-                        className='mr-2'
-                        {...register('FamilyDetailsForm.physicallyChalanged')}
-                      />
-                      No
-                    </label>
+                      <label className="text-black px-4 cursor-pointer">
+                        <input
+                          type="radio"
+                          value="no"
+                          className='mr-2'
+                          {...register('FamilyDetailsForm.physicallyChalanged')}
+                        />
+                        No
+                      </label>
+                    </div>
+                    {errors?.FamilyDetailsForm?.physicallyChalanged && (
+                      <p className="text-red-600">
+                        {errors.FamilyDetailsForm.physicallyChalanged.message}
+                      </p>
+                    )}
                   </div>
-                  {errors?.FamilyDetailsForm?.physicallyChalanged && (
-                    <p className="text-red-600">
-                      {errors.FamilyDetailsForm.physicallyChalanged.message}
-                    </p>
-                  )}
-                </div>
 
-                {/* Make the check lowercase to match the radio button value */}
-                {/* {physicallyChalanged === 'yes' && (
+                  {/* Make the check lowercase to match the radio button value */}
+                  {/* {physicallyChalanged === 'yes' && (
     <div className="w-full">
         <Input 
             label={'Challenged Details'} 
@@ -725,22 +725,23 @@ const FamilyDetailsForm: React.FC<pageProp> = ({
     </div>
 )} */}
 
-                {physicallyChalanged === 'yes' ? (
-                  <div className="w-full">
-                    <Input
-                      label="Physically Challenged Details"
-                      type="text"
-                      {...register('FamilyDetailsForm.physicallyChallengedDetails')}
-                    />
-                    {errors?.FamilyDetailsForm?.physicallyChallengedDetails && (
-                      <p className="text-red-600">
-                        {errors.FamilyDetailsForm.physicallyChallengedDetails.message}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  ''
-                )}
+                  {physicallyChalanged === 'yes' ? (
+                    <div className="w-1/2 max-md:w-full">
+                      <Input
+                        label="Challenged Detail"
+                        type="text"
+                        {...register('FamilyDetailsForm.physicallyChallengedDetails')}
+                      />
+                      {errors?.FamilyDetailsForm?.physicallyChallengedDetails && (
+                        <p className="text-red-600">
+                          {errors.FamilyDetailsForm.physicallyChallengedDetails.message}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    ''
+                  )}
+                </div>
                 <div className="w-full">
                   <div className='flex items-center'>
                     <label className="block text-black font-medium mb-1">

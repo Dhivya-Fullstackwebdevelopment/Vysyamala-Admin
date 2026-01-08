@@ -779,7 +779,7 @@ cursor-pointer  ${selectedSister === num.toString() ? 'bg-blue-500 text-white' :
                   <div className="w-full">
                     <Input
                       {...register('FamilyDetails.Physically_challenged_details')}
-                      label={'challenged detail'}
+                      label={'Challenged Detail'}
                       type={'text'}
                     />
                   </div>
