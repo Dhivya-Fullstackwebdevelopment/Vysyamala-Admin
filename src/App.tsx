@@ -125,6 +125,7 @@ import PremiumDashboard from './components/new_profile/EditFormComponents/Premiu
 import DailyWorkDashboard from './components/DailyWorkDashboard/DailyWorkDashboard';
 import MarriageDashboard from './components/MarriageDashboard/MarriageDashboard';
 import DeleteDashboard from './components/DeleteDashboard/DeleteDashboard';
+import AdvanceSearchFilters from './pages/AdvanceSearch/AdvanceSearchFilters';
 
 function App() {
   const { pathname } = useLocation();
@@ -1149,6 +1150,7 @@ function App() {
                 <Route path="/DailyWorkDashboard" element={<DailyWorkDashboard />} />
                 <Route path="/MarriageDashboard" element={<MarriageDashboard />} />
                 <Route path="/DeleteDashboard" element={<DeleteDashboard />} />
+                <Route path="/AdvancedSearch" element={<AdvanceSearchFilters />} />
               </Routes>
             </DefaultLayout>
           }

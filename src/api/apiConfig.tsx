@@ -88,6 +88,15 @@ export const userState = async () => {
     }
 };
 
+export const getMembershipPlans = async () => {
+    try {
+        const response = await apiAxios.get('/api/get-plans/');
+        return response.data; // This returns the object containing { status: true, plans: [...] }
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 // // User Matching Profiles Page -> City List
 // export const userCity = async (districtID: number) => {
