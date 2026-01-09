@@ -263,28 +263,46 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             </div>
 
             {/* Multi-Select Sections */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 border-t pt-6">
-                <div className="bg-white p-4 rounded shadow-inner border">
-                    <h3 className="font-bold text-lg mb-3 text-black">Marital Status (Multi-select)</h3>
-                    <div className="grid grid-cols-2 gap-1">
+            {/* Multi-Select Sections */}
+            <div className="flex flex-col gap-8 mt-8  pt-6">
+
+                {/* Marital Status Section */}
+                <div className="bg-white rounded ">
+                    <h3 className="font-bold text-lg mb-4 text-black pb-2">Marital Status</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-2">
                         {maritalStatuses.map(m => (
                             <FormControlLabel
                                 key={m.marital_sts_id}
-                                control={<Checkbox checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())} onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)} />}
-                                label={m.marital_sts_name}
+                                className="m-0"
+                                control={
+                                    <Checkbox
+                                        size="small"
+                                        checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())}
+                                        onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)}
+                                    />
+                                }
+                                label={<span className="text-sm text-gray-700">{m.marital_sts_name}</span>}
                             />
                         ))}
                     </div>
                 </div>
 
-                <div className="bg-white p-4 rounded shadow-inner border">
-                    <h3 className="font-bold text-lg mb-3 text-black">Birth Stars (Multi-select)</h3>
-                    <div className="grid grid-cols-3 gap-1 h-40 overflow-y-auto">
+                {/* Birth Stars Section - Horizontal Grid Layout */}
+                <div className="bg-white rounded ">
+                    <h3 className="font-bold text-lg mb-4 text-black pb-2">Birth Stars</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-x-4 gap-y-1">
                         {birthStars.map(s => (
                             <FormControlLabel
                                 key={s.id}
-                                control={<Checkbox checked={selectedBirthStars.includes(s.id.toString())} onChange={() => handleMultiSelect(s.id.toString(), selectedBirthStars, setSelectedBirthStars)} />}
-                                label={s.star}
+                                className="m-0"
+                                control={
+                                    <Checkbox
+                                        size="small"
+                                        checked={selectedBirthStars.includes(s.id.toString())}
+                                        onChange={() => handleMultiSelect(s.id.toString(), selectedBirthStars, setSelectedBirthStars)}
+                                    />
+                                }
+                                label={<span className="text-sm text-gray-700 whitespace-nowrap">{s.star}</span>}
                             />
                         ))}
                     </div>
