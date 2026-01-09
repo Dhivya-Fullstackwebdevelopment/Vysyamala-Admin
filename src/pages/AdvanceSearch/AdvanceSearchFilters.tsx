@@ -13,6 +13,8 @@ import {
 import { getBirthStars } from '../../services/api';
 import { getEditProfileViewStatus } from '../../action';
 import { Button, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
+import { fetchFieldOfStudy, fetchDegree } from '../../action'; // Ensure these are imported
+import Select from 'react-select';
 
 // Interfaces
 interface AnnualIncome { income_id: number; income_description: string; }
@@ -22,6 +24,8 @@ interface State { State_Pref_id: number; State_name: string; }
 interface Membership { id: number; plan_name: string; plan_price: string; }
 interface FamilyStatus { family_status_id: number; family_status_name: string; }
 interface ProfileStatus { status_code: number; status_name: string; }
+export interface GetDegree { degeree_id: string; degeree_description: string; }
+export interface getFieldOfStudy { study_id: string; study_description: string; }
 
 interface AdvanceSearchFiltersProps {
     onFilterSubmit: (filters: any) => void;
@@ -70,6 +74,13 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [selectedMaritalStatus, setSelectedMaritalStatus] = useState<string[]>([]);
     const [selectedBirthStars, setSelectedBirthStars] = useState<string[]>([]);
     const [selectedMembership, setSelectedMembership] = useState('');
+    const [selectedEducation, setSelectedEducation] = useState<string>('');
+    const [selectedFieldOfStudy, setSelectedFieldOfStudy] = useState<string>('');
+    const [fieldOfStudyOptions, setFieldOfStudyOptions] = useState<getFieldOfStudy[]>([]);
+    const [degreeOptions, setDegreeOptions] = useState<GetDegree[]>([]);
+    const [selectedDegreeValues, setSelectedDegreeValues] = useState<any[]>([]); // For Multi-select
+    const [otherDegree, setOtherDegree] = useState('');
+    const [showOtherInput, setShowOtherInput] = useState(false);
 
     useEffect(() => {
         const fetchSearchData = async () => {
@@ -102,6 +113,41 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
         setter(current.includes(id) ? current.filter(i => i !== id) : [...current, id]);
     };
 
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                // ... your existing Promise.all logic ...
+                const fields = await fetchFieldOfStudy();
+                setFieldOfStudyOptions(fields);
+            } catch (error) {
+                console.error("Error loading education data", error);
+            }
+        };
+        fetchInitialData();
+    }, []);
+
+    // Fetch Degrees when Education or Field changes
+    useEffect(() => {
+        const loadDegrees = async () => {
+            if (selectedEducation && selectedFieldOfStudy && ['1', '2', '3', '4'].includes(selectedEducation)) {
+                try {
+                    const data = await fetchDegree(selectedEducation, selectedFieldOfStudy);
+                    setDegreeOptions(data);
+                } catch (error) {
+                    setDegreeOptions([]);
+                }
+            }
+        };
+        loadDegrees();
+    }, [selectedEducation, selectedFieldOfStudy]);
+
+    const handleDegreeChange = (selectedOptions: any) => {
+        setSelectedDegreeValues(selectedOptions || []);
+        const hasOthers = selectedOptions?.some((opt: any) => opt.value === '86');
+        setShowOtherInput(!!hasOthers);
+        if (!hasOthers) setOtherDegree('');
+    };
+
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         const filters = {
@@ -113,6 +159,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             selectedMaritalStatus: selectedMaritalStatus.join(","),
             selectedBirthStars: selectedBirthStars.join(","),
             selectedMembership,
+            highestEducation: selectedEducation,
+            fieldOfStudy: selectedFieldOfStudy,
+            degrees: selectedDegreeValues.map(d => d.value).join(','),
+            otherDegree: otherDegree,
         };
         onFilterSubmit(filters);
     };
@@ -169,7 +219,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Annual Income</label>
                     <select className="border p-2 rounded  border-black">
-                        <option value="">Select Income Range</option>
+                        <option value="">Select Annual Income</option>
                         {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
                     </select>
                 </div>
@@ -260,6 +310,76 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                         ))}
                     </select>
                 </div>
+                <div className="flex flex-col">
+                    <label className="font-semibold mb-1 text-black">Highest Education</label>
+                    <select
+                        className="border p-2 rounded border-black"
+                        value={selectedEducation}
+                        onChange={(e) => {
+                            setSelectedEducation(e.target.value);
+                            setSelectedFieldOfStudy(''); // Reset dependents
+                            setSelectedDegreeValues([]);
+                        }}
+                    >
+                        <option value="">Select Education</option>
+                        {educations.map(edu => (
+                            <option key={edu.education_id} value={edu.education_id}>{edu.education_description}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Field of Study - Conditional */}
+                {['1', '2', '3', '4'].includes(selectedEducation) && (
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Field of Study</label>
+                        <select
+                            className="border p-2 rounded border-black"
+                            value={selectedFieldOfStudy}
+                            onChange={(e) => {
+                                setSelectedFieldOfStudy(e.target.value);
+                                setSelectedDegreeValues([]);
+                            }}
+                        >
+                            <option value="">Select Field</option>
+                            {fieldOfStudyOptions.map(field => (
+                                <option key={field.study_id} value={field.study_id}>{field.study_description}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {/* Degree Multi-select - Conditional */}
+                {selectedFieldOfStudy && (
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Degree</label>
+                        <Select
+                            isMulti
+                            options={degreeOptions.map(d => ({ value: d.degeree_id.toString(), label: d.degeree_description }))}
+                            value={selectedDegreeValues}
+                            onChange={handleDegreeChange}
+                            styles={{
+                                control: (base) => ({
+                                    ...base,
+                                    borderColor: 'black',
+                                    '&:hover': { borderColor: 'black' }
+                                })
+                            }}
+                        />
+                    </div>
+                )}
+
+                {/* Other Degree Specific Field - Conditional */}
+                {/* {showOtherInput && (
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Specific Degree Field</label>
+                        <input
+                            type="text"
+                            className="border p-2 rounded border-black outline-none"
+                            value={otherDegree}
+                            onChange={(e) => setOtherDegree(e.target.value)}
+                        />
+                    </div>
+                )} */}
             </div>
 
             {/* Multi-Select Sections */}
@@ -313,11 +433,11 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Address</label>
-                    <textarea className="border p-2 rounded border-black h-24" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Search in address fields..." />
+                    <textarea className="border p-2 rounded border-black h-24" value={address} onChange={(e) => setAddress(e.target.value)} />
                 </div>
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Admin Comments</label>
-                    <textarea className="border p-2 rounded border-black h-24" value={adminComments} onChange={(e) => setAdminComments(e.target.value)} placeholder="Search internal comments..." />
+                    <textarea className="border p-2 rounded border-black h-24" value={adminComments} onChange={(e) => setAdminComments(e.target.value)} />
                 </div>
             </div>
         </form>
