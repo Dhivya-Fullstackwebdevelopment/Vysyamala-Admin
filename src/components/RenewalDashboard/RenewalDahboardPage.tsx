@@ -361,14 +361,14 @@ const RenewalDashboard = () => {
         const params = new URLSearchParams();
         if (filters.fromDate) params.append('from_date', filters.fromDate);
         if (filters.toDate) params.append('to_date', filters.toDate);
-        if (RoleID !== "7") {
-            // Default owner = logged in user when filters.staff is empty
-            params.append("owner", filters.staff || SuperAdminID || "");
-        } else {
-            // Role 7 → send owner only when selected manually
-            if (filters.staff) params.append("owner", filters.staff);
-        }
-
+        // if (RoleID !== "7") {
+        //     // Default owner = logged in user when filters.staff is empty
+        //     params.append("owner", filters.staff || SuperAdminID || "");
+        // } else {
+        //     // Role 7 → send owner only when selected manually
+        //     if (filters.staff) params.append("owner", filters.staff);
+        // }
+        if (filters.staff) params.append("owner", filters.staff);
         if (filters.plan) params.append('plan_id', filters.plan);
         if (filters.minAge) params.append('age_from', filters.minAge);
         if (filters.maxAge) params.append('age_to', filters.maxAge);
@@ -451,12 +451,12 @@ const RenewalDashboard = () => {
             if (filters.fromDate) params.append('from_date', filters.fromDate);
             if (filters.toDate) params.append('to_date', filters.toDate);
 
-            if (RoleID !== "7") {
-                params.append("owner", filters.staff || SuperAdminID || "");
-            } else {
-                if (filters.staff) params.append("owner", filters.staff);
-            }
-
+            // if (RoleID !== "7") {
+            //     params.append("owner", filters.staff || SuperAdminID || "");
+            // } else {
+            //     if (filters.staff) params.append("owner", filters.staff);
+            // }
+            if (filters.staff) params.append("owner", filters.staff);
             if (filters.plan) params.append('plan_id', filters.plan);
             if (filters.minAge) params.append('age_from', filters.minAge);
             if (filters.maxAge) params.append('age_to', filters.maxAge);
@@ -1114,29 +1114,29 @@ const RenewalDashboard = () => {
                                     className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm"
                                 />
                             </div>
-                            {RoleID === "7" && (
-                                <div className="col-span-1">
-                                    <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
-                                    <select
-                                        value={filters.staff}
-                                        onChange={(e) => setFilters({ ...filters, staff: e.target.value })}
-                                        className="w-full h-12 px-3 cursor-pointer border border-gray-300 rounded-lg text-sm
+                            {/* {RoleID === "7" && ( */}
+                            <div className="col-span-1">
+                                <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
+                                <select
+                                    value={filters.staff}
+                                    onChange={(e) => setFilters({ ...filters, staff: e.target.value })}
+                                    className="w-full h-12 px-3 cursor-pointer border border-gray-300 rounded-lg text-sm
                disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                        disabled={isOwnersLoading}  // disable for super admin
-                                    >
-                                        <option value="">
-                                            {isOwnersLoading ? 'Loading Staff...' : 'Select Staff'}
+                                    disabled={isOwnersLoading}  // disable for super admin
+                                >
+                                    <option value="">
+                                        {isOwnersLoading ? 'Loading Staff...' : 'Select Staff'}
+                                    </option>
+                                    {profileOwners.map((owner) => (
+                                        <option key={owner.id} value={owner.id}>
+                                            {owner.username}
                                         </option>
-                                        {profileOwners.map((owner) => (
-                                            <option key={owner.id} value={owner.id}>
-                                                {owner.username}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    ))}
+                                </select>
 
-                                    {ownersError && <p className="text-red-500 text-xs mt-1">{ownersError}</p>}
-                                </div>
-                            )}
+                                {ownersError && <p className="text-red-500 text-xs mt-1">{ownersError}</p>}
+                            </div>
+                            {/* )} */}
 
                             <div className="col-span-1">
                                 <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Plan</label>

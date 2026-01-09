@@ -107,8 +107,9 @@ const DeleteDashboard: React.FC = () => {
             if (filters.hidden) params.append('hidden', filters.hidden);
             if (filters.pending) params.append('pending', filters.pending);
 
-            const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
-            if (ownerId) params.append("owner", ownerId);
+            // const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
+            // if (ownerId) params.append("owner", ownerId);
+            if (filters.owner) params.append("owner", filters.owner);
 
             // 🔑 IMPORTANT: Add export flag
             params.append('export', 'excel');
@@ -143,7 +144,8 @@ const DeleteDashboard: React.FC = () => {
     };
     // 1. Initial Load
     useEffect(() => {
-        if (RoleID === "7") fetchProfileOwners();
+        // if (RoleID === "7")
+        fetchProfileOwners();
         fetchDashboardData();
     }, []);
 
@@ -269,7 +271,8 @@ const DeleteDashboard: React.FC = () => {
         const defaultFilters = {
             fromDate: '',
             toDate: '',
-            owner: RoleID === "7" ? "" : (SuperAdminID || ""),
+            // owner: RoleID === "7" ? "" : (SuperAdminID || ""),
+            owner: "",
             profileId: '',
             countFilter: '',
             hidden: '',
@@ -424,15 +427,15 @@ const DeleteDashboard: React.FC = () => {
                         <label className="block text-sm font-semibold text-[#3A3E47] mb-1">To Date</label>
                         <input type="date" value={filters.toDate} onChange={(e) => setFilters({ ...filters, toDate: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />
                     </div>
-                    {RoleID === "7" && (
-                        <div className="text-start">
-                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Owner</label>
-                            <select value={filters.owner} onChange={(e) => setFilters({ ...filters, owner: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white">
-                                <option value="">Select Owner</option>
-                                {profileOwners.map(o => <option key={o.id} value={o.id}>{o.username}</option>)}
-                            </select>
-                        </div>
-                    )}
+                    {/* {RoleID === "7" && ( */}
+                    <div className="text-start">
+                        <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Owner</label>
+                        <select value={filters.owner} onChange={(e) => setFilters({ ...filters, owner: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white">
+                            <option value="">Select Owner</option>
+                            {profileOwners.map(o => <option key={o.id} value={o.id}>{o.username}</option>)}
+                        </select>
+                    </div>
+                    {/* )} */}
                     <div className="text-start">
                         <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Profile ID</label>
                         <input type="text" value={filters.profileId} onChange={(e) => setFilters({ ...filters, profileId: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />

@@ -304,9 +304,9 @@ const PremiumDashboard: React.FC = () => {
             params.append("genderFilter", currentFilters.genderFilter);
         }
 
-        const ownerId = (RoleID === "7") ? currentFilters.staff : (SuperAdminID || "");
-        if (ownerId) params.append("owner", ownerId);
-
+        // const ownerId = (RoleID === "7") ? currentFilters.staff : (SuperAdminID || "");
+        // if (ownerId) params.append("owner", ownerId);
+        if (currentFilters.staff) params.append("owner", currentFilters.staff);
 
         try {
             const response = await apiAxios.get('api/premium-report/', {
@@ -356,8 +356,9 @@ const PremiumDashboard: React.FC = () => {
                 params.append("genderFilter", filters.genderFilter);
             }
 
-            const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
-            if (ownerId) params.append("owner", ownerId);
+            // const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
+            // if (ownerId) params.append("owner", ownerId);
+            if (filters.staff) params.append("owner", filters.staff);
 
             // 🔑 IMPORTANT: export flag
             params.append('export', 'excel');
@@ -509,7 +510,8 @@ const PremiumDashboard: React.FC = () => {
         setFilters({
             fromDate: "",
             toDate: "",
-            staff: RoleID === "7" ? "" : (SuperAdminID || ""),
+            // staff: RoleID === "7" ? "" : (SuperAdminID || ""),
+            staff: "",
             plan: "",
             minAge: "",
             maxAge: "",
@@ -933,21 +935,21 @@ const PremiumDashboard: React.FC = () => {
                                 className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
-                        {RoleID === "7" && (
-                            <div className="text-start">
-                                <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
-                                <select
-                                    value={filters.staff}
-                                    onChange={(e) => setFilters({ ...filters, staff: e.target.value })}
-                                    className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white"
-                                >
-                                    <option value="">Select Staff</option>
-                                    {profileOwners.map(owner => (
-                                        <option key={owner.id} value={owner.id}>{owner.username}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+                        {/* {RoleID === "7" && ( */}
+                        <div className="text-start">
+                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
+                            <select
+                                value={filters.staff}
+                                onChange={(e) => setFilters({ ...filters, staff: e.target.value })}
+                                className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white"
+                            >
+                                <option value="">Select Staff</option>
+                                {profileOwners.map(owner => (
+                                    <option key={owner.id} value={owner.id}>{owner.username}</option>
+                                ))}
+                            </select>
+                        </div>
+                        {/* )} */}
                         <div className="text-start">
                             <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Plan</label>
                             <select

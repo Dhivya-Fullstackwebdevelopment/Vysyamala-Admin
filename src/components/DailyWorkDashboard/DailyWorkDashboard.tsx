@@ -151,7 +151,8 @@ const DailyWorkDashboard: React.FC = () => {
 
 
     useEffect(() => {
-        if (RoleID === "7") fetchProfileOwners();
+        // if (RoleID === "7") 
+            fetchProfileOwners();
     }, [RoleID, fetchProfileOwners]);
 
     useEffect(() => {
@@ -295,7 +296,7 @@ const DailyWorkDashboard: React.FC = () => {
             </header>
 
             {/* --- Filters Section (NON-STICKY) --- */}
-            {RoleID === "7" && (
+            {/* {RoleID === "7" && ( */}
                 <section className="mb-8"> {/* Removed sticky top-0 z-30 */}
                     <div className="bg-white rounded-xl border border-[#E3E6EE] p-7 shadow-sm flex flex-wrap gap-4 items-end">
                         <div className="text-start">
@@ -334,7 +335,7 @@ const DailyWorkDashboard: React.FC = () => {
                     </div> */}
                     </div>
                 </section>
-            )}
+            {/* )} */}
 
             {/* 📊 PERFORMANCE HEADER */}
             {/* <div className={DASHBOARD_CONTAINER}>

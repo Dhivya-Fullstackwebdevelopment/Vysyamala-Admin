@@ -121,8 +121,9 @@ const MarriageDashboard: React.FC = () => {
         if (currentFilters.genderFilter) params.append('genderFilter', currentFilters.genderFilter);
         if (currentFilters.order_by) params.append('order_by', currentFilters.order_by);
 
-        const ownerId = (RoleID === "7") ? currentFilters.owner : (SuperAdminID || "");
-        if (ownerId) params.append("owner", ownerId);
+        // const ownerId = (RoleID === "7") ? currentFilters.owner : (SuperAdminID || "");
+        // if (ownerId) params.append("owner", ownerId);
+        if (currentFilters.owner) params.append("owner", currentFilters.owner);
 
         try {
             const response = await apiAxios.get('api/marriage-report/', {
@@ -164,8 +165,9 @@ const MarriageDashboard: React.FC = () => {
             if (filters.order_by) params.append('order_by', filters.order_by);
             if (filters.profileId) params.append('profile_id', filters.profileId);
 
-            const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
-            if (ownerId) params.append("owner", ownerId);
+            // const ownerId = (RoleID === "7") ? filters.owner : (SuperAdminID || "");
+            // if (ownerId) params.append("owner", ownerId);
+            if (filters.owner) params.append("owner", filters.owner);
 
             // 🔑 IMPORTANT: export flag
             params.append('export', 'excel');
@@ -262,7 +264,8 @@ const MarriageDashboard: React.FC = () => {
             fromDate: "",
             toDate: "",
             profileId: "",
-            owner: RoleID === "7" ? "" : (SuperAdminID || ""),
+            // owner: RoleID === "7" ? "" : (SuperAdminID || ""),
+            owner: "",
             searchQuery: "",
             countFilter: "",
             genderFilter: "",
@@ -332,9 +335,9 @@ const MarriageDashboard: React.FC = () => {
     }, [filters.searchQuery, originalTableData, tableLoading]);
 
     useEffect(() => {
-        if (RoleID === "7") {
-            fetchProfileOwners();
-        }
+        // if (RoleID === "7") {
+        fetchProfileOwners();
+        // }
     }, [RoleID, fetchProfileOwners]);
 
     // --- Helper for Mapping KPI Data ---
@@ -583,15 +586,15 @@ const MarriageDashboard: React.FC = () => {
                             </div>
                         </>
                     )}
-                    {RoleID === "7" && (
-                        <div className="text-start">
-                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Owner</label>
-                            <select value={filters.owner} onChange={(e) => setFilters({ ...filters, owner: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white">
-                                <option value="">Select Owner</option>
-                                {profileOwners.map(o => <option key={o.id} value={o.id}>{o.username}</option>)}
-                            </select>
-                        </div>
-                    )}
+                    {/* {RoleID === "7" && ( */}
+                    <div className="text-start">
+                        <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Owner</label>
+                        <select value={filters.owner} onChange={(e) => setFilters({ ...filters, owner: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm bg-white">
+                            <option value="">Select Owner</option>
+                            {profileOwners.map(o => <option key={o.id} value={o.id}>{o.username}</option>)}
+                        </select>
+                    </div>
+                    {/* )} */}
                     <div className="text-start">
                         <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Profile ID</label>
                         <input type="text" value={filters.profileId} onChange={(e) => setFilters({ ...filters, profileId: e.target.value })} className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm" />

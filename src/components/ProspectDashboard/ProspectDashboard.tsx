@@ -289,9 +289,9 @@ const ProspectDashboard: React.FC = () => {
 
     // --- Load Data on Mount ---
     useEffect(() => {
-        if (RoleID === "7") {
-            fetchProfileOwners();
-        }
+        // if (RoleID === "7") {
+        fetchProfileOwners();
+        // }
         fetchPlans();
     }, [RoleID, fetchProfileOwners, fetchPlans]);
 
@@ -321,10 +321,10 @@ const ProspectDashboard: React.FC = () => {
         if (currentFilters.plan) params.append('plan_id', currentFilters.plan);
         if (currentFilters.countFilter) params.append('countFilter', currentFilters.countFilter);
 
-        const ownerId = (RoleID === "7") ? currentFilters.staff : (SuperAdminID || "");
-        if (ownerId) params.append("owner", ownerId);
+        // const ownerId = (RoleID === "7") ? currentFilters.staff : (SuperAdminID || "");
+        // if (ownerId) params.append("owner", ownerId);
 
-
+        if (currentFilters.staff) params.append("owner", currentFilters.staff);
         try {
             const response = await apiAxios.get('api/prospect-report/', {
                 params: Object.fromEntries(params.entries()),
@@ -428,7 +428,8 @@ const ProspectDashboard: React.FC = () => {
         setFilters({
             fromDate: "",
             toDate: "",
-            staff: RoleID === "7" ? "" : (SuperAdminID || ""),
+            // staff: RoleID === "7" ? "" : (SuperAdminID || ""),
+            staff: "",
             plan: "",
             minAge: "",
             maxAge: "",
@@ -497,9 +498,9 @@ const ProspectDashboard: React.FC = () => {
             if (filters.plan) params.append('plan_id', filters.plan);
             if (filters.countFilter) params.append('countFilter', filters.countFilter);
 
-            const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
-            if (ownerId) params.append("owner", ownerId);
-
+            // const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
+            // if (ownerId) params.append("owner", ownerId);
+            if (filters.staff) params.append("owner", filters.staff);
             // 🔑 IMPORTANT: export flag
             params.append('export', 'excel');
 
@@ -825,27 +826,27 @@ const ProspectDashboard: React.FC = () => {
                                 className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
-                        {RoleID === "7" && (
-                            <div className="text-start">
-                                <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
-                                <div className="relative">
-                                    <select
-                                        className="w-full h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black"
-                                        value={filters.staff}
-                                        onChange={(e) => handleFilterChange('staff', e.target.value)}
-                                    >
-                                        <option value="">Select Staff</option>
-                                        {profileOwners.map(owner => (
-                                            <option key={owner.id} value={owner.id}>{owner.username}</option>
-                                        ))}
-                                    </select>
+                        {/* {RoleID === "7" && ( */}
+                        <div className="text-start">
+                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
+                            <div className="relative">
+                                <select
+                                    className="w-full h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black"
+                                    value={filters.staff}
+                                    onChange={(e) => handleFilterChange('staff', e.target.value)}
+                                >
+                                    <option value="">Select Staff</option>
+                                    {profileOwners.map(owner => (
+                                        <option key={owner.id} value={owner.id}>{owner.username}</option>
+                                    ))}
+                                </select>
 
-                                    <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                                        <RiArrowDropDownLine size={30} className="text-gray-500" />
-                                    </div>
+                                <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                                    <RiArrowDropDownLine size={30} className="text-gray-500" />
                                 </div>
                             </div>
-                        )}
+                        </div>
+                        {/* )} */}
                         {/* <div className="text-start">
                             <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Plan</label>
                             <div className="relative">
@@ -1072,7 +1073,7 @@ const ProspectDashboard: React.FC = () => {
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(profile.has_horo)}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap text-center">{yesNo(profile.has_idproof)}</td>
                                                 <td className="px-3 py-3 text-sm border border-[#e5ebf1] whitespace-nowrap"> {profile.Last_login_date
-                                                ? new Date(profile.Last_login_date.replace("T", " ")).toLocaleDateString('en-CA')
+                                                    ? new Date(profile.Last_login_date.replace("T", " ")).toLocaleDateString('en-CA')
                                                     : "N/A"}</td>
                                                 {/* Call Logs Button */}
                                                 <td className="px-3 py-3 whitespace-nowrap text-sm border border-[#e5ebf1]">

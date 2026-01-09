@@ -265,9 +265,9 @@ const RegistrationDashboard: React.FC = () => {
 
     // --- Load Data on Mount ---
     useEffect(() => {
-        if (RoleID === "7") {
-            fetchProfileOwners();
-        }
+        // if (RoleID === "7") {
+        fetchProfileOwners();
+        // }
         fetchPlans();
     }, [RoleID, fetchProfileOwners, fetchPlans]);
 
@@ -309,7 +309,8 @@ const RegistrationDashboard: React.FC = () => {
         setFilters({
             fromDate: "",
             toDate: "",
-            staff: RoleID === "7" ? "" : (SuperAdminID || ""),
+            //staff: RoleID === "7" ? "" : (SuperAdminID || ""),
+            staff: "",
             plan: "",
             minAge: "",
             maxAge: "",
@@ -343,8 +344,8 @@ const RegistrationDashboard: React.FC = () => {
         //if (filters.searchQuery) params.append('search', filters.searchQuery);
         if (filters.countFilter) params.append('countFilter', filters.countFilter);
         // Logic for Owner
-        const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
-        if (ownerId) params.append("owner", ownerId);
+        // const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
+        if (filters.staff) params.append("owner", filters.staff);
 
         try {
             const response = await apiAxios.get('api/registration-report/', {
@@ -450,9 +451,9 @@ const RegistrationDashboard: React.FC = () => {
             //if (filters.searchQuery) params.append('search', filters.searchQuery);
             if (filters.countFilter) params.append('countFilter', filters.countFilter);
 
-            const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
-            if (ownerId) params.append("owner", ownerId);
-
+            // const ownerId = (RoleID === "7") ? filters.staff : (SuperAdminID || "");
+            // if (ownerId) params.append("owner", ownerId);
+            if (filters.staff) params.append("owner", filters.staff);
             // Add the export flag required by your backend
             params.append('export', 'excel');
 
@@ -780,27 +781,27 @@ const RegistrationDashboard: React.FC = () => {
                                 className="w-full h-12 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
-                        {RoleID === "7" && (
-                            <div className="text-start">
-                                <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
-                                <div className="relative">
-                                    <select
-                                        className="w-full h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black"
-                                        value={filters.staff}
-                                        onChange={(e) => handleFilterChange('staff', e.target.value)}
-                                    >
-                                        <option value="">Select Staff</option>
-                                        {profileOwners.map(owner => (
-                                            <option key={owner.id} value={owner.id}>{owner.username}</option>
-                                        ))}
-                                    </select>
-                                    {/* Icon positioned to the right */}
-                                    <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                                        <RiArrowDropDownLine size={30} className="text-gray-500" />
-                                    </div>
+                        {/* {RoleID === "7" && ( */}
+                        <div className="text-start">
+                            <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Staff</label>
+                            <div className="relative">
+                                <select
+                                    className="w-full h-12 px-3 pr-10 border border-gray-300 rounded-lg text-sm cursor-pointer appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-black"
+                                    value={filters.staff}
+                                    onChange={(e) => handleFilterChange('staff', e.target.value)}
+                                >
+                                    <option value="">Select Staff</option>
+                                    {profileOwners.map(owner => (
+                                        <option key={owner.id} value={owner.id}>{owner.username}</option>
+                                    ))}
+                                </select>
+                                {/* Icon positioned to the right */}
+                                <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                                    <RiArrowDropDownLine size={30} className="text-gray-500" />
                                 </div>
                             </div>
-                        )}
+                        </div>
+                        {/* )} */}
                         <div className="text-start">
                             <label className="block text-sm font-semibold text-[#3A3E47] mb-1">Plan</label>
                             <div className="relative">
