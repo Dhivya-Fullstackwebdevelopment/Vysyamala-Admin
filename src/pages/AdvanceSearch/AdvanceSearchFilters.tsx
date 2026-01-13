@@ -365,13 +365,13 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 {selectedProfileStatus === '4' && (
                     <>
                         <div className="flex flex-col">
-                            <label className="font-semibold mb-1 text-black">Delete Status</label>
+                            <label className="font-semibold mb-1 text-black">Secondary Status</label>
                             <select
                                 className="border p-2 rounded border-black"
                                 value={deleteStatus}
                                 onChange={(e) => setDeleteStatus(e.target.value)}
                             >
-                                <option value="">Select Reason</option>
+                                <option value="">Select Secondary Status</option>
                                 <option value="18">Got Married</option>
                                 <option value="19">Marriage settled</option>
                                 <option value="20">Duplicate</option>
