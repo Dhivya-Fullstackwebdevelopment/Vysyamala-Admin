@@ -438,6 +438,8 @@ export const userMatchingProfilesFilter = async (
     fatherAlive: string,
     motherAlive: string,
     mobileNo: string,
+    Gender: string,
+    EmailId: string,
     dobDay: string, // Add this
     dobMonth: string, // Add this
     dobYear: string, // Add this
@@ -472,6 +474,8 @@ export const userMatchingProfilesFilter = async (
             father_alive: fatherAlive,
             mother_alive: motherAlive,
             mobile_no: mobileNo,
+            gender: Gender,
+            email_id: EmailId,
             dob_date: dobDay,
             dob_month: dobMonth,
             dob_year: dobYear,

@@ -115,6 +115,8 @@ const SearchProfileResults = ({ filters, onBack, No_Image_Available }: SearchPro
           String(filters.fatherAlive),
           String(filters.motherAlive),
           String(filters.mobileNo),    // Add mobile_no
+          String(filters.gender),   // Gender
+          String(filters.emailId),  // EmailId
           filters.dobDay, // day component
           filters.dobMonth, // month component
           filters.dobYear, // year component

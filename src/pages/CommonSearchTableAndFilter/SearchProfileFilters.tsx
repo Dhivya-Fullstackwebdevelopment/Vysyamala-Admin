@@ -120,6 +120,8 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
   const [dobMonth, setDobMonth] = useState<string>('');
   const [dobYear, setDobYear] = useState<string>('');
   const [selectedProfileStatus, setSelectedProfileStatus] = useState<string>('');
+  const [gender, setGender] = useState<string>('');
+  const [emailId, setEmailId] = useState<string>('');
 
   useEffect(() => {
     const fetchSearchData = async () => {
@@ -197,6 +199,8 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
     const filters = {
       profileID,
       profileName,
+      gender,
+      emailId,
       selectedComplexions,
       selectedEducation,
       heightFrom,
@@ -297,7 +301,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
     <form id="filter-form" onSubmit={handleSubmit}>
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold mb-6 text-black">Search Profile</h1>
+          <h1 className="text-2xl font-bold mb-6 text-black">Basic Search</h1>
           {/* <button
             type="submit"
             disabled={loading}
@@ -348,6 +352,31 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               placeholder="Enter Profile Name"
               className="w-full px-4 py-2 border border-black rounded"
               onChange={(e) => setProfileName(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-[18px] text-black font-semibold mb-2">Gender</label>
+            <select
+              className="w-full px-4 py-2 border border-black rounded outline-none"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+            >
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+
+          {/* Email ID */}
+          <div className="flex flex-col">
+            <label className="text-[18px] text-black font-semibold mb-2">Email ID</label>
+            <input
+              type="email"
+              value={emailId}
+              placeholder="Enter Email ID"
+              className="w-full px-4 py-2 border border-black rounded"
+              onChange={(e) => setEmailId(e.target.value)}
             />
           </div>
 
@@ -482,7 +511,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
         </div>
 
         {/* Matching Stars */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Birth Stars</h2>
           </div>
@@ -503,7 +532,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Highest Education */}
         {/* <div className="py-4">
@@ -690,7 +719,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </select>
             </div> */}
             <div>
-              <select
+              {/* <select
                 name="selectedCity"
                 id="selectedCity"
                 value={selectedCity || ""}
@@ -703,7 +732,16 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
                     {option.district}
                   </option>
                 ))}
-              </select>
+              </select> */}
+              <input
+                type="text"
+                name="selectedCity"
+                id="selectedCity"
+                value={selectedCity || ""}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                placeholder="Enter City"
+                className="w-90 outline-none px-4 py-2.5 border border-black rounded"
+              />
             </div>
           </div>
         </div>
