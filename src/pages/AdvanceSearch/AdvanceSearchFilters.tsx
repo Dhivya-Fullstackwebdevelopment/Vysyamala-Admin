@@ -9,12 +9,14 @@ import {
     userState,
     userMembership,
     getMembershipPlans,
+    getProfileHolder,
 } from '../../api/apiConfig';
 import { getBirthStars } from '../../services/api';
 import { getEditProfileViewStatus } from '../../action';
 import { Button, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import { fetchFieldOfStudy, fetchDegree } from '../../action'; // Ensure these are imported
 import Select from 'react-select';
+import { apiAxios } from '../../api/apiUrl';
 
 // Interfaces
 interface AnnualIncome { income_id: number; income_description: string; }
@@ -26,6 +28,10 @@ interface FamilyStatus { family_status_id: number; family_status_name: string; }
 interface ProfileStatus { status_code: number; status_name: string; }
 export interface GetDegree { degeree_id: string; degeree_description: string; }
 export interface getFieldOfStudy { study_id: string; study_description: string; }
+interface ProfileHolder {
+    owner_id: number;
+    owner_description: string;
+}
 
 interface AdvanceSearchFiltersProps {
     onFilterSubmit: (filters: any) => void;
@@ -37,7 +43,9 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [profileID, setProfileID] = useState('');
     const [name, setName] = useState('');
     const [dob, setDob] = useState('');
-    const [age, setAge] = useState('');
+    //const [age, setAge] = useState('');
+    const [ageFrom, setAgeFrom] = useState('');
+    const [ageTo, setAgeTo] = useState('');
     const [gender, setGender] = useState('');
     const [combinedContact, setCombinedContact] = useState(''); // Combined Mobile, Phone, WhatsApp
     const [emailId, setEmailId] = useState('');
@@ -52,6 +60,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [regToDate, setRegToDate] = useState('');
     const [selectedState, setSelectedState] = useState('');
     const [cityText, setCityText] = useState(''); // Open text box for city mapping
+    const [selectedProfileStatus, setSelectedProfileStatus] = useState('');
     const [createdBy, setCreatedBy] = useState('');
     const [address, setAddress] = useState('');
     const [adminComments, setAdminComments] = useState('');
@@ -61,6 +70,8 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
 
     // Dropdown Data States
     const [annualIncomes, setAnnualIncomes] = useState<AnnualIncome[]>([]);
+    const [minAnnualIncome, setMinAnnualIncome] = useState('');
+    const [maxAnnualIncome, setMaxAnnualIncome] = useState('');
     const [educations, setEducations] = useState<HighestEducation[]>([]);
     const [maritalStatuses, setMaritalStatuses] = useState<MaritalStatus[]>([]);
     const [states, setStates] = useState<State[]>([]);
@@ -81,14 +92,16 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [selectedDegreeValues, setSelectedDegreeValues] = useState<any[]>([]); // For Multi-select
     const [otherDegree, setOtherDegree] = useState('');
     const [showOtherInput, setShowOtherInput] = useState(false);
+    const [createdHolderOptions, setCreatedHolderOptions] = useState<ProfileHolder[]>([]);
+
 
     useEffect(() => {
         const fetchSearchData = async () => {
             try {
-                const [inc, mar, edu, st, mem, fam, star, status, plansData] = await Promise.all([
+                const [inc, mar, edu, st, mem, fam, star, status, plansData, profileHoldersData] = await Promise.all([
                     userAnnualIncome(), userMaritalStatus(), userEducation(),
                     userState(), userMembership(), userFamilyStatus(),
-                    getBirthStars(), getEditProfileViewStatus(), getMembershipPlans(),
+                    getBirthStars(), getEditProfileViewStatus(), getMembershipPlans(), getProfileHolder(),
                 ]);
 
                 setAnnualIncomes(Object.values(inc));
@@ -102,6 +115,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 if (plansData && plansData.status) {
                     setPlans(plansData.plans);
                 }
+                if (profileHoldersData) {
+                    setCreatedHolderOptions(Object.values(profileHoldersData));
+                }
+
             } catch (error: any) {
                 NotifyError(error.message);
             }
@@ -141,6 +158,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
         loadDegrees();
     }, [selectedEducation, selectedFieldOfStudy]);
 
+
     const handleDegreeChange = (selectedOptions: any) => {
         setSelectedDegreeValues(selectedOptions || []);
         const hasOthers = selectedOptions?.some((opt: any) => opt.value === '86');
@@ -151,7 +169,9 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         const filters = {
-            profileID, name, dob, age, gender, combinedContact, emailId,
+            profileID, name, dob, ageFrom,
+            minAnnualIncome, // Add this
+            maxAnnualIncome, // Add this
             fatherName, fatherOccupation, motherName, motherOccupation,
             businessName, companyName, lastActionDate, regFromDate, regToDate,
             selectedState, cityText, createdBy, address, adminComments, nri,
@@ -186,7 +206,26 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 <FilterInput label="Profile ID" value={profileID} onChange={setProfileID} />
                 <FilterInput label="Name" value={name} onChange={setName} />
                 <FilterInput label="Date of Birth" type="date" value={dob} onChange={setDob} />
-                <FilterInput label="Age" type="number" value={age} onChange={setAge} />
+                {/* <FilterInput label="Age" type="number" value={age} onChange={setAge} /> */}
+                {/* Replace the old Age input with this block */}
+                <div className="flex gap-4 w-full">
+                    <div className="w-1/2">
+                        <FilterInput
+                            label="Age From"
+                            type="number"
+                            value={ageFrom}
+                            onChange={setAgeFrom}
+                        />
+                    </div>
+                    <div className="w-1/2">
+                        <FilterInput
+                            label="Age To"
+                            type="number"
+                            value={ageTo}
+                            onChange={setAgeTo}
+                        />
+                    </div>
+                </div>
 
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Gender</label>
@@ -204,7 +243,22 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                     onChange={setCombinedContact}
                 />
                 <FilterInput label="Email ID" value={emailId} onChange={setEmailId} />
-                <FilterInput label="Created By" value={createdBy} onChange={setCreatedBy} />
+                {/* Created By Dropdown */}
+                <div className="flex flex-col">
+                    <label className="font-semibold mb-1 text-black">Created By</label>
+                    <select
+                        className="border p-2 rounded border-black"
+                        value={createdBy}
+                        onChange={(e) => setCreatedBy(e.target.value)}
+                    >
+                        <option value="">Select Created By</option>
+                        {createdHolderOptions.map((holder) => (
+                            <option key={holder.owner_id} value={holder.owner_id}>
+                                {holder.owner_description}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
                 {/* Family Info */}
                 <FilterInput label="Father Name" value={fatherName} onChange={setFatherName} />
@@ -216,12 +270,43 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 <FilterInput label="Business Name (Groom / Bride)" value={businessName} onChange={setBusinessName} />
                 <FilterInput label="Company Name" value={companyName} onChange={setCompanyName} />
 
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Annual Income</label>
-                    <select className="border p-2 rounded  border-black">
-                        <option value="">Select Annual Income</option>
-                        {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
-                    </select>
+                {/* Annual Income Range */}
+                {/* Annual Income Range - Width reduced with max-w-md and tighter gap */}
+                <div className="flex gap-2 w-full max-w-md">
+
+                    {/* Min Annual Income */}
+                    <div className="w-1/2 flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Min Annual Income</label>
+                        <select
+                            className="border p-2 rounded border-black"
+                            value={minAnnualIncome}
+                            onChange={(e) => setMinAnnualIncome(e.target.value)}
+                        >
+                            <option value="">Select Min</option>
+                            {annualIncomes.map(inc => (
+                                <option key={inc.income_id} value={inc.income_id}>
+                                    {inc.income_description}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Max Annual Income */}
+                    <div className="w-1/2 flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Max Annual Income</label>
+                        <select
+                            className="border p-2 rounded border-black"
+                            value={maxAnnualIncome}
+                            onChange={(e) => setMaxAnnualIncome(e.target.value)}
+                        >
+                            <option value="">Select Max</option>
+                            {annualIncomes.map(inc => (
+                                <option key={inc.income_id} value={inc.income_id}>
+                                    {inc.income_description}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 <div className="flex flex-col">
@@ -255,34 +340,46 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 {/* Statuses */}
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Profile Status</label>
-                    <select className="border p-2 rounded border-black">
+                    <select
+                        className="border p-2 rounded border-black"
+                        // 1. Bind the value to state
+                        value={selectedProfileStatus}
+                        // 2. Handle change
+                        onChange={(e) => {
+                            const newStatus = e.target.value;
+                            setSelectedProfileStatus(newStatus);
+
+                            // Optional: Reset delete reasons if user changes status back to Active
+                            // Replace '3' with your actual Deleted Status Code
+                            if (newStatus !== '4') {
+                                setDeleteStatus('');
+                                setSecondaryDeleteStatus('');
+                            }
+                        }}
+                    >
                         <option value="">Select Status</option>
                         {profileStatuses.map(s => <option key={s.status_code} value={s.status_code}>{s.status_name}</option>)}
                     </select>
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Delete Status</label>
-                    <select className="border p-2 rounded border-black" value={deleteStatus} onChange={(e) => setDeleteStatus(e.target.value)}>
-                        <option value="">Select Reason</option>
-                        <option value="Got Married">Got Married</option>
-                        <option value="Marriage settled">Marriage settled</option>
-                        <option value="Duplicate">Duplicate</option>
-                        <option value="Fake Profile">Fake Profile</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
-
-                {/* Secondary Status Logic */}
-                {(deleteStatus === 'Got Married' || deleteStatus === 'Marriage settled') && (
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Secondary Status </label>
-                        <select className="border-2 border-black p-2 rounded" value={secondaryDeleteStatus} onChange={(e) => setSecondaryDeleteStatus(e.target.value)}>
-                            <option value="">Select Option</option>
-                            <option value="Vysyamala">Vysyamala</option>
-                            <option value="Others">Others</option>
-                        </select>
-                    </div>
+                {selectedProfileStatus === '4' && (
+                    <>
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Delete Status</label>
+                            <select
+                                className="border p-2 rounded border-black"
+                                value={deleteStatus}
+                                onChange={(e) => setDeleteStatus(e.target.value)}
+                            >
+                                <option value="">Select Reason</option>
+                                <option value="18">Got Married</option>
+                                <option value="19">Marriage settled</option>
+                                <option value="20">Duplicate</option>
+                                <option value="21">Fake Profile</option>
+                                <option value="22">Others</option>
+                            </select>
+                        </div>
+                    </>
                 )}
 
                 <div className="flex flex-col">

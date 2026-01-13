@@ -97,6 +97,13 @@ export const getMembershipPlans = async () => {
     }
 };
 
+// In api/apiConfig.js
+export const getProfileHolder = async () => {
+    // Replace axiosInstance with your actual axios import
+    const response = await apiAxios.post('auth/Get_Profileholder/');
+    return response.data;
+};
+
 
 // // User Matching Profiles Page -> City List
 // export const userCity = async (districtID: number) => {
