@@ -4,16 +4,14 @@ import {
     Box, Button, Checkbox, CircularProgress, Paper, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, TextField, Typography, IconButton
 } from '@mui/material';
-import { commonSearch } from '../../api/apiConfig'; // Import the new API function
+import { commonSearch } from '../../api/apiConfig';
 import { NotifyError } from '../../common/Toast/ToastMessage';
 import { MdVerified } from 'react-icons/md';
 import { GoUnverified } from 'react-icons/go';
 
-// ... Keep your existing Interfaces ...
-
 const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
     const navigate = useNavigate();
-    
+
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [totalItems, setTotalItems] = useState(0);
@@ -22,7 +20,6 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
     const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
     const [goToPageInput, setGoToPageInput] = useState<string>('');
 
-    // Columns specific to Common Search Response
     const columns = [
         { id: "select", label: "Select" },
         { id: 'profile_img', label: 'Image' },
@@ -42,67 +39,80 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
             try {
                 setLoading(true);
 
-                // 1. MAP FORM DATA TO API BODY PARAMS
-                // The keys on the left must match the "BODY PARAMS" list you provided
+                // --- API PAYLOAD MAPPING ---
                 const apiPayload = {
+                    // IDs and Names
                     search_profile_id: filters.profileID || "",
                     profile_name: filters.name || "",
-                    dob_date: filters.dob ? filters.dob.split('-')[2] : "", // Extract Day
-                    dob_month: filters.dob ? filters.dob.split('-')[1] : "", // Extract Month
-                    dob_year: filters.dob ? filters.dob.split('-')[0] : "", // Extract Year
-                    age_from: filters.ageFrom || "",
-                    age_to: filters.ageTo || "",
+
+                    // Personal
                     gender: filters.gender || "",
-                    mobile_no: filters.combinedContact || "", // Assuming combined holds mobile
                     email_id: filters.emailId || "",
+                    mobile_no: filters.combinedContact || "",
+                    age_from: filters.ageFrom || "",
+                    age_to: filters.ageTo || "", // Fixed: Age To Passing
                     
-                    // Family & Bio
-                    father_name: filters.fatherName || "",
-                    father_occupation: filters.fatherOccupation || "",
-                    mother_name: filters.motherName || "",
-                    mother_occupation: filters.motherOccupation || "",
-                    business_name: filters.businessName || "",
-                    company_name: filters.companyName || "",
-                    
-                    // Dropdowns & Multiselects
+                    last_action_date: filters.lastActionDate || "",
+                    from_doj: filters.regFromDate || "", // Maps Reg From -> from_doj
+                    to_doj: filters.regToDate || "",
+                    // DOB Parsing
+                    dob_date: filters.dob ? filters.dob.split('-')[2] : "",
+                    dob_month: filters.dob ? filters.dob.split('-')[1] : "",
+                    dob_year: filters.dob ? filters.dob.split('-')[0] : "",
+
+                    // Location & Status
                     state: filters.selectedState || "",
                     city: filters.cityText || "",
                     status: filters.selectedProfileStatus || "",
                     created_by: filters.createdBy || "",
                     address: filters.address || "",
                     admin_comments: filters.adminComments || "",
-                    
-                    // Special fields
-                    min_anual_income: filters.minAnnualIncome || "", // Note: API typo 'anual'
-                    max_anual_income: filters.maxAnnualIncome || "", // Note: API typo 'anual'
+
+                    // IMPORTANT: NRI Mapping (using dropdown value)
+                    foreign_intrest: filters.nri || "",
+
+                    // IMPORTANT: Stars Mapping (using the joined string)
+                    matching_stars: filters.selectedBirthStars || "",
+
+                    // Income
+                    min_anual_income: filters.minAnnualIncome || "",
+                    max_anual_income: filters.maxAnnualIncome || "",
+
+                    // Dropdowns
                     membership: filters.selectedMembership || "",
                     martial_status: filters.selectedMaritalStatus || "",
-                    matching_stars: filters.selectedBirthStars || "",
-                    
+
                     // Education
                     education: filters.highestEducation || "",
                     field_of_study: filters.fieldOfStudy || "",
                     degree: filters.degrees || "",
-                    
-                    // Delete Statuses
-                    delete_status: filters.deleteStatus || "", // Secondary status
-                    
+
+                    // Professional & Family
+                    father_name: filters.fatherName || "",
+                    father_occupation: filters.fatherOccupation || "",
+                    mother_name: filters.motherName || "",
+                    mother_occupation: filters.motherOccupation || "",
+                    business_name: filters.businessName || "",
+                    company_name: filters.companyName || "",
+
+                    // Delete Status
+                    delete_status: filters.deleteStatus || "",
+
                     // Pagination
-                    page_number: currentPage + 1,
+                    page_number: currentPage + 1, // API usually 1-based
                     per_page: itemsPerPage
                 };
 
-                // 2. Call the API
                 const response = await commonSearch(apiPayload);
 
                 if (response.Status === 1) {
                     setData(response.profiles || []);
-                    // Assuming the API returns total_count for pagination. 
-                    // If not, you might need to adjust logic or ask backend for count.
-                    setTotalItems(response.total_count || response.profiles.length); 
+                    setTotalItems(response.total_count || response.profiles.length);
                 } else {
                     setData([]);
-                    NotifyError(response.message || "No records found");
+                    setTotalItems(0);
+                    // Optional: Only show error if it's a real error, not just 0 results
+                    // NotifyError(response.message || "No records found"); 
                 }
 
             } catch (error: any) {
@@ -118,15 +128,38 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
         }
     }, [filters, currentPage, itemsPerPage]);
 
-    // ... Keep existing Pagination and Handler functions (handleChangePage, handleSelectAll, etc.) ...
+    // --- Pagination Handlers ---
+    const handleGoToPage = () => {
+        const pageNumber = parseInt(goToPageInput, 10);
+        if (!isNaN(pageNumber)) {
+            const lastPage = Math.ceil(totalItems / itemsPerPage) - 1;
+            const newPage = Math.max(0, Math.min(pageNumber - 1, lastPage));
+            setCurrentPage(newPage);
+            setGoToPageInput('');
+        }
+    };
+
+    const handleCheckboxChange = (profileId: string) => {
+        setSelectedProfiles((prev) =>
+            prev.includes(profileId) ? prev.filter(id => id !== profileId) : [...prev, profileId]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedProfiles.length === data.length) {
+            setSelectedProfiles([]);
+        } else {
+            setSelectedProfiles(data.map((profile) => profile.profile_id));
+        }
+    };
 
     return (
         <div className="container mx-auto p-4">
-             <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4">
                 <Button variant="contained" onClick={onBack}>
                     Back to Filters
                 </Button>
-                {/* <Typography variant="h5">Search Results ({totalItems})</Typography> */}
+                {/* <Typography variant="h6">Total Records: {totalItems}</Typography> */}
             </div>
 
             {loading ? (
@@ -143,14 +176,11 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                                         {columns.map((column) => (
                                             <TableCell key={column.id} sx={{ fontWeight: "bold", color: "#ee3448" }}>
                                                 {column.id === "select" ? (
-                                                     <Checkbox
-                                                     color="primary"
-                                                     checked={data.length > 0 && selectedProfiles.length === data.length}
-                                                     onChange={() => {
-                                                         if (selectedProfiles.length === data.length) setSelectedProfiles([]);
-                                                         else setSelectedProfiles(data.map(d => d.profile_id));
-                                                     }}
-                                                   />
+                                                    <Checkbox
+                                                        color="primary"
+                                                        checked={data.length > 0 && selectedProfiles.length === data.length}
+                                                        onChange={handleSelectAll}
+                                                    />
                                                 ) : column.label}
                                             </TableCell>
                                         ))}
@@ -161,25 +191,20 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                                         data.map((row) => (
                                             <TableRow key={row.profile_id}>
                                                 <TableCell>
-                                                    <Checkbox 
+                                                    <Checkbox
                                                         checked={selectedProfiles.includes(row.profile_id)}
-                                                        onChange={() => {
-                                                            const newSelected = selectedProfiles.includes(row.profile_id)
-                                                                ? selectedProfiles.filter(id => id !== row.profile_id)
-                                                                : [...selectedProfiles, row.profile_id];
-                                                            setSelectedProfiles(newSelected);
-                                                        }}
+                                                        onChange={() => handleCheckboxChange(row.profile_id)}
                                                     />
                                                 </TableCell>
                                                 <TableCell>
-                                                    <img 
-                                                        src={row.profile_img || No_Image_Available} 
-                                                        alt="img" 
+                                                    <img
+                                                        src={row.profile_img || No_Image_Available}
+                                                        alt="img"
                                                         className="w-12 h-12 rounded-full object-cover"
-                                                        onError={(e:any) => e.target.src = No_Image_Available}
+                                                        onError={(e: any) => e.target.src = No_Image_Available}
                                                     />
                                                 </TableCell>
-                                                <TableCell 
+                                                <TableCell
                                                     className="text-blue-600 cursor-pointer hover:underline"
                                                     onClick={() => navigate(`/viewProfile?profileId=${row.profile_id}`)}
                                                 >
@@ -206,7 +231,82 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                             </Table>
                         </TableContainer>
                     </Paper>
-                    {/* Add your pagination controls here (same as previous code) */}
+
+                    {/* --- PAGINATION CONTROLS --- */}
+                    {Math.ceil(totalItems / itemsPerPage) > 0 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-600">
+                                Showing {currentPage * itemsPerPage + 1} to {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} records
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
+                                    <Typography variant="body2">Go to page:</Typography>
+                                    <TextField
+                                        size="small"
+                                        type="number"
+                                        value={goToPageInput}
+                                        onChange={(e) => setGoToPageInput(e.target.value)}
+                                        inputProps={{ min: 1, max: Math.ceil(totalItems / itemsPerPage) }}
+                                        style={{ width: '80px' }}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleGoToPage()}
+                                    />
+                                    <Button variant="contained" size="small" onClick={handleGoToPage} disabled={!goToPageInput}>
+                                        Go
+                                    </Button>
+                                </div>
+
+                                <IconButton onClick={() => setCurrentPage(0)} disabled={currentPage === 0}>
+                                    {"<<"}
+                                </IconButton>
+                                <IconButton onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))} disabled={currentPage === 0}>
+                                    {"<"}
+                                </IconButton>
+
+                                {/* Page Numbers Logic */}
+                                {(() => {
+                                    const totalPages = Math.ceil(totalItems / itemsPerPage);
+                                    const maxVisiblePages = 5;
+                                    let startPage, endPage;
+
+                                    if (totalPages <= maxVisiblePages) {
+                                        startPage = 0;
+                                        endPage = totalPages - 1;
+                                    } else {
+                                        const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
+                                        const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
+                                        if (currentPage < maxPagesBeforeCurrent) {
+                                            startPage = 0;
+                                            endPage = maxVisiblePages - 1;
+                                        } else if (currentPage + maxPagesAfterCurrent >= totalPages) {
+                                            startPage = totalPages - maxVisiblePages;
+                                            endPage = totalPages - 1;
+                                        } else {
+                                            startPage = currentPage - maxPagesBeforeCurrent;
+                                            endPage = currentPage + maxPagesAfterCurrent;
+                                        }
+                                    }
+                                    return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
+                                        <Button
+                                            key={page}
+                                            variant={currentPage === page ? "contained" : "text"}
+                                            onClick={() => setCurrentPage(page)}
+                                            style={{ minWidth: '32px', height: '32px', margin: '0 2px' }}
+                                        >
+                                            {page + 1}
+                                        </Button>
+                                    ));
+                                })()}
+
+                                <IconButton onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(totalItems / itemsPerPage) - 1))} disabled={currentPage >= Math.ceil(totalItems / itemsPerPage) - 1}>
+                                    {">"}
+                                </IconButton>
+                                <IconButton onClick={() => setCurrentPage(Math.ceil(totalItems / itemsPerPage) - 1)} disabled={currentPage >= Math.ceil(totalItems / itemsPerPage) - 1}>
+                                    {">>"}
+                                </IconButton>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </div>

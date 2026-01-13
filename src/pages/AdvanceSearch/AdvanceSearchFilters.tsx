@@ -14,9 +14,8 @@ import {
 import { getBirthStars } from '../../services/api';
 import { getEditProfileViewStatus } from '../../action';
 import { Button, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
-import { fetchFieldOfStudy, fetchDegree } from '../../action'; // Ensure these are imported
+import { fetchFieldOfStudy, fetchDegree } from '../../action';
 import Select from 'react-select';
-import { apiAxios } from '../../api/apiUrl';
 
 // Interfaces
 interface AnnualIncome { income_id: number; income_description: string; }
@@ -39,15 +38,14 @@ interface AdvanceSearchFiltersProps {
 }
 
 const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersProps) => {
-    // New State declarations for Advance Search
+    // State declarations
     const [profileID, setProfileID] = useState('');
     const [name, setName] = useState('');
     const [dob, setDob] = useState('');
-    //const [age, setAge] = useState('');
     const [ageFrom, setAgeFrom] = useState('');
     const [ageTo, setAgeTo] = useState('');
     const [gender, setGender] = useState('');
-    const [combinedContact, setCombinedContact] = useState(''); // Combined Mobile, Phone, WhatsApp
+    const [combinedContact, setCombinedContact] = useState('');
     const [emailId, setEmailId] = useState('');
     const [fatherName, setFatherName] = useState('');
     const [fatherOccupation, setFatherOccupation] = useState('');
@@ -59,12 +57,12 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [regFromDate, setRegFromDate] = useState('');
     const [regToDate, setRegToDate] = useState('');
     const [selectedState, setSelectedState] = useState('');
-    const [cityText, setCityText] = useState(''); // Open text box for city mapping
+    const [cityText, setCityText] = useState('');
     const [selectedProfileStatus, setSelectedProfileStatus] = useState('');
     const [createdBy, setCreatedBy] = useState('');
     const [address, setAddress] = useState('');
     const [adminComments, setAdminComments] = useState('');
-    const [nri, setNri] = useState('');
+    const [nri, setNri] = useState(''); // Updated to use dropdown values
     const [deleteStatus, setDeleteStatus] = useState('');
     const [secondaryDeleteStatus, setSecondaryDeleteStatus] = useState('');
 
@@ -89,11 +87,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [selectedFieldOfStudy, setSelectedFieldOfStudy] = useState<string>('');
     const [fieldOfStudyOptions, setFieldOfStudyOptions] = useState<getFieldOfStudy[]>([]);
     const [degreeOptions, setDegreeOptions] = useState<GetDegree[]>([]);
-    const [selectedDegreeValues, setSelectedDegreeValues] = useState<any[]>([]); // For Multi-select
+    const [selectedDegreeValues, setSelectedDegreeValues] = useState<any[]>([]);
     const [otherDegree, setOtherDegree] = useState('');
     const [showOtherInput, setShowOtherInput] = useState(false);
     const [createdHolderOptions, setCreatedHolderOptions] = useState<ProfileHolder[]>([]);
-
 
     useEffect(() => {
         const fetchSearchData = async () => {
@@ -133,7 +130,6 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                // ... your existing Promise.all logic ...
                 const fields = await fetchFieldOfStudy();
                 setFieldOfStudyOptions(fields);
             } catch (error) {
@@ -143,7 +139,6 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
         fetchInitialData();
     }, []);
 
-    // Fetch Degrees when Education or Field changes
     useEffect(() => {
         const loadDegrees = async () => {
             if (selectedEducation && selectedFieldOfStudy && ['1', '2', '3', '4'].includes(selectedEducation)) {
@@ -158,7 +153,6 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
         loadDegrees();
     }, [selectedEducation, selectedFieldOfStudy]);
 
-
     const handleDegreeChange = (selectedOptions: any) => {
         setSelectedDegreeValues(selectedOptions || []);
         const hasOthers = selectedOptions?.some((opt: any) => opt.value === '86');
@@ -168,13 +162,19 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
+
+        // FIXED: Added missing fields (ageTo, gender, combinedContact, emailId)
         const filters = {
-            profileID, name, dob, ageFrom,
-            minAnnualIncome, // Add this
-            maxAnnualIncome, // Add this
+            profileID, name, dob, ageFrom, ageTo, gender,
+            combinedContact, emailId,
+            lastActionDate, // This will map to last_action_date
+            regFromDate,    // This will map to from_doj
+            regToDate,
+            minAnnualIncome, maxAnnualIncome,
             fatherName, fatherOccupation, motherName, motherOccupation,
-            businessName, companyName, lastActionDate, regFromDate, regToDate,
+            businessName, companyName,
             selectedState, cityText, createdBy, address, adminComments, nri,
+            selectedProfileStatus,
             deleteStatus, secondaryDeleteStatus,
             selectedMaritalStatus: selectedMaritalStatus.join(","),
             selectedBirthStars: selectedBirthStars.join(","),
@@ -202,28 +202,16 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Basic Info */}
                 <FilterInput label="Profile ID" value={profileID} onChange={setProfileID} />
                 <FilterInput label="Name" value={name} onChange={setName} />
                 <FilterInput label="Date of Birth" type="date" value={dob} onChange={setDob} />
-                {/* <FilterInput label="Age" type="number" value={age} onChange={setAge} /> */}
-                {/* Replace the old Age input with this block */}
+
                 <div className="flex gap-4 w-full">
                     <div className="w-1/2">
-                        <FilterInput
-                            label="Age From"
-                            type="number"
-                            value={ageFrom}
-                            onChange={setAgeFrom}
-                        />
+                        <FilterInput label="Age From" type="number" value={ageFrom} onChange={setAgeFrom} />
                     </div>
                     <div className="w-1/2">
-                        <FilterInput
-                            label="Age To"
-                            type="number"
-                            value={ageTo}
-                            onChange={setAgeTo}
-                        />
+                        <FilterInput label="Age To" type="number" value={ageTo} onChange={setAgeTo} />
                     </div>
                 </div>
 
@@ -236,216 +224,131 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                     </select>
                 </div>
 
-                {/* Contact Info Combined */}
-                <FilterInput
-                    label="Mobile / Phone / WhatsApp"
-                    value={combinedContact}
-                    onChange={setCombinedContact}
-                />
+                <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={setCombinedContact} />
                 <FilterInput label="Email ID" value={emailId} onChange={setEmailId} />
-                {/* Created By Dropdown */}
+
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Created By</label>
-                    <select
-                        className="border p-2 rounded border-black"
-                        value={createdBy}
-                        onChange={(e) => setCreatedBy(e.target.value)}
-                    >
+                    <select className="border p-2 rounded border-black" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)}>
                         <option value="">Select Created By</option>
                         {createdHolderOptions.map((holder) => (
-                            <option key={holder.owner_id} value={holder.owner_id}>
-                                {holder.owner_description}
-                            </option>
+                            <option key={holder.owner_id} value={holder.owner_id}>{holder.owner_description}</option>
                         ))}
                     </select>
                 </div>
 
-                {/* Family Info */}
                 <FilterInput label="Father Name" value={fatherName} onChange={setFatherName} />
                 <FilterInput label="Father Occupation" value={fatherOccupation} onChange={setFatherOccupation} />
                 <FilterInput label="Mother Name" value={motherName} onChange={setMotherName} />
                 <FilterInput label="Mother Occupation" value={motherOccupation} onChange={setMotherOccupation} />
-
-                {/* Professional Info */}
                 <FilterInput label="Business Name (Groom / Bride)" value={businessName} onChange={setBusinessName} />
                 <FilterInput label="Company Name" value={companyName} onChange={setCompanyName} />
 
-                {/* Annual Income Range */}
-                {/* Annual Income Range - Width reduced with max-w-md and tighter gap */}
                 <div className="flex gap-2 w-full max-w-md">
-
-                    {/* Min Annual Income */}
                     <div className="w-1/2 flex flex-col">
                         <label className="font-semibold mb-1 text-black">Min Annual Income</label>
-                        <select
-                            className="border p-2 rounded border-black"
-                            value={minAnnualIncome}
-                            onChange={(e) => setMinAnnualIncome(e.target.value)}
-                        >
+                        <select className="border p-2 rounded border-black" value={minAnnualIncome} onChange={(e) => setMinAnnualIncome(e.target.value)}>
                             <option value="">Select Min</option>
-                            {annualIncomes.map(inc => (
-                                <option key={inc.income_id} value={inc.income_id}>
-                                    {inc.income_description}
-                                </option>
-                            ))}
+                            {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
                         </select>
                     </div>
-
-                    {/* Max Annual Income */}
                     <div className="w-1/2 flex flex-col">
                         <label className="font-semibold mb-1 text-black">Max Annual Income</label>
-                        <select
-                            className="border p-2 rounded border-black"
-                            value={maxAnnualIncome}
-                            onChange={(e) => setMaxAnnualIncome(e.target.value)}
-                        >
+                        <select className="border p-2 rounded border-black" value={maxAnnualIncome} onChange={(e) => setMaxAnnualIncome(e.target.value)}>
                             <option value="">Select Max</option>
-                            {annualIncomes.map(inc => (
-                                <option key={inc.income_id} value={inc.income_id}>
-                                    {inc.income_description}
-                                </option>
-                            ))}
+                            {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
                         </select>
                     </div>
                 </div>
 
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Family Status</label>
-                    <select className="border p-2 rounded  border-black">
+                    <select className="border p-2 rounded border-black" onChange={(e) => { /* Handle change if needed */ }}>
                         <option value="">Select Status</option>
                         {familyStatuses.map(fam => <option key={fam.family_status_id} value={fam.family_status_id}>{fam.family_status_name}</option>)}
                     </select>
                 </div>
 
-                {/* Dates */}
                 <FilterInput label="Last Action Date" type="date" value={lastActionDate} onChange={setLastActionDate} />
                 <FilterInput label="Reg From Date" type="date" value={regFromDate} onChange={setRegFromDate} />
                 <FilterInput label="Reg To Date" type="date" value={regToDate} onChange={setRegToDate} />
 
-                {/* Location */}
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">State</label>
-                    <select className="border p-2 rounded  border-black" value={selectedState} onChange={(e) => setSelectedState(e.target.value)}>
+                    <select className="border p-2 rounded border-black" value={selectedState} onChange={(e) => setSelectedState(e.target.value)}>
                         <option value="">Select State</option>
                         {states.map(s => <option key={s.State_Pref_id} value={s.State_Pref_id}>{s.State_name}</option>)}
                     </select>
                 </div>
 
-                <FilterInput
-                    label="City"
-                    value={cityText}
-                    onChange={(val) => setCityText(val)}
-                />
+                <FilterInput label="City" value={cityText} onChange={setCityText} />
 
-                {/* Statuses */}
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Profile Status</label>
-                    <select
-                        className="border p-2 rounded border-black"
-                        // 1. Bind the value to state
-                        value={selectedProfileStatus}
-                        // 2. Handle change
-                        onChange={(e) => {
-                            const newStatus = e.target.value;
-                            setSelectedProfileStatus(newStatus);
-
-                            // Optional: Reset delete reasons if user changes status back to Active
-                            // Replace '3' with your actual Deleted Status Code
-                            if (newStatus !== '4') {
-                                setDeleteStatus('');
-                                setSecondaryDeleteStatus('');
-                            }
-                        }}
-                    >
+                    <select className="border p-2 rounded border-black" value={selectedProfileStatus} onChange={(e) => {
+                        setSelectedProfileStatus(e.target.value);
+                        if (e.target.value !== '4') { setDeleteStatus(''); setSecondaryDeleteStatus(''); }
+                    }}>
                         <option value="">Select Status</option>
                         {profileStatuses.map(s => <option key={s.status_code} value={s.status_code}>{s.status_name}</option>)}
                     </select>
                 </div>
 
                 {selectedProfileStatus === '4' && (
-                    <>
-                        <div className="flex flex-col">
-                            <label className="font-semibold mb-1 text-black">Delete Status</label>
-                            <select
-                                className="border p-2 rounded border-black"
-                                value={deleteStatus}
-                                onChange={(e) => setDeleteStatus(e.target.value)}
-                            >
-                                <option value="">Select Delete Status</option>
-                                <option value="18">Got Married</option>
-                                <option value="19">Marriage settled</option>
-                                <option value="20">Duplicate</option>
-                                <option value="21">Fake Profile</option>
-                                <option value="22">Others</option>
-                            </select>
-                        </div>
-                    </>
-                )}
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">NRI</label>
-                    <input
-                        type="text"
-                        className="border p-2 rounded border-black outline-none focus:border-blue-500"
-                        value={nri}
-                        onChange={(e) => setNri(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Membership Plan</label>
-                    <select
-                        className="border p-2 rounded border-black"
-                        value={selectedMembership}
-                        onChange={(e) => setSelectedMembership(e.target.value)}
-                    >
-                        <option value="">Select Plan</option>
-                        {plans.map(plan => (
-                            <option key={plan.id} value={plan.id}>
-                                {plan.plan_name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Highest Education</label>
-                    <select
-                        className="border p-2 rounded border-black"
-                        value={selectedEducation}
-                        onChange={(e) => {
-                            setSelectedEducation(e.target.value);
-                            setSelectedFieldOfStudy(''); // Reset dependents
-                            setSelectedDegreeValues([]);
-                        }}
-                    >
-                        <option value="">Select Education</option>
-                        {educations.map(edu => (
-                            <option key={edu.education_id} value={edu.education_id}>{edu.education_description}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Field of Study - Conditional */}
-                {['1', '2', '3', '4'].includes(selectedEducation) && (
                     <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Field of Study</label>
-                        <select
-                            className="border p-2 rounded border-black"
-                            value={selectedFieldOfStudy}
-                            onChange={(e) => {
-                                setSelectedFieldOfStudy(e.target.value);
-                                setSelectedDegreeValues([]);
-                            }}
-                        >
-                            <option value="">Select Field</option>
-                            {fieldOfStudyOptions.map(field => (
-                                <option key={field.study_id} value={field.study_id}>{field.study_description}</option>
-                            ))}
+                        <label className="font-semibold mb-1 text-black">Secondary Status</label>
+                        <select className="border p-2 rounded border-black" value={deleteStatus} onChange={(e) => setDeleteStatus(e.target.value)}>
+                            <option value="">Select Secondary Status</option>
+                            <option value="18">Got Married</option>
+                            <option value="19">Marriage settled</option>
+                            <option value="20">Duplicate</option>
+                            <option value="21">Fake Profile</option>
+                            <option value="22">Others</option>
                         </select>
                     </div>
                 )}
 
-                {/* Degree Multi-select - Conditional */}
+                {/* UPDATED NRI SECTION TO DROPDOWN */}
+                <div className="flex flex-col">
+                    <label className="font-semibold mb-1 text-black">NRI</label>
+                    <select
+                        className="border p-2 rounded border-black"
+                        value={nri}
+                        onChange={(e) => setNri(e.target.value)}
+                    >
+                        <option value="">Select Option</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                        <option value="Both">Both</option>
+                    </select>
+                </div>
+
+                <div className="flex flex-col">
+                    <label className="font-semibold mb-1 text-black">Membership Plan</label>
+                    <select className="border p-2 rounded border-black" value={selectedMembership} onChange={(e) => setSelectedMembership(e.target.value)}>
+                        <option value="">Select Plan</option>
+                        {plans.map(plan => <option key={plan.id} value={plan.id}>{plan.plan_name}</option>)}
+                    </select>
+                </div>
+
+                <div className="flex flex-col">
+                    <label className="font-semibold mb-1 text-black">Highest Education</label>
+                    <select className="border p-2 rounded border-black" value={selectedEducation} onChange={(e) => { setSelectedEducation(e.target.value); setSelectedFieldOfStudy(''); setSelectedDegreeValues([]); }}>
+                        <option value="">Select Education</option>
+                        {educations.map(edu => <option key={edu.education_id} value={edu.education_id}>{edu.education_description}</option>)}
+                    </select>
+                </div>
+
+                {['1', '2', '3', '4'].includes(selectedEducation) && (
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Field of Study</label>
+                        <select className="border p-2 rounded border-black" value={selectedFieldOfStudy} onChange={(e) => { setSelectedFieldOfStudy(e.target.value); setSelectedDegreeValues([]); }}>
+                            <option value="">Select Field</option>
+                            {fieldOfStudyOptions.map(field => <option key={field.study_id} value={field.study_id}>{field.study_description}</option>)}
+                        </select>
+                    </div>
+                )}
+
                 {selectedFieldOfStudy && (
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">Degree</label>
@@ -454,71 +357,31 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                             options={degreeOptions.map(d => ({ value: d.degeree_id.toString(), label: d.degeree_description }))}
                             value={selectedDegreeValues}
                             onChange={handleDegreeChange}
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    borderColor: 'black',
-                                    '&:hover': { borderColor: 'black' }
-                                })
-                            }}
+                            styles={{ control: (base) => ({ ...base, borderColor: 'black', '&:hover': { borderColor: 'black' } }) }}
                         />
                     </div>
                 )}
-
-                {/* Other Degree Specific Field - Conditional */}
-                {/* {showOtherInput && (
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Specific Degree Field</label>
-                        <input
-                            type="text"
-                            className="border p-2 rounded border-black outline-none"
-                            value={otherDegree}
-                            onChange={(e) => setOtherDegree(e.target.value)}
-                        />
-                    </div>
-                )} */}
             </div>
 
-            {/* Multi-Select Sections */}
-            {/* Multi-Select Sections */}
-            <div className="flex flex-col gap-8 mt-8  pt-6">
-
-                {/* Marital Status Section */}
-                <div className="bg-white rounded ">
+            <div className="flex flex-col gap-8 mt-8 pt-6">
+                <div className="bg-white rounded">
                     <h3 className="font-bold text-lg mb-4 text-black pb-2">Marital Status</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-2">
                         {maritalStatuses.map(m => (
-                            <FormControlLabel
-                                key={m.marital_sts_id}
-                                className="m-0"
-                                control={
-                                    <Checkbox
-                                        size="small"
-                                        checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())}
-                                        onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)}
-                                    />
-                                }
+                            <FormControlLabel key={m.marital_sts_id} className="m-0"
+                                control={<Checkbox size="small" checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())} onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)} />}
                                 label={<span className="text-sm text-gray-700">{m.marital_sts_name}</span>}
                             />
                         ))}
                     </div>
                 </div>
 
-                {/* Birth Stars Section - Horizontal Grid Layout */}
-                <div className="bg-white rounded ">
+                <div className="bg-white rounded">
                     <h3 className="font-bold text-lg mb-4 text-black pb-2">Birth Stars</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-x-4 gap-y-1">
                         {birthStars.map(s => (
-                            <FormControlLabel
-                                key={s.id}
-                                className="m-0"
-                                control={
-                                    <Checkbox
-                                        size="small"
-                                        checked={selectedBirthStars.includes(s.id.toString())}
-                                        onChange={() => handleMultiSelect(s.id.toString(), selectedBirthStars, setSelectedBirthStars)}
-                                    />
-                                }
+                            <FormControlLabel key={s.id} className="m-0"
+                                control={<Checkbox size="small" checked={selectedBirthStars.includes(s.id.toString())} onChange={() => handleMultiSelect(s.id.toString(), selectedBirthStars, setSelectedBirthStars)} />}
                                 label={<span className="text-sm text-gray-700 whitespace-nowrap">{s.star}</span>}
                             />
                         ))}
@@ -526,7 +389,6 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 </div>
             </div>
 
-            {/* Text Area Sections */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Address</label>
@@ -541,17 +403,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     );
 };
 
-// Helper Input Component
 const FilterInput = ({ label, value, onChange, type = "text", placeholder = "" }: any) => (
     <div className="flex flex-col">
         <label className="font-semibold mb-1 text-black">{label}</label>
-        <input
-            type={type}
-            placeholder={placeholder}
-            className="border p-2 rounded border-gray-400 focus:border-black outline-none"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-        />
+        <input type={type} placeholder={placeholder} className="border p-2 rounded border-gray-400 focus:border-black outline-none" value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
 );
 
