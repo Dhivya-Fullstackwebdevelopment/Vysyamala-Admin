@@ -491,6 +491,14 @@ export const userMatchingProfilesFilter = async (
     }
 };
 
+export const commonSearch = async (data: { search_profile_id: any; profile_name: any; dob_date: any; dob_month: any; dob_year: any; age_from: any; age_to: any; gender: any; mobile_no: any; email_id: any; father_name: any; father_occupation: any; mother_name: any; mother_occupation: any; business_name: any; company_name: any; state: any; city: any; status: any; created_by: any; address: any; admin_comments: any; min_anual_income: any; max_anual_income: any; membership: any; martial_status: any; matching_stars: any; education: any; field_of_study: any; degree: any; delete_status: any; page_number: number; per_page: number; }) => {
+    try {
+        const response = await apiAxios.post('api/common-search/', data);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
 // User Matching Profiles Page -> Matching Records Send Email
 export const userMatchingProfilesSendEmail = async (Format: string, ProfileID: string, ToProfileID: string, ProfileOwner: string) => {
     try {

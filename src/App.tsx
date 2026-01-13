@@ -126,6 +126,7 @@ import DailyWorkDashboard from './components/DailyWorkDashboard/DailyWorkDashboa
 import MarriageDashboard from './components/MarriageDashboard/MarriageDashboard';
 import DeleteDashboard from './components/DeleteDashboard/DeleteDashboard';
 import AdvanceSearchFilters from './pages/AdvanceSearch/AdvanceSearchFilters';
+import AdvanceSearchDashboard from './pages/AdvanceSearch/AdvanceSearchDashboard';
 
 function App() {
   const { pathname } = useLocation();
@@ -1150,7 +1151,8 @@ function App() {
                 <Route path="/DailyWorkDashboard" element={<DailyWorkDashboard />} />
                 <Route path="/MarriageDashboard" element={<MarriageDashboard />} />
                 <Route path="/DeleteDashboard" element={<DeleteDashboard />} />
-                <Route path="/AdvancedSearch" element={<AdvanceSearchFilters />} />
+                {/* <Route path="/AdvancedSearch" element={<AdvanceSearchFilters />} /> */}
+                <Route path="/AdvancedSearch" element={<AdvanceSearchDashboard />} />
               </Routes>
             </DefaultLayout>
           }
