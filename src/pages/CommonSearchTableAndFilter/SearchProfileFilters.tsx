@@ -389,7 +389,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
           </div>
 
           {/* Height Range */}
-          <div className="flex items-center space-x-5">
+          {/* <div className="flex items-center space-x-5">
             <div className="flex flex-col">
               <label className="text-[18px] text-black font-semibold mb-2">
                 Height from
@@ -412,10 +412,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
                 className="w-full px-4 py-2 border border-black rounded"
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Sarpa Dhosham */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label className="text-[18px] text-black font-semibold mb-2">
               Sarpa Dhosham
             </label>
@@ -428,10 +428,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
-          </div>
+          </div> */}
 
           {/* Chevvai Dhosam */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label className="text-[18px] text-black font-semibold mb-2">
               Chevvai Dhosam
             </label>
@@ -445,10 +445,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
-          </div>
+          </div> */}
 
           {/* Father Alive */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label className="text-[18px] text-black font-semibold mb-2">
               Father Alive
             </label>
@@ -461,10 +461,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
-          </div>
+          </div> */}
 
           {/* Mother Alive */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label className="text-[18px] text-black font-semibold mb-2">
               Mother Alive
             </label>
@@ -474,11 +474,11 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               onChange={(e) => setMotherAlive(e.target.value)}
             >
               <option value="" disabled>-- Select Mother Status --</option>
-              {/* <option value="">Unknown</option> */}
+            
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
-          </div>
+          </div> */}
         </div>
 
         {/* Matching Stars */}
@@ -506,7 +506,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
         </div>
 
         {/* Highest Education */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Education</h2>
           </div>
@@ -527,10 +527,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Profession */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Profession</h2>
           </div>
@@ -551,10 +551,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Marital Status */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Marital Status</h2>
           </div>
@@ -575,10 +575,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Family Status */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Family Status</h2>
           </div>
@@ -599,10 +599,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Complexion */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Complexion</h2>
           </div>
@@ -623,10 +623,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Annual Income */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Annual Income</h2>
           </div>
@@ -664,15 +664,16 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </select>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* State & City */}
         <div className="py-4">
           <div className="w-fit text-start">
-            <h2 className="text-lg text-black font-semibold mb-2">State and City</h2>
+            {/* <h2 className="text-lg text-black font-semibold mb-2">State and City</h2> */}
+            <h2 className="text-lg text-black font-semibold mb-2">City</h2>
           </div>
           <div className="flex items-center space-x-5">
-            <div>
+            {/* <div>
               <select
                 name="selectedState"
                 id="selectedState"
@@ -687,7 +688,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
             <div>
               <select
                 name="selectedCity"
@@ -708,7 +709,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
         </div>
 
         {/* Membership */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Membership</h2>
           </div>
@@ -729,7 +730,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         <div className="flex gap-6">
           {/* Sarpa Dhosam */}
@@ -795,7 +796,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
           {/* Chevvai Dhosam */}
           <div className="flex flex-col ">
             <label className="text-[18px] text-black font-semibold mb-2">
-              Mobile No
+              Mobile / Phone / WhatsApp
             </label>
             <input
               type="tel"
@@ -811,7 +812,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
           </div>
 
           {/* Father Alive */}
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label className="text-[18px] text-black font-semibold mb-2">
               Profile Status
             </label>
@@ -827,11 +828,11 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
         </div>
 
         {/* Foreign Interest */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Foreign Interest</h2>
           </div>
@@ -847,10 +848,10 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
             <option value="Yes">Yes</option>
             <option value="No">No</option>
           </select>
-        </div>
+        </div> */}
 
         {/* Has Photo */}
-        <div className="py-4">
+        {/* <div className="py-4">
           <div className="w-fit text-start">
             <h2 className="text-lg text-black font-semibold mb-2">Has Photo</h2>
           </div>
@@ -865,7 +866,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
             <option value="Yes">Yes</option>
             <option value="No">No</option>
           </select>
-        </div>
+        </div> */}
 
         {/* <div className="mt-4">
           <button
