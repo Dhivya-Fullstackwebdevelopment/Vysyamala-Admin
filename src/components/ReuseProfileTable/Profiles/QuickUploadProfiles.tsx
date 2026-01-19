@@ -78,6 +78,12 @@ const columns: Column[] = [
     minWidth: 100,
     align: 'left',
   },
+  {
+    id: 'profile_image',
+    label: 'Profile Photo',
+    minWidth: 100,
+    align: 'left',
+  },
   { id: 'plan_name', label: 'Mode', minWidth: 100, align: 'left' },
   { id: 'status', label: 'Profile Status', minWidth: 100, align: 'left' },
 ];
@@ -250,6 +256,7 @@ const QuickUploadProfiles: React.FC = () => {
 
       case 'Profile_idproof':
       case 'horoscope_file':
+      case 'profile_image':   // ✅ ADD THIS
         return value ? (
           <a
             href={value}
@@ -261,7 +268,11 @@ const QuickUploadProfiles: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            {columnId === 'Profile_idproof' ? 'Profile IDproof' : 'Horoscope File'}
+            {columnId === 'Profile_idproof'
+              ? 'Profile IDproof'
+              : columnId === 'horoscope_file'
+                ? 'Horoscope File'
+                : 'Profile Photo'}
           </a>
         ) : (
           'N/A'

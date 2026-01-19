@@ -82,7 +82,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     // Multi-select States
     const [selectedMaritalStatus, setSelectedMaritalStatus] = useState<string[]>([]);
     const [selectedBirthStars, setSelectedBirthStars] = useState<string[]>([]);
-    const [selectedMembership, setSelectedMembership] = useState('');
+    const [selectedMembership, setSelectedMembership] = useState<any[]>([]);
     const [selectedEducation, setSelectedEducation] = useState<string>('');
     const [selectedFieldOfStudy, setSelectedFieldOfStudy] = useState<string>('');
     const [fieldOfStudyOptions, setFieldOfStudyOptions] = useState<getFieldOfStudy[]>([]);
@@ -91,6 +91,11 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [otherDegree, setOtherDegree] = useState('');
     const [showOtherInput, setShowOtherInput] = useState(false);
     const [createdHolderOptions, setCreatedHolderOptions] = useState<ProfileHolder[]>([]);
+
+    const membershipPlanOptions = plans.map((plan) => ({
+        value: plan.id.toString(),
+        label: plan.plan_name,
+    }));
 
     useEffect(() => {
         const fetchSearchData = async () => {
@@ -178,7 +183,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             deleteStatus, secondaryDeleteStatus,
             selectedMaritalStatus: selectedMaritalStatus.join(","),
             selectedBirthStars: selectedBirthStars.join(","),
-            selectedMembership,
+            selectedMembership: selectedMembership.map((m) => m.value).join(","),
             highestEducation: selectedEducation,
             fieldOfStudy: selectedFieldOfStudy,
             degrees: selectedDegreeValues.map(d => d.value).join(','),
@@ -325,10 +330,21 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
 
                 <div className="flex flex-col">
                     <label className="font-semibold mb-1 text-black">Membership Plan</label>
-                    <select className="border p-2 rounded border-black" value={selectedMembership} onChange={(e) => setSelectedMembership(e.target.value)}>
-                        <option value="">Select Plan</option>
-                        {plans.map(plan => <option key={plan.id} value={plan.id}>{plan.plan_name}</option>)}
-                    </select>
+
+                    <Select
+                        isMulti
+                        options={membershipPlanOptions}
+                        value={selectedMembership}
+                        onChange={(selected) => setSelectedMembership(selected || [])}
+                        placeholder="Select Plans"
+                        styles={{
+                            control: (base) => ({
+                                ...base,
+                                borderColor: "black",
+                                "&:hover": { borderColor: "black" },
+                            }),
+                        }}
+                    />
                 </div>
 
                 <div className="flex flex-col">

@@ -96,8 +96,11 @@ const allColumns: Column[] = [
   { id: 'Profile_dob', label: 'Date of Birth' },
   { id: 'birthstar_name', label: 'BirthStar' },
   { id: 'Profile_city', label: 'City' },
+  { id: 'state_name', label: 'State' },
   { id: 'MaritalStatus', label: 'Marital Status' },
+  { id: 'Gender', label: 'Gender' },
   { id: 'highest_education', label: 'Education Details' },
+  { id: 'family_status', label: 'Family Status' },
   { id: 'anual_income', label: 'Annual Income' },
   { id: 'profession', label: 'Profession' },
   { id: 'plan_name', label: 'Plan Name' },
@@ -108,6 +111,7 @@ const allColumns: Column[] = [
   { id: 'has_photo', label: 'Photo' },
   { id: 'username', label: 'Owner' },
   { id: 'ModeName', label: 'Created By' },
+  { id: 'Last_login_date', label: 'Last Login' },
 ];
 
 const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
@@ -148,10 +152,10 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
     }
 
     // 3. Metadata: Hide for Hidden (3) or Deleted (4)
-    if (pageNameValue === 3 || pageNameValue === 4) {
-      const hiddenIds = ['username', 'ModeName', ...membershipIds, ...mediaIds];
-      return !hiddenIds.includes(column.id);
-    }
+    // if (pageNameValue === 3 || pageNameValue === 4) {
+    //   const hiddenIds = ['username', 'ModeName', ...membershipIds, ...mediaIds];
+    //   return !hiddenIds.includes(column.id);
+    // }
 
     return true;
   });
@@ -433,7 +437,8 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
 
                     {/* Map through columns */}
                     {columns.map((column) => {
-                      const value = formatCellValue(row[column.id], column.id);
+                      const value = formatCellValue(row[column.id]);
+
                       return (
                         <TableCell
                           sx={{ whiteSpace: 'nowrap' }}
@@ -442,11 +447,7 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
                         >
                           {column.id === 'ProfileId' ? (
                             <Typography
-                              onClick={() =>
-                                navigate(
-                                  `/viewProfile?profileId=${row.ProfileId}`,
-                                )
-                              }
+                              onClick={() => navigate(`/viewProfile?profileId=${row.ProfileId}`)}
                               variant="body2"
                               sx={{
                                 color: 'blue',
@@ -457,12 +458,17 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
                             >
                               {value}
                             </Typography>
+                          ) : column.id === "Last_login_date" ? (
+                            row.Last_login_date
+                              ? String(row.Last_login_date).split(/[T ]/)[0]   // ✅ removes time (T or space)
+                              : "N/A"
                           ) : (
                             value
                           )}
                         </TableCell>
                       );
                     })}
+
 
                     {/* Action buttons */}
                     <TableCell sx={{ padding: '10px', textAlign: 'center' }}>
