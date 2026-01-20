@@ -88,6 +88,7 @@ export const userState = async () => {
     }
 };
 
+//Mode, plans list api
 export const getMembershipPlans = async () => {
     try {
         const response = await apiAxios.get('/api/get-plans/');
@@ -1213,4 +1214,27 @@ export const userDegrees = async (): Promise<any> => {
         console.error("Error fetching degrees:", error);
         throw error;
     }
+};
+
+//call status, Actions, types, particular dropdown api
+export const getCallManageMasters = async (): Promise<any> => {
+    try {
+        const response = await apiAxios.get(`api/callmanage-masters/
+`);
+        return response.data;
+    } catch (error: any) {
+        console.error("Error fetching call manage masters:", error);
+        throw error;
+    }
+};
+
+//owner - extract Username from these api
+export const getUsers = async (): Promise<any> => {
+  try {
+    const response = await apiAxios.get(`api/users/`);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching users:", error);
+    throw error;
+  }
 };

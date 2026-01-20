@@ -127,6 +127,7 @@ import MarriageDashboard from './components/MarriageDashboard/MarriageDashboard'
 import DeleteDashboard from './components/DeleteDashboard/DeleteDashboard';
 import AdvanceSearchFilters from './pages/AdvanceSearch/AdvanceSearchFilters';
 import AdvanceSearchDashboard from './pages/AdvanceSearch/AdvanceSearchDashboard';
+import CallManagementSearchFilters from './pages/CallManagementSearch/CallManagementFilters';
 
 function App() {
   const { pathname } = useLocation();
@@ -1153,6 +1154,9 @@ function App() {
                 <Route path="/DeleteDashboard" element={<DeleteDashboard />} />
                 {/* <Route path="/AdvancedSearch" element={<AdvanceSearchFilters />} /> */}
                 <Route path="/AdvancedSearch" element={<AdvanceSearchDashboard />} />
+                <Route path="/CallManagementSearch" element={<CallManagementSearchFilters onFilterSubmit={function (filters: any): void {
+                  throw new Error('Function not implemented.');
+                } } loading={false} />} />
               </Routes>
             </DefaultLayout>
           }
