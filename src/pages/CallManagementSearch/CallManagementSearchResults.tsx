@@ -84,6 +84,10 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
           assigned_by: filters.assignBy || "",
           assigned_to: filters.assignToOwner || "",
           assign_notes: filters.assignComments || "",
+          latest_call_date_from: filters.latest_call_date_from || "",
+          latest_call_date_to: filters.latest_call_date_to || "",
+          latest_action_date_from: filters.latest_action_date_from || "",
+          latest_action_date_to: filters.latest_action_date_to || "",
         };
 
         const response = await callManagementSearch(apiPayload);

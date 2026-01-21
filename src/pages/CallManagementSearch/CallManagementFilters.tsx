@@ -105,6 +105,10 @@ const CallManagementSearchFilters = ({
     const [isCallOpen, setIsCallOpen] = useState(true);
     const [isActionOpen, setIsActionOpen] = useState(true);
     const [isAssignOpen, setIsAssignOpen] = useState(true);
+    const [latestCallDateFrom, setLatestCallDateFrom] = useState("");
+    const [latestCallDateTo, setLatestCallDateTo] = useState("");
+    const [latestActionDateFrom, setLatestActionDateFrom] = useState("");
+    const [latestActionDateTo, setLatestActionDateTo] = useState("");
 
     const userOptions = userList.map((u) => ({
         value: u.id.toString(),      // ✅ send id
@@ -285,6 +289,11 @@ const CallManagementSearchFilters = ({
             assignBy,
             assignToOwner,
             assignComments,
+
+            latest_call_date_from: latestCallDateFrom,
+            latest_call_date_to: latestCallDateTo,
+            latest_action_date_from: latestActionDateFrom,
+            latest_action_date_to: latestActionDateTo,
         };
 
         onFilterSubmit(filters);
@@ -399,8 +408,8 @@ const CallManagementSearchFilters = ({
                         <FilterInput label="Next Call From Date" type="date" value={nextCallFromDate} onChange={setNextCallFromDate} />
                         <FilterInput label="Next Call To Date" type="date" value={nextCallToDate} onChange={setNextCallToDate} />
 
-                        {/* <FilterInput label="LCD From Date" type="date" value={lcdFromDate} onChange={setLcdFromDate} />
-                        <FilterInput label="LCD To Date" type="date" value={lcdToDate} onChange={setLcdToDate} /> */}
+                        <FilterInput label="LCD From Date" type="date" value={latestCallDateFrom} onChange={setLatestCallDateFrom} />
+                        <FilterInput label="LCD To Date" type="date" value={latestCallDateTo} onChange={setLatestCallDateTo} />
 
                         <div className="flex flex-col">
                             <label className="font-semibold mb-1 text-black">Call Type</label>
@@ -482,8 +491,8 @@ const CallManagementSearchFilters = ({
                         <FilterInput label="Next Action From Date" type="date" value={nextActionFromDate} onChange={setNextActionFromDate} />
                         <FilterInput label="Next Action To Date" type="date" value={nextActionToDate} onChange={setNextActionToDate} />
 
-                        {/* <FilterInput label="LAD From Date" type="date" value={ladFromDate} onChange={setLadFromDate} />
-                        <FilterInput label="LAD To Date" type="date" value={ladToDate} onChange={setLadToDate} /> */}
+                        <FilterInput label="LAD From Date" type="date" value={latestActionDateFrom} onChange={setLatestActionDateFrom} />
+                        <FilterInput label="LAD To Date" type="date" value={latestActionDateTo} onChange={setLatestActionDateTo} />
 
                         <div className="flex flex-col">
                             <label className="font-semibold mb-1 text-black">Action Points</label>
