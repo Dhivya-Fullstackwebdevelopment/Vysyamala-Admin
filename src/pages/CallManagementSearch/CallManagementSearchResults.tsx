@@ -11,7 +11,9 @@ import {
   TableHead,
   TableRow,
   Typography,
-  TablePagination, // 1. Import TablePagination
+  // TablePagination, // Removed standard pagination
+  TextField, // Added
+  IconButton, // Added
 } from "@mui/material";
 import { NotifyError } from "../../common/Toast/ToastMessage";
 import { callManagementSearch } from "../../api/apiConfig";
@@ -21,9 +23,10 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  // 2. Add Pagination State
+  // Pagination State
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [goToPageInput, setGoToPageInput] = useState<string>(''); // Added for custom input
 
   const columns = [
     { id: "ProfileId", label: "Profile ID" },
@@ -42,25 +45,15 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
     { id: "lad_call_date", label: "LAD Call Date" },
   ];
 
-  // const formatDateOnly = (value: any) => {
-  //   if (!value) return "N/A";
-
-  //   const d = new Date(value);
-  //   if (isNaN(d.getTime())) return value; // if invalid date return original
-
-  //   return d.toLocaleDateString("en-GB"); // DD/MM/YYYY
-  // };
-
   const formatDateOnly = (value: any) => {
     if (!value) return "N/A";
-    return String(value).split("T")[0]; // ✅ keeps same format, removes time
+    return String(value).split("T")[0];
   };
 
   useEffect(() => {
     const fetchFilteredData = async () => {
       try {
         setLoading(true);
-        // Reset page to 0 when new filter is applied
         setPage(0);
 
         const apiPayload = {
@@ -97,7 +90,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
 
         if (response?.status === true) {
           setData(response.profiles || []);
-          setTotalItems(response.count || 0); // Or response.profiles.length
+          setTotalItems(response.count || 0);
         } else {
           setData([]);
           setTotalItems(0);
@@ -115,14 +108,15 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
     }
   }, [filters]);
 
-  // 3. Handle Pagination Events
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
+  // --- Pagination Handlers ---
+  const handleGoToPage = () => {
+    const pageNumber = parseInt(goToPageInput, 10);
+    if (!isNaN(pageNumber)) {
+      const lastPage = Math.ceil(totalItems / rowsPerPage) - 1;
+      const newPage = Math.max(0, Math.min(pageNumber - 1, lastPage));
+      setPage(newPage);
+      setGoToPageInput('');
+    }
   };
 
   return (
@@ -132,9 +126,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
           Back to Filters
         </Button>
 
-        <Typography variant="h6" fontWeight="bold">
-          Total Records: {totalItems}
-        </Typography>
+        {/* Removed generic Typography here, it is now in the pagination bar */}
       </div>
 
       {loading ? (
@@ -142,64 +134,130 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
           <CircularProgress />
         </Box>
       ) : (
-        <Paper className="w-full">
-          <TableContainer sx={{ border: "1px solid #E0E0E0", maxHeight: "70vh" }}> {/* Added maxHeight for sticky header effect */}
-            <Table stickyHeader sx={{ minWidth: 1200 }}>
-              <TableHead>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#ee3448",
-                        background: "#FFF9C9", // Moved background here for stickyHeader compatibility
-                      }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {data.length > 0 ? (
-                  // 4. Slice the data so we only render 10-25 rows at a time
-                  data
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, index) => (
-                      <TableRow key={index} hover> {/* Added hover for better UI */}
-                        {columns.map((col) => (
-                          <TableCell key={col.id}>
-                            {["call_date", "next_call_date", "next_action_date", "lad_call_date"].includes(col.id)
-                              ? formatDateOnly(row[col.id])
-                              : row[col.id] ?? "N/A"}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                ) : (
+        <>
+          <Paper className="w-full">
+            <TableContainer sx={{ border: "1px solid #E0E0E0", maxHeight: "70vh" }}>
+              <Table stickyHeader sx={{ minWidth: 1200 }}>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={columns.length} align="center">
-                      No Records Found
-                    </TableCell>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        sx={{
+                          fontWeight: "bold",
+                          color: "#ee3448",
+                          background: "#FFF9C9",
+                        }}
+                      >
+                        {column.label}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
 
-          {/* 5. Add the Pagination Component */}
-          <TablePagination
-            rowsPerPageOptions={[10, 25, 50, 100]}
-            component="div"
-            count={data.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
+                <TableBody>
+                  {data.length > 0 ? (
+                    data
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((row, index) => (
+                        <TableRow key={index} hover>
+                          {columns.map((col) => (
+                            <TableCell key={col.id}>
+                              {["call_date", "next_call_date", "next_action_date", "lad_call_date"].includes(col.id)
+                                ? formatDateOnly(row[col.id])
+                                : row[col.id] ?? "N/A"}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} align="center">
+                        No Records Found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+
+          {/* --- CUSTOM PAGINATION CONTROLS --- */}
+          {Math.ceil(totalItems / rowsPerPage) > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-sm text-gray-600">
+                Showing {page * rowsPerPage + 1} to {Math.min((page + 1) * rowsPerPage, totalItems)} of {totalItems} records
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <Typography variant="body2">Go to page:</Typography>
+                  <TextField
+                    size="small"
+                    type="number"
+                    value={goToPageInput}
+                    onChange={(e) => setGoToPageInput(e.target.value)}
+                    inputProps={{ min: 1, max: Math.ceil(totalItems / rowsPerPage) }}
+                    style={{ width: '80px' }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleGoToPage()}
+                  />
+                  <Button variant="contained" size="small" onClick={handleGoToPage} disabled={!goToPageInput}>
+                    Go
+                  </Button>
+                </div>
+
+                <IconButton onClick={() => setPage(0)} disabled={page === 0}>
+                  {"<<"}
+                </IconButton>
+                <IconButton onClick={() => setPage(prev => Math.max(prev - 1, 0))} disabled={page === 0}>
+                  {"<"}
+                </IconButton>
+
+                {/* Page Numbers Logic */}
+                {(() => {
+                  const totalPages = Math.ceil(totalItems / rowsPerPage);
+                  const maxVisiblePages = 5;
+                  let startPage, endPage;
+
+                  if (totalPages <= maxVisiblePages) {
+                    startPage = 0;
+                    endPage = totalPages - 1;
+                  } else {
+                    const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
+                    const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
+                    if (page < maxPagesBeforeCurrent) {
+                      startPage = 0;
+                      endPage = maxVisiblePages - 1;
+                    } else if (page + maxPagesAfterCurrent >= totalPages) {
+                      startPage = totalPages - maxVisiblePages;
+                      endPage = totalPages - 1;
+                    } else {
+                      startPage = page - maxPagesBeforeCurrent;
+                      endPage = page + maxPagesAfterCurrent;
+                    }
+                  }
+                  return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((p) => (
+                    <Button
+                      key={p}
+                      variant={page === p ? "contained" : "text"}
+                      onClick={() => setPage(p)}
+                      style={{ minWidth: '32px', height: '32px', margin: '0 2px' }}
+                    >
+                      {p + 1}
+                    </Button>
+                  ));
+                })()}
+
+                <IconButton onClick={() => setPage(prev => Math.min(prev + 1, Math.ceil(totalItems / rowsPerPage) - 1))} disabled={page >= Math.ceil(totalItems / rowsPerPage) - 1}>
+                  {">"}
+                </IconButton>
+                <IconButton onClick={() => setPage(Math.ceil(totalItems / rowsPerPage) - 1)} disabled={page >= Math.ceil(totalItems / rowsPerPage) - 1}>
+                  {">>"}
+                </IconButton>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
