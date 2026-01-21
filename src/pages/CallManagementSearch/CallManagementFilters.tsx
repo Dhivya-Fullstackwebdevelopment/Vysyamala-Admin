@@ -5,6 +5,7 @@ import { NotifyError } from "../../common/Toast/ToastMessage";
 import { getProfileHolder, getCallManageMasters, getUsers, getMembershipPlans } from "../../api/apiConfig"; // ✅ owner dropdown API
 import { apiAxios } from "../../api/apiUrl";
 import { getStatus } from "../../action";
+import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 
 // ✅ Owner Interface
 interface ProfileHolder {
@@ -101,6 +102,9 @@ const CallManagementSearchFilters = ({
     const [userLoading, setUserLoading] = useState(false);
     const [statusOptions, setStatusOptions] = useState<any[]>([]);
     const [planOptions, setPlanOptions] = useState<any[]>([]);
+    const [isCallOpen, setIsCallOpen] = useState(true);
+    const [isActionOpen, setIsActionOpen] = useState(true);
+    const [isAssignOpen, setIsAssignOpen] = useState(true);
 
     const userOptions = userList.map((u) => ({
         value: u.id.toString(),      // ✅ send id
@@ -383,218 +387,182 @@ const CallManagementSearchFilters = ({
             </div>
 
             {/* ✅ CALL SECTION */}
-            <div className="mt-8 bg-white rounded p-4">
-                <h2 className="text-xl font-bold mb-4">Call Search</h2>
+            <div className="mt-8 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <div
+                    className="flex justify-between items-center cursor-pointer select-none"
+                    onClick={() => setIsCallOpen(!isCallOpen)}
+                >
+                    <h2 className="text-xl font-bold text-black ">Call Search</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <FilterInput label="Call From Date" type="date" value={callFromDate} onChange={setCallFromDate} />
-                    <FilterInput label="Call To Date" type="date" value={callToDate} onChange={setCallToDate} />
-
-                    <FilterInput label="Next Call From Date" type="date" value={nextCallFromDate} onChange={setNextCallFromDate} />
-                    <FilterInput label="Next Call To Date" type="date" value={nextCallToDate} onChange={setNextCallToDate} />
-
-                    <FilterInput label="LCD From Date" type="date" value={lcdFromDate} onChange={setLcdFromDate} />
-                    <FilterInput label="LCD To Date" type="date" value={lcdToDate} onChange={setLcdToDate} />
-
-                    {/* <FilterInput label="Last Call Date" type="date" value={lastCallDate} onChange={setLastCallDate} /> */}
-
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">
-                            Call Type
-                        </label>
-                        <Select
-                            isMulti
-                            options={callTypeOptions}
-                            value={callType}
-                            onChange={(val) => setCallType(val || [])}
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    borderColor: "black",
-                                    "&:hover": { borderColor: "black" },
-                                }),
-                            }}
-                        />
-                    </div>
-
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Call Status</label>
-
-                        <Select
-                            isMulti
-                            options={callStatusOptions}
-                            value={callStatus}
-                            onChange={(val) => setCallStatus(val || [])}
-                            placeholder="Select Call Status"
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    borderColor: "black",
-                                    "&:hover": { borderColor: "black" },
-                                }),
-                            }}
-                        />
-                    </div>
-
-
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Particulars</label>
-
-                        <Select
-                            isMulti
-                            options={particularsOptions}
-                            value={particulars}
-                            onChange={(val) => setParticulars(val || [])}
-                            placeholder="Select Particulars"
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    borderColor: "black",
-                                    "&:hover": { borderColor: "black" },
-                                }),
-                            }}
-                        />
-                    </div>
-
-                    <FilterInput
-                        label="Comments"
-                        value={callComments}
-                        onChange={setCallComments}
-                    />
+                    <span className="text-2xl font-bold">
+                        {/* {isCallOpen ? "˄" : "˅"} */}
+                        {isCallOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                    </span>
                 </div>
+
+                {isCallOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
+                        <FilterInput label="Call From Date" type="date" value={callFromDate} onChange={setCallFromDate} />
+                        <FilterInput label="Call To Date" type="date" value={callToDate} onChange={setCallToDate} />
+
+                        <FilterInput label="Next Call From Date" type="date" value={nextCallFromDate} onChange={setNextCallFromDate} />
+                        <FilterInput label="Next Call To Date" type="date" value={nextCallToDate} onChange={setNextCallToDate} />
+
+                        <FilterInput label="LCD From Date" type="date" value={lcdFromDate} onChange={setLcdFromDate} />
+                        <FilterInput label="LCD To Date" type="date" value={lcdToDate} onChange={setLcdToDate} />
+
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Call Type</label>
+                            <Select
+                                isMulti
+                                options={callTypeOptions}
+                                value={callType}
+                                onChange={(val) => setCallType(val || [])}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderColor: "black",
+                                        "&:hover": { borderColor: "black" },
+                                    }),
+                                }}
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Call Status</label>
+                            <Select
+                                isMulti
+                                options={callStatusOptions}
+                                value={callStatus}
+                                onChange={(val) => setCallStatus(val || [])}
+                                placeholder="Select Call Status"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderColor: "black",
+                                        "&:hover": { borderColor: "black" },
+                                    }),
+                                }}
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Particulars</label>
+                            <Select
+                                isMulti
+                                options={particularsOptions}
+                                value={particulars}
+                                onChange={(val) => setParticulars(val || [])}
+                                placeholder="Select Particulars"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderColor: "black",
+                                        "&:hover": { borderColor: "black" },
+                                    }),
+                                }}
+                            />
+                        </div>
+
+                        <FilterInput label="Comments" value={callComments} onChange={setCallComments} />
+                    </div>
+                )}
             </div>
 
             {/* ✅ ACTION SECTION */}
-            <div className="mt-8 bg-white rounded p-4">
-                <h2 className="text-xl font-bold mb-4">Action Search</h2>
+            <div className="mt-8 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <div
+                    className="flex justify-between items-center cursor-pointer select-none"
+                    onClick={() => setIsActionOpen(!isActionOpen)}
+                >
+                    <h2 className="text-xl font-bold text-black">Action Search</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <FilterInput label="Action From Date" type="date" value={actionFromDate} onChange={setActionFromDate} />
-                    <FilterInput label="Action To Date" type="date" value={actionToDate} onChange={setActionToDate} />
-
-                    <FilterInput label="Next Action From Date" type="date" value={nextActionFromDate} onChange={setNextActionFromDate} />
-                    <FilterInput label="Next Action To Date" type="date" value={nextActionToDate} onChange={setNextActionToDate} />
-
-                    <FilterInput label="LAD From Date" type="date" value={ladFromDate} onChange={setLadFromDate} />
-                    <FilterInput label="LAD To Date" type="date" value={ladToDate} onChange={setLadToDate} />
-
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">
-                            Action Today
-                        </label>
-                        <Select
-                            isMulti
-                            options={actionPointOptions}
-                            value={actionPoints}
-                            onChange={(val) => setActionPoints(val || [])}
-                            placeholder="Select Action Points"
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    borderColor: "black",
-                                    "&:hover": { borderColor: "black" },
-                                }),
-                            }}
-                        />
-                    </div>
-
-                    <FilterInput
-                        label="Next Action Comments"
-                        value={nextActionComments}
-                        onChange={setNextActionComments}
-                    />
-
-                    <FilterInput
-                        label="Action Comments"
-                        value={actionComments}
-                        onChange={setActionComments}
-                    />
+                    <span className="text-2xl font-bold">
+                        {/* {isActionOpen ? "˄" : "˅"} */}
+                        {isActionOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                    </span>
                 </div>
+
+                {isActionOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
+                        <FilterInput label="Action From Date" type="date" value={actionFromDate} onChange={setActionFromDate} />
+                        <FilterInput label="Action To Date" type="date" value={actionToDate} onChange={setActionToDate} />
+
+                        <FilterInput label="Next Action From Date" type="date" value={nextActionFromDate} onChange={setNextActionFromDate} />
+                        <FilterInput label="Next Action To Date" type="date" value={nextActionToDate} onChange={setNextActionToDate} />
+
+                        <FilterInput label="LAD From Date" type="date" value={ladFromDate} onChange={setLadFromDate} />
+                        <FilterInput label="LAD To Date" type="date" value={ladToDate} onChange={setLadToDate} />
+
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Action Points</label>
+                            <Select
+                                isMulti
+                                options={actionPointOptions}
+                                value={actionPoints}
+                                onChange={(val) => setActionPoints(val || [])}
+                                placeholder="Select Action Points"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderColor: "black",
+                                        "&:hover": { borderColor: "black" },
+                                    }),
+                                }}
+                            />
+                        </div>
+
+                        <FilterInput label="Next Action Comments" value={nextActionComments} onChange={setNextActionComments} />
+                        <FilterInput label="Action Comments" value={actionComments} onChange={setActionComments} />
+                    </div>
+                )}
             </div>
 
             {/* ✅ ASSIGN SECTION */}
-            <div className="mt-8 bg-white rounded p-4">
-                <h2 className="text-xl font-bold mb-4">Assign Search</h2>
+            <div className="mt-8 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <div
+                    className="flex justify-between items-center cursor-pointer select-none"
+                    onClick={() => setIsAssignOpen(!isAssignOpen)}
+                >
+                    <h2 className="text-xl font-bold text-black">Assign Search</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <FilterInput label="Assign From" value={assignFrom} onChange={setAssignFrom} />
-                    <FilterInput label="Assign To" value={assignTo} onChange={setAssignTo} />
-
-                    <FilterInput label="Assign Date From" type="date" value={assignDateFrom} onChange={setAssignDateFrom} />
-                    <FilterInput label="Assign Date To" type="date" value={assignDateTo} onChange={setAssignDateTo} />
-
-                    <FilterSelect
-                        label="Assign By"
-                        value={assignBy}
-                        onChange={setAssignBy}
-                        options={[
-                            { value: "", label: "Select Assign By" },
-                            ...userOptions,
-                        ]}
-                    />
-
-                    <FilterSelect
-                        label="Assign To"
-                        value={assignToOwner}
-                        onChange={setAssignToOwner}
-                        options={[
-                            { value: "", label: "Select Assign To" },
-                            ...userOptions,
-                        ]}
-                    />
-
-                    <FilterInput
-                        label="Assign Comments"
-                        value={assignComments}
-                        onChange={setAssignComments}
-                    />
+                    <span className="text-2xl font-bold">
+                        {isAssignOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                    </span>
                 </div>
-            </div>
 
-            {/* ✅ PROFILE MAPPING DETAILS */}
-            {profileOrMobile && (
-                <div className="mt-8 bg-white rounded p-4 border">
-                    <h2 className="text-xl font-bold mb-4">
-                        Mapping from Profile Details
-                    </h2>
+                {isAssignOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
+                        <FilterInput label="Assign From" value={assignFrom} onChange={setAssignFrom} />
+                        <FilterInput label="Assign To" value={assignTo} onChange={setAssignTo} />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <FilterInput label="Owner Name" value={mappedOwnerName} onChange={setMappedOwnerName} />
+                        <FilterInput label="Assign Date From" type="date" value={assignDateFrom} onChange={setAssignDateFrom} />
+                        <FilterInput label="Assign Date To" type="date" value={assignDateTo} onChange={setAssignDateTo} />
 
-                        <div className="flex flex-col">
-                            <label className="font-semibold mb-1 text-black">Status</label>
-                            <select
-                                className="border p-2 rounded border-black"
-                                value={mappedStatus}
-                                onChange={(e) => setMappedStatus(e.target.value)}
-                            >
-                                <option value="">Select</option>
-                                {profileStatusOptions.map((s) => (
-                                    <option key={s.value} value={s.value}>
-                                        {s.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <FilterSelect
+                            label="Assign By"
+                            value={assignBy}
+                            onChange={setAssignBy}
+                            options={[
+                                { value: "", label: "Select Assign By" },
+                                ...userOptions,
+                            ]}
+                        />
 
-                        <div className="flex flex-col">
-                            <label className="font-semibold mb-1 text-black">Mode</label>
-                            <select
-                                className="border p-2 rounded border-black"
-                                value={mappedMode}
-                                onChange={(e) => setMappedMode(e.target.value)}
-                            >
-                                <option value="">Select</option>
-                                {modeOptions.map((m) => (
-                                    <option key={m.value} value={m.value}>
-                                        {m.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <FilterSelect
+                            label="Assign To"
+                            value={assignToOwner}
+                            onChange={setAssignToOwner}
+                            options={[
+                                { value: "", label: "Select Assign To" },
+                                ...userOptions,
+                            ]}
+                        />
+
+                        <FilterInput label="Assign Comments" value={assignComments} onChange={setAssignComments} />
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </form>
     );
 };
