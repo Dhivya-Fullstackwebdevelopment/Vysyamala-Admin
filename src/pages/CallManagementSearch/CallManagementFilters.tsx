@@ -265,9 +265,9 @@ const CallManagementSearchFilters = ({
             callToDate,
             nextCallFromDate,
             nextCallToDate,
-            callType: callType.map((x) => x.value).join(","),
-            callStatus: callStatus.map((x) => x.value).join(","),
-            particulars: particulars.map((x) => x.value).join(","),
+            callType: callType.map((x) => Number(x.value)),
+            callStatus: callStatus.map((x) => Number(x.value)),
+            particulars: particulars.map((x) => Number(x.value)),
             callComments,
 
             // ✅ ACTION
@@ -275,7 +275,7 @@ const CallManagementSearchFilters = ({
             actionToDate,
             nextActionFromDate,
             nextActionToDate,
-            actionPoints: actionPoints.map((x) => x.value).join(","),
+            actionPoints: actionPoints.map((x) => Number(x.value)),
             nextActionComments,
             actionComments,
 
