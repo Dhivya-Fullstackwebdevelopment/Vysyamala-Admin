@@ -1230,11 +1230,62 @@ export const getCallManageMasters = async (): Promise<any> => {
 
 //owner - extract Username from these api
 export const getUsers = async (): Promise<any> => {
-  try {
-    const response = await apiAxios.get(`api/users/`);
-    return response.data;
-  } catch (error: any) {
-    console.error("Error fetching users:", error);
-    throw error;
-  }
+    try {
+        const response = await apiAxios.get(`api/users/`);
+        return response.data;
+    } catch (error: any) {
+        console.error("Error fetching users:", error);
+        throw error;
+    }
+};
+
+//call management search
+// export const callManagementSearch = async (data: {
+//     search_value: any;          // ProfileId / Mobile no
+//     owner: any;
+//     plan: any;
+//     status: any;
+//     from_date: any;
+//     to_date: any;
+
+//     call_from_date: any;
+//     call_to_date: any;
+//     next_call_from_date: any;
+//     next_call_to_date: any;
+//     call_type: any;
+//     call_status: any;
+//     particulars: any;
+//     call_comments: any;
+
+//     action_from_date: any;
+//     action_to_date: any;
+//     next_action_from_date: any;
+//     next_action_to_date: any;
+//     action_point: any;
+//     next_action: any;
+//     action_comments: any;
+//     next_action_comments: any;
+
+//     assign_from_date: any;
+//     assign_to_date: any;
+//     assigned_by: any;
+//     assigned_to: any;
+//     assign_notes: any;
+
+//     // ✅ Optional (if backend supports pagination)
+//     page_number?: number;
+//     per_page?: number;
+// }) => {
+//     try {
+//         const response = await apiAxios.post("api/call-management-search/", data);
+//         return response.data;
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+export const callManagementSearch = async (payload: any) => {
+    const res = await apiAxios.post("api/call-management-search/", payload);
+    return res.data;
 };

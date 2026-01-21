@@ -253,47 +253,38 @@ const CallManagementSearchFilters = ({
         const filters = {
             profileOrMobile,
 
-            // ✅ Call
+            // ✅ COMMON MASTER
+            commonOwnerId,
+            commonStatus,
+            commonMode,
+            commonFromDate,
+            commonToDate,
+
+            // ✅ CALL
             callFromDate,
             callToDate,
             nextCallFromDate,
             nextCallToDate,
-            lcdFromDate,
-            lcdToDate,
-            lastCallDate,
             callType: callType.map((x) => x.value).join(","),
-            callStatus: callStatus.map((x) => x.value).join(","),     // ✅ updated
-            particulars: particulars.map((x) => x.value).join(","),   // ✅ updated
+            callStatus: callStatus.map((x) => x.value).join(","),
+            particulars: particulars.map((x) => x.value).join(","),
             callComments,
 
-            // ✅ Action
+            // ✅ ACTION
             actionFromDate,
             actionToDate,
             nextActionFromDate,
             nextActionToDate,
-            ladFromDate,
-            ladToDate,
             actionPoints: actionPoints.map((x) => x.value).join(","),
             nextActionComments,
             actionComments,
 
-            // ✅ Assign
-            assignFrom,
-            assignTo,
+            // ✅ ASSIGN
             assignDateFrom,
             assignDateTo,
             assignBy,
             assignToOwner,
             assignComments,
-
-            // ✅ Common date range
-            commonFromDate,
-            commonToDate,
-
-            // ✅ Mapped profile details (if profile id)
-            mappedOwnerName,
-            mappedStatus,
-            mappedMode,
         };
 
         onFilterSubmit(filters);
@@ -408,8 +399,8 @@ const CallManagementSearchFilters = ({
                         <FilterInput label="Next Call From Date" type="date" value={nextCallFromDate} onChange={setNextCallFromDate} />
                         <FilterInput label="Next Call To Date" type="date" value={nextCallToDate} onChange={setNextCallToDate} />
 
-                        <FilterInput label="LCD From Date" type="date" value={lcdFromDate} onChange={setLcdFromDate} />
-                        <FilterInput label="LCD To Date" type="date" value={lcdToDate} onChange={setLcdToDate} />
+                        {/* <FilterInput label="LCD From Date" type="date" value={lcdFromDate} onChange={setLcdFromDate} />
+                        <FilterInput label="LCD To Date" type="date" value={lcdToDate} onChange={setLcdToDate} /> */}
 
                         <div className="flex flex-col">
                             <label className="font-semibold mb-1 text-black">Call Type</label>
@@ -491,8 +482,8 @@ const CallManagementSearchFilters = ({
                         <FilterInput label="Next Action From Date" type="date" value={nextActionFromDate} onChange={setNextActionFromDate} />
                         <FilterInput label="Next Action To Date" type="date" value={nextActionToDate} onChange={setNextActionToDate} />
 
-                        <FilterInput label="LAD From Date" type="date" value={ladFromDate} onChange={setLadFromDate} />
-                        <FilterInput label="LAD To Date" type="date" value={ladToDate} onChange={setLadToDate} />
+                        {/* <FilterInput label="LAD From Date" type="date" value={ladFromDate} onChange={setLadFromDate} />
+                        <FilterInput label="LAD To Date" type="date" value={ladToDate} onChange={setLadToDate} /> */}
 
                         <div className="flex flex-col">
                             <label className="font-semibold mb-1 text-black">Action Points</label>
@@ -533,8 +524,8 @@ const CallManagementSearchFilters = ({
 
                 {isAssignOpen && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
-                        <FilterInput label="Assign From" value={assignFrom} onChange={setAssignFrom} />
-                        <FilterInput label="Assign To" value={assignTo} onChange={setAssignTo} />
+                        {/* <FilterInput label="Assign From" value={assignFrom} onChange={setAssignFrom} />
+                        <FilterInput label="Assign To" value={assignTo} onChange={setAssignTo} /> */}
 
                         <FilterInput label="Assign Date From" type="date" value={assignDateFrom} onChange={setAssignDateFrom} />
                         <FilterInput label="Assign Date To" type="date" value={assignDateTo} onChange={setAssignDateTo} />
