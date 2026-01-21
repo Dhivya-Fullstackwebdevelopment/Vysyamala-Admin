@@ -31,16 +31,30 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
     { id: "call_type", label: "Call Type" },
     { id: "call_comments", label: "Comments" },
     { id: "call_status", label: "Call Status" },
-    { id: "call_date", label: "Date" },
+    { id: "call_date", label: "Call Date" },
     { id: "next_call_date", label: "Next Call Date" },
-    { id: "next_action_point", label: "Next Date - Action Point" },
+    { id: "next_action_date", label: "Next Action Date" },
     { id: "owner", label: "Owner" },
     { id: "work_assign", label: "Work Assign" },
-    { id: "call_action_today", label: "Call Action Today" },
-    { id: "future_action_taken", label: "Future Action Taken" },
+    { id: "action_point", label: "Call Action Today" },
+    { id: "next_action_point", label: "Future Action Taken" },
     { id: "profile_status", label: "Profile Status" },
     { id: "lad_call_date", label: "LAD Call Date" },
   ];
+
+  // const formatDateOnly = (value: any) => {
+  //   if (!value) return "N/A";
+
+  //   const d = new Date(value);
+  //   if (isNaN(d.getTime())) return value; // if invalid date return original
+
+  //   return d.toLocaleDateString("en-GB"); // DD/MM/YYYY
+  // };
+
+  const formatDateOnly = (value: any) => {
+    if (!value) return "N/A";
+    return String(value).split("T")[0]; // ✅ keeps same format, removes time
+  };
 
   useEffect(() => {
     const fetchFilteredData = async () => {
@@ -157,7 +171,9 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
                       <TableRow key={index} hover> {/* Added hover for better UI */}
                         {columns.map((col) => (
                           <TableCell key={col.id}>
-                            {row[col.id] ?? "N/A"}
+                            {["call_date", "next_call_date", "next_action_date", "lad_call_date"].includes(col.id)
+                              ? formatDateOnly(row[col.id])
+                              : row[col.id] ?? "N/A"}
                           </TableCell>
                         ))}
                       </TableRow>
@@ -172,7 +188,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
               </TableBody>
             </Table>
           </TableContainer>
-          
+
           {/* 5. Add the Pagination Component */}
           <TablePagination
             rowsPerPageOptions={[10, 25, 50, 100]}
