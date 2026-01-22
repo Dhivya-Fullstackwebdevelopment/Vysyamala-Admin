@@ -192,6 +192,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
         onFilterSubmit(filters);
     };
 
+
     return (
         <form onSubmit={handleSubmit} className="container mx-auto p-4 bg-gray-50 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-8 pb-4">
@@ -210,187 +211,164 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 <FilterInput label="Profile ID" value={profileID} onChange={setProfileID} />
                 <FilterInput label="Name" value={name} onChange={setName} />
                 <FilterInput label="Date of Birth" type="date" value={dob} onChange={setDob} />
-
-                <div className="flex gap-4 w-full">
-                    <div className="w-1/2">
-                        <FilterInput label="Age From" type="number" value={ageFrom} onChange={setAgeFrom} />
-                    </div>
-                    <div className="w-1/2">
-                        <FilterInput label="Age To" type="number" value={ageTo} onChange={setAgeTo} />
-                    </div>
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Gender</label>
-                    <select className="border p-2 rounded border-black" value={gender} onChange={(e) => setGender(e.target.value)}>
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                </div>
-
-                <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={setCombinedContact} />
-                <FilterInput label="Email ID" value={emailId} onChange={setEmailId} />
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Created By</label>
-                    <select className="border p-2 rounded border-black" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)}>
-                        <option value="">Select Created By</option>
-                        {createdHolderOptions.map((holder) => (
-                            <option key={holder.owner_id} value={holder.owner_id}>{holder.owner_description}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <FilterInput label="Father Name" value={fatherName} onChange={setFatherName} />
-                <FilterInput label="Father Occupation" value={fatherOccupation} onChange={setFatherOccupation} />
-                <FilterInput label="Mother Name" value={motherName} onChange={setMotherName} />
-                <FilterInput label="Mother Occupation" value={motherOccupation} onChange={setMotherOccupation} />
-                <FilterInput label="Business Name (Groom / Bride)" value={businessName} onChange={setBusinessName} />
-                <FilterInput label="Company Name" value={companyName} onChange={setCompanyName} />
-
-                <div className="flex gap-2 w-full max-w-md">
-                    <div className="w-1/2 flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Min Annual Income</label>
-                        <select className="border p-2 rounded border-black" value={minAnnualIncome} onChange={(e) => setMinAnnualIncome(e.target.value)}>
-                            <option value="">Select Min</option>
-                            {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
-                        </select>
-                    </div>
-                    <div className="w-1/2 flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Max Annual Income</label>
-                        <select className="border p-2 rounded border-black" value={maxAnnualIncome} onChange={(e) => setMaxAnnualIncome(e.target.value)}>
-                            <option value="">Select Max</option>
-                            {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
-                        </select>
-                    </div>
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Family Status</label>
-                    <select className="border p-2 rounded border-black" onChange={(e) => { /* Handle change if needed */ }}>
-                        <option value="">Select Status</option>
-                        {familyStatuses.map(fam => <option key={fam.family_status_id} value={fam.family_status_id}>{fam.family_status_name}</option>)}
-                    </select>
-                </div>
-
-                <FilterInput label="Last Action Date" type="date" value={lastActionDate} onChange={setLastActionDate} />
-                <FilterInput label="Reg From Date" type="date" value={regFromDate} onChange={setRegFromDate} />
-                <FilterInput label="Reg To Date" type="date" value={regToDate} onChange={setRegToDate} />
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">State</label>
-                    <select className="border p-2 rounded border-black" value={selectedState} onChange={(e) => setSelectedState(e.target.value)}>
-                        <option value="">Select State</option>
-                        {states.map(s => <option key={s.State_Pref_id} value={s.State_Pref_id}>{s.State_name}</option>)}
-                    </select>
-                </div>
-
-                <FilterInput label="City" value={cityText} onChange={setCityText} />
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Profile Status</label>
-                    <select className="border p-2 rounded border-black" value={selectedProfileStatus} onChange={(e) => {
-                        setSelectedProfileStatus(e.target.value);
-                        if (e.target.value !== '4') { setDeleteStatus(''); setSecondaryDeleteStatus(''); }
-                    }}>
-                        <option value="">Select Status</option>
-                        {profileStatuses.map(s => <option key={s.status_code} value={s.status_code}>{s.status_name}</option>)}
-                    </select>
-                </div>
-
-                {selectedProfileStatus === '4' && (
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Secondary Status</label>
-                        <select className="border p-2 rounded border-black" value={deleteStatus} onChange={(e) => setDeleteStatus(e.target.value)}>
-                            <option value="">Select Secondary Status</option>
-                            <option value="18">Got Married</option>
-                            <option value="19">Marriage settled</option>
-                            <option value="20">Duplicate</option>
-                            <option value="21">Fake Profile</option>
-                            <option value="22">Others</option>
-                        </select>
-                    </div>
-                )}
-
-                {/* UPDATED NRI SECTION TO DROPDOWN */}
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">NRI</label>
-                    <select
-                        className="border p-2 rounded border-black"
-                        value={nri}
-                        onChange={(e) => setNri(e.target.value)}
-                    >
-                        <option value="">Select Option</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                        <option value="Both">Both</option>
-                    </select>
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Membership Plan</label>
-
-                    <Select
-                        isMulti
-                        options={membershipPlanOptions}
-                        value={selectedMembership}
-                        onChange={(selected) => setSelectedMembership(selected || [])}
-                        placeholder="Select Plans"
-                        styles={{
-                            control: (base) => ({
-                                ...base,
-                                borderColor: "black",
-                                "&:hover": { borderColor: "black" },
-                            }),
-                        }}
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Highest Education</label>
-                    <select className="border p-2 rounded border-black" value={selectedEducation} onChange={(e) => { setSelectedEducation(e.target.value); setSelectedFieldOfStudy(''); setSelectedDegreeValues([]); }}>
-                        <option value="">Select Education</option>
-                        {educations.map(edu => <option key={edu.education_id} value={edu.education_id}>{edu.education_description}</option>)}
-                    </select>
-                </div>
-
-                {['1', '2', '3', '4'].includes(selectedEducation) && (
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Field of Study</label>
-                        <select className="border p-2 rounded border-black" value={selectedFieldOfStudy} onChange={(e) => { setSelectedFieldOfStudy(e.target.value); setSelectedDegreeValues([]); }}>
-                            <option value="">Select Field</option>
-                            {fieldOfStudyOptions.map(field => <option key={field.study_id} value={field.study_id}>{field.study_description}</option>)}
-                        </select>
-                    </div>
-                )}
-
-                {selectedFieldOfStudy && (
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Degree</label>
-                        <Select
-                            isMulti
-                            options={degreeOptions.map(d => ({ value: d.degeree_id.toString(), label: d.degeree_description }))}
-                            value={selectedDegreeValues}
-                            onChange={handleDegreeChange}
-                            styles={{ control: (base) => ({ ...base, borderColor: 'black', '&:hover': { borderColor: 'black' } }) }}
-                        />
-                    </div>
-                )}
             </div>
 
-            <div className="flex flex-col gap-8 mt-8 pt-6">
-                <div className="bg-white rounded">
-                    <h3 className="font-bold text-lg mb-4 text-black pb-2">Marital Status</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-2">
-                        {maritalStatuses.map(m => (
-                            <FormControlLabel key={m.marital_sts_id} className="m-0"
-                                control={<Checkbox size="small" checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())} onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)} />}
-                                label={<span className="text-sm text-gray-700">{m.marital_sts_name}</span>}
-                            />
-                        ))}
+            {/* <div className="mt-8 bg-white rounded-lg p-4 border border-gray-200 shadow-sm"> */}
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Contact Details</h2>
+                {/* <CollapsibleSection title="Contact Details"> */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={setCombinedContact} />
+                    <FilterInput label="Email ID" value={emailId} onChange={setEmailId} />
+                    <div className="flex flex-col">
+                        <FilterInput label="Address" value={address} onChange={setAddress} />
                     </div>
                 </div>
+            </div>
+
+
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Demographics</h2>
+                {/* <CollapsibleSection title="Demographics"> */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="flex gap-4 w-full">
+                        <div className="w-40">
+                            <FilterInput label="Age From" type="number" value={ageFrom} onChange={setAgeFrom} />
+                        </div>
+                        <div className="w-40">
+                            <FilterInput label="Age To" type="number" value={ageTo} onChange={setAgeTo} />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Gender</label>
+                        <select className="border p-2 rounded border-black" value={gender} onChange={(e) => setGender(e.target.value)}>
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">NRI</label>
+                        <select
+                            className="border p-2 rounded border-black"
+                            value={nri}
+                            onChange={(e) => setNri(e.target.value)}
+                        >
+                            <option value="">Select Option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="Both">Both</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-8 pt-6">
+                    <div className="bg-white rounded">
+                        <h3 className="font-bold text-lg mb-4 text-black pb-2">Marital Status</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-2">
+                            {maritalStatuses.map(m => (
+                                <FormControlLabel key={m.marital_sts_id} className="m-0"
+                                    control={<Checkbox size="small" checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())} onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)} />}
+                                    label={<span className="text-sm text-gray-700">{m.marital_sts_name}</span>}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* <CollapsibleSection title="Location"> */}
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Location</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ">
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">State</label>
+                        <select className="border p-2 rounded border-black" value={selectedState} onChange={(e) => setSelectedState(e.target.value)}>
+                            <option value="">Select State</option>
+                            {states.map(s => <option key={s.State_Pref_id} value={s.State_Pref_id}>{s.State_name}</option>)}
+                        </select>
+                    </div>
+
+                    <FilterInput label="City" value={cityText} onChange={setCityText} />
+                </div>
+            </div>
+
+
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Family Details (Expandable Section)</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    <FilterInput label="Father Name" value={fatherName} onChange={setFatherName} />
+                    <FilterInput label="Father Occupation" value={fatherOccupation} onChange={setFatherOccupation} />
+                    <FilterInput label="Mother Name" value={motherName} onChange={setMotherName} />
+                    <FilterInput label="Mother Occupation" value={motherOccupation} onChange={setMotherOccupation} />
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Family Status</label>
+                        <select className="border p-2 rounded border-black" onChange={(e) => { /* Handle change if needed */ }}>
+                            <option value="">Select Status</option>
+                            {familyStatuses.map(fam => <option key={fam.family_status_id} value={fam.family_status_id}>{fam.family_status_name}</option>)}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Education & Profession</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Highest Education</label>
+                        <select className="border p-2 rounded border-black" value={selectedEducation} onChange={(e) => { setSelectedEducation(e.target.value); setSelectedFieldOfStudy(''); setSelectedDegreeValues([]); }}>
+                            <option value="">Select Education</option>
+                            {educations.map(edu => <option key={edu.education_id} value={edu.education_id}>{edu.education_description}</option>)}
+                        </select>
+                    </div>
+
+                    {['1', '2', '3', '4'].includes(selectedEducation) && (
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Field of Study</label>
+                            <select className="border p-2 rounded border-black" value={selectedFieldOfStudy} onChange={(e) => { setSelectedFieldOfStudy(e.target.value); setSelectedDegreeValues([]); }}>
+                                <option value="">Select Field</option>
+                                {fieldOfStudyOptions.map(field => <option key={field.study_id} value={field.study_id}>{field.study_description}</option>)}
+                            </select>
+                        </div>
+                    )}
+
+                    {selectedFieldOfStudy && (
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Degree</label>
+                            <Select
+                                isMulti
+                                options={degreeOptions.map(d => ({ value: d.degeree_id.toString(), label: d.degeree_description }))}
+                                value={selectedDegreeValues}
+                                onChange={handleDegreeChange}
+                                styles={{ control: (base) => ({ ...base, borderColor: 'black', '&:hover': { borderColor: 'black' } }) }}
+                            />
+                        </div>
+                    )}
+                    <FilterInput label="Company Name" value={companyName} onChange={setCompanyName} />
+                    <FilterInput label="Business Name (Groom / Bride)" value={businessName} onChange={setBusinessName} />
+                    <div className="flex gap-2 w-full max-w-md">
+                        <div className="w-1/2 flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Min Annual Income</label>
+                            <select className="border p-2 rounded border-black" value={minAnnualIncome} onChange={(e) => setMinAnnualIncome(e.target.value)}>
+                                <option value="">Select Min</option>
+                                {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
+                            </select>
+                        </div>
+                        <div className="w-1/2 flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Max Annual Income</label>
+                            <select className="border p-2 rounded border-black" value={maxAnnualIncome} onChange={(e) => setMaxAnnualIncome(e.target.value)}>
+                                <option value="">Select Max</option>
+                                {annualIncomes.map(inc => <option key={inc.income_id} value={inc.income_id}>{inc.income_description}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Horoscope / Astro Details</h2>
 
                 <div className="bg-white rounded">
                     <h3 className="font-bold text-lg mb-4 text-black pb-2">Birth Stars</h3>
@@ -405,17 +383,129 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Address</label>
-                    <textarea className="border p-2 rounded border-black h-24" value={address} onChange={(e) => setAddress(e.target.value)} />
-                </div>
-                <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Admin Comments</label>
-                    <textarea className="border p-2 rounded border-black h-24" value={adminComments} onChange={(e) => setAdminComments(e.target.value)} />
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Membership & Status</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Membership Plan</label>
+
+                        <Select
+                            isMulti
+                            options={membershipPlanOptions}
+                            value={selectedMembership}
+                            onChange={(selected) => setSelectedMembership(selected || [])}
+                            placeholder="Select Plans"
+                            styles={{
+                                control: (base) => ({
+                                    ...base,
+                                    borderColor: "black",
+                                    "&:hover": { borderColor: "black" },
+                                }),
+                            }}
+                        />
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Profile Status</label>
+                        <select className="border p-2 rounded border-black" value={selectedProfileStatus} onChange={(e) => {
+                            setSelectedProfileStatus(e.target.value);
+                            if (e.target.value !== '4') { setDeleteStatus(''); setSecondaryDeleteStatus(''); }
+                        }}>
+                            <option value="">Select Status</option>
+                            {profileStatuses.map(s => <option key={s.status_code} value={s.status_code}>{s.status_name}</option>)}
+                        </select>
+                    </div>
+
+                    {selectedProfileStatus === '4' && (
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1 text-black">Secondary Status</label>
+                            <select className="border p-2 rounded border-black" value={deleteStatus} onChange={(e) => setDeleteStatus(e.target.value)}>
+                                <option value="">Select Secondary Status</option>
+                                <option value="18">Got Married</option>
+                                <option value="19">Marriage settled</option>
+                                <option value="20">Duplicate</option>
+                                <option value="21">Fake Profile</option>
+                                <option value="22">Others</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
             </div>
-        </form>
+
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Dates & Activity</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    <FilterInput label="Reg From Date" type="date" value={regFromDate} onChange={setRegFromDate} />
+                    <FilterInput label="Reg To Date" type="date" value={regToDate} onChange={setRegToDate} />
+                    <FilterInput label="Last Action Date" type="date" value={lastActionDate} onChange={setLastActionDate} />
+                    <FilterInput label="Marriage Date" type="date" />
+                    <FilterInput label="Engagement Date" type="date" />
+                </div>
+            </div>
+
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Admin Controls</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Created By</label>
+                        <select className="border p-2 rounded border-black" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)}>
+                            <option value="">Select Created By</option>
+                            {createdHolderOptions.map((holder) => (
+                                <option key={holder.owner_id} value={holder.owner_id}>{holder.owner_description}</option>
+                            ))}
+                        </select>
+                    </div>
+
+
+                    {/* <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Admin Details</label>
+                        <textarea className="border p-2 rounded border-black h-24" value={adminComments} onChange={(e) => setAdminComments(e.target.value)} />
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="font-semibold mb-1 text-black">Admin Comments</label>
+                        <textarea className="border p-2 rounded border-black h-24" value={adminComments} onChange={(e) => setAdminComments(e.target.value)} />
+                    </div> */}
+                    <FilterInput label="Admin Details" />
+                    <FilterInput label="Admin Comments" value={adminComments} onChange={setAdminComments} />
+                </div>
+
+
+
+
+                {/* UPDATED NRI SECTION TO DROPDOWN */}
+
+
+
+
+
+
+
+                <div className="flex flex-col gap-8 mt-8 pt-6">
+                    {/* <div className="bg-white rounded">
+                    <h3 className="font-bold text-lg mb-4 text-black pb-2">Marital Status</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-2">
+                        {maritalStatuses.map(m => (
+                            <FormControlLabel key={m.marital_sts_id} className="m-0"
+                                control={<Checkbox size="small" checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())} onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)} />}
+                                label={<span className="text-sm text-gray-700">{m.marital_sts_name}</span>}
+                            />
+                        ))}
+                    </div>
+                </div> */}
+                </div>
+
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                {/* <div className="flex flex-col">
+                    <label className="font-semibold mb-1 text-black">Address</label>
+                    <textarea className="border p-2 rounded border-black h-24" value={address} onChange={(e) => setAddress(e.target.value)} />
+                </div> */}
+
+            </div>
+
+        </form >
     );
 };
 
