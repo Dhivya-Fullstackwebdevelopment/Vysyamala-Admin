@@ -468,7 +468,7 @@ const CallManagementSearchFilters = ({
 
                         <FilterInput label="Comments" value={callComments}
                             onChange={(val: string) => {
-                                if (val.length <= 50) setCallComments(val);
+                                if (val.length <= 15) setCallComments(val);
                             }} />
                     </div>
                 )}
@@ -519,11 +519,11 @@ const CallManagementSearchFilters = ({
 
                         <FilterInput label="Next Action Comments" value={nextActionComments}
                             onChange={(val: string) => {
-                                if (val.length <= 50) setNextActionComments(val);
+                                if (val.length <= 15) setNextActionComments(val);
                             }} />
                         <FilterInput label="Action Comments" value={actionComments}
                             onChange={(val: string) => {
-                                if (val.length <= 50) setActionComments(val);
+                                if (val.length <= 15) setActionComments(val);
                             }} />
                     </div>
                 )}
@@ -575,7 +575,7 @@ const CallManagementSearchFilters = ({
                             //     if (val.length <= 50) setAssignComments(val);
                             // }} 
                             onChange={(val: string) => {
-                                if (val.length <= 50) setAssignComments(val);
+                                if (val.length <= 15) setAssignComments(val);
                             }}
                         />
                     </div>
