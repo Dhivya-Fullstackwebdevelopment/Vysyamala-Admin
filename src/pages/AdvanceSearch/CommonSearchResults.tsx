@@ -51,7 +51,7 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                     mobile_no: filters.combinedContact || "",
                     age_from: filters.ageFrom || "",
                     age_to: filters.ageTo || "", // Fixed: Age To Passing
-                    
+
                     last_action_date: filters.lastActionDate || "",
                     from_doj: filters.regFromDate || "", // Maps Reg From -> from_doj
                     to_doj: filters.regToDate || "",
@@ -168,6 +168,10 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                 </Box>
             ) : (
                 <>
+                    <div className="mb-3 text-sm text-gray-600 font-medium">
+                        Showing {totalItems === 0 ? 0 : currentPage * itemsPerPage + 1} to{" "}
+                        {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} records
+                    </div>
                     <Paper className="w-full">
                         <TableContainer sx={{ border: '1px solid #E0E0E0' }}>
                             <Table sx={{ minWidth: 650 }}>
@@ -204,11 +208,15 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                                                         onError={(e: any) => e.target.src = No_Image_Available}
                                                     />
                                                 </TableCell>
-                                                <TableCell
-                                                    className="text-blue-600 cursor-pointer hover:underline"
-                                                    onClick={() => navigate(`/viewProfile?profileId=${row.profile_id}`)}
-                                                >
-                                                    {row.profile_id}
+                                                <TableCell>
+                                                    <span
+                                                        className="text-blue-600 cursor-pointer hover:underline"
+                                                        onClick={() =>
+                                                            window.open(`/viewProfile?profileId=${row.profile_id}`, "_blank")
+                                                        }
+                                                    >
+                                                        {row.profile_id}
+                                                    </span>
                                                 </TableCell>
                                                 <TableCell>{row.profile_name}</TableCell>
                                                 <TableCell>{row.profile_age}</TableCell>
@@ -236,7 +244,7 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                     {Math.ceil(totalItems / itemsPerPage) > 0 && (
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                             <div className="text-sm text-gray-600">
-                                Showing {currentPage * itemsPerPage + 1} to {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} records
+                                {/* Showing {currentPage * itemsPerPage + 1} to {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} records */}
                             </div>
 
                             <div className="flex items-center gap-2">

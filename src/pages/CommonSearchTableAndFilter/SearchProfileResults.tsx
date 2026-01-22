@@ -296,6 +296,10 @@ const SearchProfileResults = ({ filters, onBack, No_Image_Available }: SearchPro
         </Box>
       ) : (
         <>
+          <div className="mb-3 text-sm text-gray-600 font-medium">
+            Showing {totalItems === 0 ? 0 : currentPage * itemsPerPage + 1} to{" "}
+            {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} records
+          </div>
           <Paper className="w-full">
             <TableContainer sx={{ border: '1px solid #E0E0E0' }} component={Paper}>
               <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -353,9 +357,7 @@ const SearchProfileResults = ({ filters, onBack, No_Image_Available }: SearchPro
                         </TableCell>
                         <TableCell
                           onClick={() =>
-                            navigate(
-                              `/viewProfile?profileId=${row.profile_id}`,
-                            )
+                            window.open(`/viewProfile?profileId=${row.profile_id}`, "_blank")
                           }
                           sx={{
                             color: 'blue',
@@ -401,7 +403,7 @@ const SearchProfileResults = ({ filters, onBack, No_Image_Available }: SearchPro
           {Math.ceil(totalItems / itemsPerPage) > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
               <div className="text-sm text-gray-600">
-                Showing {currentPage * itemsPerPage + 1} to {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} records
+                {/* Showing {currentPage * itemsPerPage + 1} to {Math.min((currentPage + 1) * itemsPerPage, totalItems)} of {totalItems} records */}
               </div>
 
               <div className="flex items-center gap-2">

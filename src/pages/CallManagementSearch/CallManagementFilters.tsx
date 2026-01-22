@@ -51,7 +51,8 @@ const CallManagementSearchFilters = ({
     const [callType, setCallType] = useState<any[]>([]);
     const [callStatus, setCallStatus] = useState<any[]>([]);
     const [particulars, setParticulars] = useState<any[]>([]);
-    const [callComments, setCallComments] = useState("");
+    const [callComments, setCallComments] = useState<string>("");
+
 
     // ✅ Action Section
     const [actionFromDate, setActionFromDate] = useState("");
@@ -66,8 +67,9 @@ const CallManagementSearchFilters = ({
     const [actionPoints, setActionPoints] = useState<any[]>([]);
     const [actionPointOptions, setActionPointOptions] = useState<any[]>([]);
 
-    const [nextActionComments, setNextActionComments] = useState("");
-    const [actionComments, setActionComments] = useState("");
+    const [nextActionComments, setNextActionComments] = useState<string>("");
+    const [actionComments, setActionComments] = useState<string>("");
+
 
     // ✅ Assign Section
     const [assignFrom, setAssignFrom] = useState("");
@@ -78,7 +80,7 @@ const CallManagementSearchFilters = ({
 
     const [assignBy, setAssignBy] = useState("");
     const [assignToOwner, setAssignToOwner] = useState("");
-    const [assignComments, setAssignComments] = useState("");
+    const [assignComments, setAssignComments] = useState<string>("");
 
     // ✅ Common Date Range (Call/Action/Assign)
     const [commonFromDate, setCommonFromDate] = useState("");
@@ -315,7 +317,7 @@ const CallManagementSearchFilters = ({
                     disabled={loading}
                     sx={{ minWidth: "180px", height: "45px", fontWeight: "bold" }}
                 >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : "Search"}
+                    {loading ? <CircularProgress size={24} color="inherit" /> : "Search Profiles"}
                 </Button>
             </div>
 
@@ -371,7 +373,7 @@ const CallManagementSearchFilters = ({
                     </select>
                 </div>
 
-                <FilterInput
+                {/* <FilterInput
                     label="From Date"
                     type="date"
                     value={commonFromDate}
@@ -383,7 +385,7 @@ const CallManagementSearchFilters = ({
                     type="date"
                     value={commonToDate}
                     onChange={setCommonToDate}
-                />
+                /> */}
             </div>
 
             {/* ✅ CALL SECTION */}
@@ -417,7 +419,7 @@ const CallManagementSearchFilters = ({
                                 isMulti
                                 options={callTypeOptions}
                                 value={callType}
-                                onChange={(val) => setCallType(val || [])}
+                                onChange={(val) => setCallType([...val])}
                                 styles={{
                                     control: (base) => ({
                                         ...base,
@@ -434,7 +436,7 @@ const CallManagementSearchFilters = ({
                                 isMulti
                                 options={callStatusOptions}
                                 value={callStatus}
-                                onChange={(val) => setCallStatus(val || [])}
+                                onChange={(val) => setCallStatus([...val])}
                                 placeholder="Select Call Status"
                                 styles={{
                                     control: (base) => ({
@@ -452,7 +454,7 @@ const CallManagementSearchFilters = ({
                                 isMulti
                                 options={particularsOptions}
                                 value={particulars}
-                                onChange={(val) => setParticulars(val || [])}
+                                onChange={(val) => setParticulars([...val])}
                                 placeholder="Select Particulars"
                                 styles={{
                                     control: (base) => ({
@@ -464,7 +466,10 @@ const CallManagementSearchFilters = ({
                             />
                         </div>
 
-                        <FilterInput label="Comments" value={callComments} onChange={setCallComments} />
+                        <FilterInput label="Comments" value={callComments}
+                            onChange={(val: string) => {
+                                if (val.length <= 50) setCallComments(val);
+                            }} />
                     </div>
                 )}
             </div>
@@ -500,7 +505,7 @@ const CallManagementSearchFilters = ({
                                 isMulti
                                 options={actionPointOptions}
                                 value={actionPoints}
-                                onChange={(val) => setActionPoints(val || [])}
+                                onChange={(val) => setActionPoints([...val])}
                                 placeholder="Select Action Points"
                                 styles={{
                                     control: (base) => ({
@@ -512,8 +517,14 @@ const CallManagementSearchFilters = ({
                             />
                         </div>
 
-                        <FilterInput label="Next Action Comments" value={nextActionComments} onChange={setNextActionComments} />
-                        <FilterInput label="Action Comments" value={actionComments} onChange={setActionComments} />
+                        <FilterInput label="Next Action Comments" value={nextActionComments}
+                            onChange={(val: string) => {
+                                if (val.length <= 50) setNextActionComments(val);
+                            }} />
+                        <FilterInput label="Action Comments" value={actionComments}
+                            onChange={(val: string) => {
+                                if (val.length <= 50) setActionComments(val);
+                            }} />
                     </div>
                 )}
             </div>
@@ -559,7 +570,14 @@ const CallManagementSearchFilters = ({
                             ]}
                         />
 
-                        <FilterInput label="Assign Comments" value={assignComments} onChange={setAssignComments} />
+                        <FilterInput label="Assign Comments" value={assignComments}
+                            // onChange={(val: any[] | React.SetStateAction<string>) => {
+                            //     if (val.length <= 50) setAssignComments(val);
+                            // }} 
+                            onChange={(val: string) => {
+                                if (val.length <= 50) setAssignComments(val);
+                            }}
+                        />
                     </div>
                 )}
             </div>

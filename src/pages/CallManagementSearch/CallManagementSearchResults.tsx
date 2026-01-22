@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { NotifyError } from "../../common/Toast/ToastMessage";
 import { callManagementSearch } from "../../api/apiConfig";
+import { useNavigate } from "react-router-dom";
 
 const CallManagementSearchResults = ({ filters, onBack }: any) => {
   const [data, setData] = useState<any[]>([]);
@@ -27,6 +28,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [goToPageInput, setGoToPageInput] = useState<string>(''); // Added for custom input
+  const navigate = useNavigate();
 
   const columns = [
     { id: "ProfileId", label: "Profile ID" },
@@ -139,6 +141,10 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
         </Box>
       ) : (
         <>
+          <div className="mb-3 text-sm text-gray-600 font-medium">
+            Showing {totalItems === 0 ? 0 : page * rowsPerPage + 1} to{" "}
+            {Math.min((page + 1) * rowsPerPage, totalItems)} of {totalItems} records
+          </div>
           <Paper className="w-full">
             <TableContainer sx={{ border: "1px solid #E0E0E0", maxHeight: "70vh" }}>
               <Table stickyHeader sx={{ minWidth: 1200 }}>
@@ -167,9 +173,21 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
                         <TableRow key={index} hover>
                           {columns.map((col) => (
                             <TableCell key={col.id}>
-                              {["call_date", "next_call_date", "next_action_date", "lad_call_date"].includes(col.id)
-                                ? formatDateOnly(row[col.id])
-                                : row[col.id] ?? "N/A"}
+                              {/* ✅ Clickable Profile ID */}
+                              {col.id === "ProfileId" ? (
+                                <span
+                                  className="text-blue-600 cursor-pointer hover:underline"
+                                  onClick={() =>
+                                    window.open(`/viewProfile?profileId=${row.ProfileId}`, "_blank")
+                                  }
+                                >
+                                  {row.ProfileId ?? "N/A"}
+                                </span>
+                              ) : ["call_date", "next_call_date", "next_action_date", "lad_call_date"].includes(col.id) ? (
+                                formatDateOnly(row[col.id])
+                              ) : (
+                                row[col.id] ?? "N/A"
+                              )}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -182,6 +200,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
                     </TableRow>
                   )}
                 </TableBody>
+
               </Table>
             </TableContainer>
           </Paper>
@@ -190,7 +209,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
           {Math.ceil(totalItems / rowsPerPage) > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
               <div className="text-sm text-gray-600">
-                Showing {page * rowsPerPage + 1} to {Math.min((page + 1) * rowsPerPage, totalItems)} of {totalItems} records
+                {/* Showing {page * rowsPerPage + 1} to {Math.min((page + 1) * rowsPerPage, totalItems)} of {totalItems} records */}
               </div>
 
               <div className="flex items-center gap-2">
