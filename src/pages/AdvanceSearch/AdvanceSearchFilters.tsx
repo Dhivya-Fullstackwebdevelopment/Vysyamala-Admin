@@ -110,7 +110,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
 
     // Logic for Admin Comments (50 Char limit)
     const handleAdminCommentsChange = (val: string) => {
-        if (val.length <= 50) {
+        if (val.length <= 15) {
             setAdminComments(val);
         }
     };
@@ -272,7 +272,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                             <option value="">Select Option</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
-                            <option value="Both">Both</option>
+                            {/* <option value="Both">Both</option> */}
                         </select>
                     </div>
                 </div>
@@ -441,8 +441,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                     <FilterInput label="Reg From Date" type="date" value={regFromDate} onChange={setRegFromDate} />
                     <FilterInput label="Reg To Date" type="date" value={regToDate} onChange={setRegToDate} />
                     <FilterInput label="Last Action Date" type="date" value={lastActionDate} onChange={setLastActionDate} />
-                    <FilterInput label="Marriage Date" type="date" />
-                    <FilterInput label="Engagement Date" type="date" />
+                    <FilterInput label="Marriage From Date" type="date" />
+                    <FilterInput label="Marriage To Date" type="date" />
+                    <FilterInput label="Engagement From Date" type="date" />
+                    <FilterInput label="Engagement To Date" type="date" />
                 </div>
             </CollapsibleSection>
 
