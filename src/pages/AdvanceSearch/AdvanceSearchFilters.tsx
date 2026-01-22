@@ -16,6 +16,7 @@ import { getEditProfileViewStatus } from '../../action';
 import { Button, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import { fetchFieldOfStudy, fetchDegree } from '../../action';
 import Select from 'react-select';
+import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 
 // Interfaces
 interface AnnualIncome { income_id: number; income_description: string; }
@@ -213,9 +214,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 <FilterInput label="Date of Birth" type="date" value={dob} onChange={setDob} />
             </div>
 
-            {/* <div className="mt-8 bg-white rounded-lg p-4 border border-gray-200 shadow-sm"> */}
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Contact Details</h2>
+            <CollapsibleSection title="Contact Details">
                 {/* <CollapsibleSection title="Contact Details"> */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={setCombinedContact} />
@@ -224,12 +223,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                         <FilterInput label="Address" value={address} onChange={setAddress} />
                     </div>
                 </div>
-            </div>
+            </CollapsibleSection>
 
 
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Demographics</h2>
-                {/* <CollapsibleSection title="Demographics"> */}
+            <CollapsibleSection title="Demographics">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="flex gap-4 w-full">
                         <div className="w-40">
@@ -277,11 +274,9 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                         </div>
                     </div>
                 </div>
-            </div>
+            </CollapsibleSection>
 
-            {/* <CollapsibleSection title="Location"> */}
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Location</h2>
+            <CollapsibleSection title="Location">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ">
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">State</label>
@@ -290,14 +285,11 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                             {states.map(s => <option key={s.State_Pref_id} value={s.State_Pref_id}>{s.State_name}</option>)}
                         </select>
                     </div>
-
                     <FilterInput label="City" value={cityText} onChange={setCityText} />
                 </div>
-            </div>
+            </CollapsibleSection>
 
-
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Family Details (Expandable Section)</h2>
+            <CollapsibleSection title="Family Details">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                     <FilterInput label="Father Name" value={fatherName} onChange={setFatherName} />
                     <FilterInput label="Father Occupation" value={fatherOccupation} onChange={setFatherOccupation} />
@@ -311,10 +303,9 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                         </select>
                     </div>
                 </div>
-            </div>
+            </CollapsibleSection>
 
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Education & Profession</h2>
+            <CollapsibleSection title="Education & Profession">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">Highest Education</label>
@@ -365,11 +356,9 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                         </div>
                     </div>
                 </div>
-            </div>
+            </CollapsibleSection>
 
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Horoscope / Astro Details</h2>
-
+            <CollapsibleSection title="Horoscope / Astro Details">
                 <div className="bg-white rounded">
                     <h3 className="font-bold text-lg mb-4 text-black pb-2">Birth Stars</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-x-4 gap-y-1">
@@ -381,10 +370,9 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                         ))}
                     </div>
                 </div>
-            </div>
+            </CollapsibleSection>
 
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Membership & Status</h2>
+            <CollapsibleSection title="Membership & Status">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">Membership Plan</label>
@@ -430,10 +418,9 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                         </div>
                     )}
                 </div>
-            </div>
+            </CollapsibleSection>
 
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Dates & Activity</h2>
+            <CollapsibleSection title="Dates & Activity">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                     <FilterInput label="Reg From Date" type="date" value={regFromDate} onChange={setRegFromDate} />
                     <FilterInput label="Reg To Date" type="date" value={regToDate} onChange={setRegToDate} />
@@ -441,11 +428,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                     <FilterInput label="Marriage Date" type="date" />
                     <FilterInput label="Engagement Date" type="date" />
                 </div>
-            </div>
+            </CollapsibleSection>
 
-            <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
-                <h2 className="text-lg text-left font-bold mb-4 text-black pb-2">Admin Controls</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+            <CollapsibleSection title="Admin Controls">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ">
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">Created By</label>
                         <select className="border p-2 rounded border-black" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)}>
@@ -455,57 +441,26 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                             ))}
                         </select>
                     </div>
-
-
-                    {/* <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Admin Details</label>
-                        <textarea className="border p-2 rounded border-black h-24" value={adminComments} onChange={(e) => setAdminComments(e.target.value)} />
-                    </div>
-
-                    <div className="flex flex-col">
-                        <label className="font-semibold mb-1 text-black">Admin Comments</label>
-                        <textarea className="border p-2 rounded border-black h-24" value={adminComments} onChange={(e) => setAdminComments(e.target.value)} />
-                    </div> */}
                     <FilterInput label="Admin Details" />
                     <FilterInput label="Admin Comments" value={adminComments} onChange={setAdminComments} />
                 </div>
-
-
-
-
-                {/* UPDATED NRI SECTION TO DROPDOWN */}
-
-
-
-
-
-
-
-                <div className="flex flex-col gap-8 mt-8 pt-6">
-                    {/* <div className="bg-white rounded">
-                    <h3 className="font-bold text-lg mb-4 text-black pb-2">Marital Status</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-2">
-                        {maritalStatuses.map(m => (
-                            <FormControlLabel key={m.marital_sts_id} className="m-0"
-                                control={<Checkbox size="small" checked={selectedMaritalStatus.includes(m.marital_sts_id.toString())} onChange={() => handleMultiSelect(m.marital_sts_id.toString(), selectedMaritalStatus, setSelectedMaritalStatus)} />}
-                                label={<span className="text-sm text-gray-700">{m.marital_sts_name}</span>}
-                            />
-                        ))}
-                    </div>
-                </div> */}
-                </div>
-
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                {/* <div className="flex flex-col">
-                    <label className="font-semibold mb-1 text-black">Address</label>
-                    <textarea className="border p-2 rounded border-black h-24" value={address} onChange={(e) => setAddress(e.target.value)} />
-                </div> */}
-
-            </div>
-
+            </CollapsibleSection>
         </form >
+    );
+};
+
+const CollapsibleSection = ({ title, children }: { title: string, children: React.ReactNode }) => {
+    const [isOpen, setIsOpen] = useState(true);
+    return (
+        <div className="mt-8 bg-white rounded-lg p-4 shadow-md">
+            <div className="flex justify-between items-center cursor-pointer select-none" onClick={() => setIsOpen(!isOpen)}>
+                <h2 className="text-xl font-bold text-black pb-2">{title}</h2>
+                <span className="text-2xl font-bold">
+                    {isOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                </span>
+            </div>
+            {isOpen && <div className="mt-4">{children}</div>}
+        </div>
     );
 };
 
