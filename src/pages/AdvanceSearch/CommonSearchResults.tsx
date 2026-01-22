@@ -61,11 +61,16 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                     dob_year: filters.dob ? filters.dob.split('-')[0] : "",
 
                     // Location & Status
-                    state: filters.selectedState || "",
+                    state: filters.states || "",
                     city: filters.cityText || "",
-                    status: filters.selectedProfileStatus || "",
+                    status: filters.profileStatus || "",
                     created_by: filters.createdBy || "",
                     address: filters.address || "",
+                    marriage_from: filters.marriageFromDate || "",
+                    marriage_to: filters.marriageToDate || "",
+                    engagement_from: filters.engagementFromDate || "",
+                    engagement_to: filters.engagementToDate || "",
+                    admin_details: filters.adminDetails || "",
                     admin_comments: filters.adminComments || "",
 
                     // IMPORTANT: NRI Mapping (using dropdown value)

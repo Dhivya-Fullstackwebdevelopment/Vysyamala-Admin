@@ -81,6 +81,11 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [profileStatuses, setProfileStatuses] = useState<ProfileStatus[]>([]);
 
     // Multi-select States
+    const [selectedGenders, setSelectedGenders] = useState<any[]>([]);
+    const [selectedStates, setSelectedStates] = useState<any[]>([]);
+    const [selectedProfileStatuses, setSelectedProfileStatuses] = useState<any[]>([]);
+    const [selectedDeleteStatuses, setSelectedDeleteStatuses] = useState<any[]>([]);
+
     const [selectedMaritalStatus, setSelectedMaritalStatus] = useState<string[]>([]);
     const [selectedBirthStars, setSelectedBirthStars] = useState<string[]>([]);
     const [selectedMembership, setSelectedMembership] = useState<any[]>([]);
@@ -92,6 +97,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [otherDegree, setOtherDegree] = useState('');
     const [showOtherInput, setShowOtherInput] = useState(false);
     const [createdHolderOptions, setCreatedHolderOptions] = useState<ProfileHolder[]>([]);
+    const [marriageFromDate, setMarriageFromDate] = useState('');
+    const [marriageToDate, setMarriageToDate] = useState('');
+    const [engagementFromDate, setEngagementFromDate] = useState('');
+    const [engagementToDate, setEngagementToDate] = useState('');
 
     const membershipPlanOptions = plans.map((plan) => ({
         value: plan.id.toString(),
@@ -182,12 +191,21 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
         if (!hasOthers) setOtherDegree('');
     };
 
+    const customSelectStyles = {
+        control: (base: any) => ({
+            ...base,
+            borderColor: "black",
+            "&:hover": { borderColor: "black" },
+        }),
+    };
+
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
         // FIXED: Added missing fields (ageTo, gender, combinedContact, emailId)
         const filters = {
-            profileID, name, dob, ageFrom, ageTo, gender,
+            profileID, name, dob, ageFrom, ageTo,
+            gender: selectedGenders.map(g => g.value).join(','),
             combinedContact, emailId,
             lastActionDate, // This will map to last_action_date
             regFromDate,    // This will map to from_doj
@@ -195,9 +213,11 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             minAnnualIncome, maxAnnualIncome,
             fatherName, fatherOccupation, motherName, motherOccupation,
             businessName, companyName,
-            selectedState, cityText, createdBy, address, adminComments, nri,
-            selectedProfileStatus,
-            deleteStatus, secondaryDeleteStatus,
+            states: selectedStates.map(s => s.value).join(','),
+            cityText, createdBy, address, adminComments, nri,
+            profileStatus: selectedProfileStatuses.map(ps => ps.value).join(','),
+            deleteStatus: selectedDeleteStatuses.map(ds => ds.value).join(','),
+            secondaryDeleteStatus,
             selectedMaritalStatus: selectedMaritalStatus.join(","),
             selectedBirthStars: selectedBirthStars.join(","),
             selectedMembership: selectedMembership.map((m) => m.value).join(","),
@@ -205,6 +225,11 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             fieldOfStudy: selectedFieldOfStudy,
             degrees: selectedDegreeValues.map(d => d.value).join(','),
             otherDegree: otherDegree,
+            adminDetails, // Ensure this state is used
+            marriageFromDate,
+            marriageToDate,
+            engagementFromDate,
+            engagementToDate,
         };
         onFilterSubmit(filters);
     };
@@ -255,11 +280,16 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
 
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">Gender</label>
-                        <select className="border p-2 rounded border-black" value={gender} onChange={(e) => setGender(e.target.value)}>
-                            <option value="">Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
+                        <Select
+                            isMulti
+                            styles={customSelectStyles}
+                            options={[
+                                { value: 'male', label: 'Male' },
+                                { value: 'female', label: 'Female' }
+                            ]}
+                            value={selectedGenders}
+                            onChange={(val) => setSelectedGenders(val || [])}
+                        />
                     </div>
 
                     <div className="flex flex-col">
@@ -296,10 +326,13 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ">
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">State</label>
-                        <select className="border p-2 rounded border-black" value={selectedState} onChange={(e) => setSelectedState(e.target.value)}>
-                            <option value="">Select State</option>
-                            {states.map(s => <option key={s.State_Pref_id} value={s.State_Pref_id}>{s.State_name}</option>)}
-                        </select>
+                        <Select
+                            isMulti
+                            styles={customSelectStyles}
+                            options={states.map(s => ({ value: s.State_Pref_id.toString(), label: s.State_name }))}
+                            value={selectedStates}
+                            onChange={(val) => setSelectedStates(val || [])}
+                        />
                     </div>
                     <FilterInput label="City" value={cityText} onChange={setCityText} />
                 </div>
@@ -411,26 +444,35 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
 
                     <div className="flex flex-col">
                         <label className="font-semibold mb-1 text-black">Profile Status</label>
-                        <select className="border p-2 rounded border-black" value={selectedProfileStatus} onChange={(e) => {
-                            setSelectedProfileStatus(e.target.value);
-                            if (e.target.value !== '4') { setDeleteStatus(''); setSecondaryDeleteStatus(''); }
-                        }}>
-                            <option value="">Select Status</option>
-                            {profileStatuses.map(s => <option key={s.status_code} value={s.status_code}>{s.status_name}</option>)}
-                        </select>
+                        <Select
+                            isMulti
+                            styles={customSelectStyles}
+                            options={profileStatuses.map(ps => ({ value: ps.status_code.toString(), label: ps.status_name }))}
+                            value={selectedProfileStatuses}
+                            onChange={(val) => {
+                                setSelectedProfileStatuses(val || []);
+                                // Reset delete status if 'Deleted' (4) is not selected
+                                if (!val?.some(v => v.value === '4')) setSelectedDeleteStatuses([]);
+                            }}
+                        />
                     </div>
 
-                    {selectedProfileStatus === '4' && (
+                    {selectedProfileStatuses.some(v => v.value === '4') && (
                         <div className="flex flex-col">
                             <label className="font-semibold mb-1 text-black">Secondary Status</label>
-                            <select className="border p-2 rounded border-black" value={deleteStatus} onChange={(e) => setDeleteStatus(e.target.value)}>
-                                <option value="">Select Secondary Status</option>
-                                <option value="18">Got Married</option>
-                                <option value="19">Marriage settled</option>
-                                <option value="20">Duplicate</option>
-                                <option value="21">Fake Profile</option>
-                                <option value="22">Others</option>
-                            </select>
+                            <Select
+                                isMulti
+                                styles={customSelectStyles}
+                                options={[
+                                    { value: "18", label: "Got Married" },
+                                    { value: "19", label: "Marriage settled" },
+                                    { value: "20", label: "Duplicate" },
+                                    { value: "21", label: "Fake Profile" },
+                                    { value: "22", label: "Others" }
+                                ]}
+                                value={selectedDeleteStatuses}
+                                onChange={(val) => setSelectedDeleteStatuses(val || [])}
+                            />
                         </div>
                     )}
                 </div>
@@ -441,10 +483,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                     <FilterInput label="Reg From Date" type="date" value={regFromDate} onChange={setRegFromDate} />
                     <FilterInput label="Reg To Date" type="date" value={regToDate} onChange={setRegToDate} />
                     <FilterInput label="Last Action Date" type="date" value={lastActionDate} onChange={setLastActionDate} />
-                    <FilterInput label="Marriage From Date" type="date" />
-                    <FilterInput label="Marriage To Date" type="date" />
-                    <FilterInput label="Engagement From Date" type="date" />
-                    <FilterInput label="Engagement To Date" type="date" />
+                    <FilterInput label="Marriage From Date" type="date" value={marriageFromDate} onChange={setMarriageFromDate} />
+                    <FilterInput label="Marriage To Date" type="date" value={marriageToDate} onChange={setMarriageToDate} />
+                    <FilterInput label="Engagement From Date" type="date" value={engagementFromDate} onChange={setEngagementFromDate} />
+                    <FilterInput label="Engagement To Date" type="date" value={engagementToDate} onChange={setEngagementToDate} />
                 </div>
             </CollapsibleSection>
 
