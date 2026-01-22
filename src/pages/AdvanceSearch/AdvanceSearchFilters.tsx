@@ -98,6 +98,22 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
         label: plan.plan_name,
     }));
 
+    const handleMobileChange = (val: string) => {
+        // Regex allows only digits. Empty string allowed to let user delete.
+        if (/^\d*$/.test(val)) {
+            setCombinedContact(val);
+        }
+    };
+
+    // Logic for Admin Details (No specific limit mentioned, but similar structure)
+    const [adminDetails, setAdminDetails] = useState('');
+
+    // Logic for Admin Comments (50 Char limit)
+    const handleAdminCommentsChange = (val: string) => {
+        if (val.length <= 50) {
+            setAdminComments(val);
+        }
+    };
     useEffect(() => {
         const fetchSearchData = async () => {
             try {
@@ -217,7 +233,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             <CollapsibleSection title="Contact Details">
                 {/* <CollapsibleSection title="Contact Details"> */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={setCombinedContact} />
+                    <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={handleMobileChange} />
                     <FilterInput label="Email ID" value={emailId} onChange={setEmailId} />
                     <div className="flex flex-col">
                         <FilterInput label="Address" value={address} onChange={setAddress} />
@@ -441,8 +457,12 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                             ))}
                         </select>
                     </div>
-                    <FilterInput label="Admin Details" />
-                    <FilterInput label="Admin Comments" value={adminComments} onChange={setAdminComments} />
+                    <FilterInput
+                        label="Admin Details"
+                        value={adminDetails}
+                        onChange={setAdminDetails}
+                    />
+                    <FilterInput label="Admin Comments" value={adminComments} onChange={handleAdminCommentsChange} />
                 </div>
             </CollapsibleSection>
         </form >
