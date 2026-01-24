@@ -195,6 +195,28 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
       return;
     }
 
+    const hasFilters = profileID || profileName || gender || emailId ||
+      ageFrom || ageTo || selectedCity || mobileNo ||
+      dobDay || dobMonth || dobYear;
+
+    if (!hasFilters) {
+      NotifyError("Please select at least one filter before searching.");
+      return;
+    }
+
+    // 2. Profile ID Validation (Must start with VF or VM)
+    if (profileID) {
+      const upperID = profileID.toUpperCase();
+      if (!upperID.startsWith("VF") && !upperID.startsWith("VM")) {
+        NotifyError("Profile ID must start with 'VF' or 'VM'");
+        return;
+      }
+    }
+
+    if (mobileNo && mobileNo.length < 5) {
+      NotifyError("Mobile number must be at least 5 digits long");
+      return;
+    }
     // Prepare filter data
     const filters = {
       profileID,
@@ -339,6 +361,9 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               className="w-full px-4 py-2 border border-black rounded"
               onChange={(e) => setProfileID(e.target.value)}
             />
+            <p className="mt-1 text-xs text-gray-600 italic">
+              <strong>Note:</strong> Profile ID must start with <span className=" font-bold">VF</span>or <span className=" font-bold">VM</span>.
+            </p>
           </div>
 
           {/* Profile Name */}
@@ -847,6 +872,9 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               placeholder="Enter Mobile Number"
               maxLength={10} // optional: restrict to 10 digits
             />
+            <p className="text-[12px] text-gray-500 mt-1 italic">
+              Note: Number must be minimum 5 digits.
+            </p>
           </div>
 
           {/* Father Alive */}
