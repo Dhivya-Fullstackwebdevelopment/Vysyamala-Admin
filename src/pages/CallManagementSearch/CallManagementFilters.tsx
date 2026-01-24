@@ -371,7 +371,7 @@ const CallManagementSearchFilters = ({
                         onChange={setProfileOrMobile}
                     />
                     <p className="text-xs text-gray-600 mt-1">
-                        ✅ Note: Profile ID must start with <b>VF</b> or <b>VM</b>.
+                        Note: Profile ID must start with <b>VF</b> or <b>VM</b>.
                         Mobile number must be minimum <b>5 digits</b>.
                     </p>
                 </div>
