@@ -124,6 +124,7 @@ export interface FormValues {
     dhasaBalanceMonth: string;
     dhasaBalanceDay: string;
     didi: string;
+    padham?: string;
   };
   PartnerPreference: {
     pref_state: any;
@@ -414,8 +415,9 @@ const AddProfile = () => {
         horoscope_hints: horoHint,
         rasi_kattam: rasiKattam,
         amsa_kattam: amsaKattam,
-        didi: data.HororScopeDetails.didi
+        didi: data.HororScopeDetails.didi,
         // horoscope_file: horoImage[0],
+        padham: data.HororScopeDetails.padham
       },
       suggested_pref_details: {
         owner_id: ownerID,

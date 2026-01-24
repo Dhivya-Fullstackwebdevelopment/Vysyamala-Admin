@@ -214,7 +214,7 @@ const HororScopeDetails: React.FC<hororScopeProp> = ({
           className="text-red-600 flex row items-center justify-between text-xl font-semibold  dark:text-white cursor-pointer  after-red-line::after"
           onClick={toggleSection4}
         >
-          Horoscope Details  
+          Horoscope Details
           <svg
             className={`fill-current transform ${isHoroscopeDetailsOpen ? 'rotate-180' : ''
               }`}
@@ -287,8 +287,8 @@ const HororScopeDetails: React.FC<hororScopeProp> = ({
             </div>
 
             <div className="flex w-full flex-row gap-4 max-md:flex-col">
-              {/* Birth Star Selector */}
-              <div className="w-full">
+              {/* Birth Star Selector - Takes 3/4 of the width */}
+              <div className="w-3/4 max-md:w-full">
                 <label
                   htmlFor="birthstar_name"
                   className="block text-black font-medium mb-1"
@@ -317,6 +317,22 @@ const HororScopeDetails: React.FC<hororScopeProp> = ({
                     {errors.HororScopeDetails.BirthStar.message}
                   </p>
                 )}
+              </div>
+              <div className="w-1/4 max-md:w-full">
+                <label htmlFor="padham" className="block text-black font-medium mb-1">
+                  Padham
+                </label>
+                <select
+                  id="padham"
+                  {...register('HororScopeDetails.padham', { valueAsNumber: true })}
+                  className="outline-none w-full px-4 py-2 border border-black rounded"
+                >
+                  <option value="">Select</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
               </div>
 
               <div className="w-full">

@@ -181,6 +181,10 @@ export const parentSchema = z.object({
     dhasaBalanceYear: z.string().optional(),
     dhasaBalanceMonth: z.string().optional(),
     dhasaBalanceDay: z.string().optional(),
+    padham: z.preprocess(
+      (val) => (val === "" || val === undefined ? null : Number(val)),
+      z.number().min(1).max(4).optional().nullable()
+    ),
   }),
   PartnerPreference: z.object({
     heightFrom: z.string().min(3, 'Height is required'),
