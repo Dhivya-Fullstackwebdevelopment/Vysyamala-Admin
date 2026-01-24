@@ -361,7 +361,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               className="w-full px-4 py-2 border border-black rounded"
               onChange={(e) => setProfileID(e.target.value)}
             />
-            <p className="mt-1 text-xs text-gray-600 italic">
+            <p className="mt-1 text-xs text-gray-600">
               <strong>Note:</strong> Profile ID must start with <span className=" font-bold">VF</span>or <span className=" font-bold">VM</span>.
             </p>
           </div>
@@ -872,7 +872,7 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
               placeholder="Enter Mobile Number"
               maxLength={10} // optional: restrict to 10 digits
             />
-            <p className="text-[12px] text-gray-500 mt-1 italic">
+            <p className="text-[12px] text-gray-500 mt-1">
               Note: Number must be minimum 5 digits.
             </p>
           </div>
