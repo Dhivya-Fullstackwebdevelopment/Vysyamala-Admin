@@ -55,6 +55,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const [businessName, setBusinessName] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [lastActionDate, setLastActionDate] = useState('');
+    const [lastActionToDate, setLastActionToDate] = useState('');
     const [regFromDate, setRegFromDate] = useState('');
     const [regToDate, setRegToDate] = useState('');
     const [selectedState, setSelectedState] = useState('');
@@ -208,6 +209,7 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             gender: selectedGenders.map(g => g.value).join(','),
             combinedContact, emailId,
             lastActionDate, // This will map to last_action_date
+            lastActionToDate,
             regFromDate,    // This will map to from_doj
             regToDate,
             minAnnualIncome, maxAnnualIncome,
@@ -482,7 +484,8 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                     <FilterInput label="Reg From Date" type="date" value={regFromDate} onChange={setRegFromDate} />
                     <FilterInput label="Reg To Date" type="date" value={regToDate} onChange={setRegToDate} />
-                    <FilterInput label="Last Action Date" type="date" value={lastActionDate} onChange={setLastActionDate} />
+                    <FilterInput label="Last Action From Date" type="date" value={lastActionDate} onChange={setLastActionDate} />
+                    <FilterInput label="Last Action To Date" type="date" value={lastActionToDate} onChange={setLastActionToDate} />
                     <FilterInput label="Marriage From Date" type="date" value={marriageFromDate} onChange={setMarriageFromDate} />
                     <FilterInput label="Marriage To Date" type="date" value={marriageToDate} onChange={setMarriageToDate} />
                     <FilterInput label="Engagement From Date" type="date" value={engagementFromDate} onChange={setEngagementFromDate} />

@@ -52,7 +52,9 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                     age_from: filters.ageFrom || "",
                     age_to: filters.ageTo || "", // Fixed: Age To Passing
 
-                    last_action_date: filters.lastActionDate || "",
+                    // last_action_date: filters.lastActionDate || "",
+                    from_last_action_date: filters.lastActionDate || "",
+                    to_last_action_date: filters.lastActionToDate || "",
                     from_doj: filters.regFromDate || "", // Maps Reg From -> from_doj
                     to_doj: filters.regToDate || "",
                     // DOB Parsing

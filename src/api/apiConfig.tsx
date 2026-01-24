@@ -502,6 +502,8 @@ export const commonSearch = async (data: {
     engagement_from: any;
     engagement_to: any;
     admin_details: any;
+    from_last_action_date?: any;
+    to_last_action_date?: any;
 }) => {
     try {
         const response = await apiAxios.post('api/common-search/', data);
