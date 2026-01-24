@@ -203,6 +203,31 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
+        const hasProfileID = profileID.trim() !== "";
+        const hasName = name.trim() !== "";
+        const hasDOB = dob !== "";
+
+        if (!hasProfileID && !hasName && !hasDOB) {
+            NotifyError("Please select at least one filter from Profile ID, Name, or Date of Birth before searching.");
+            return; // Stop the function here
+        }
+
+        if (profileID.trim() !== "") {
+            const upperID = profileID.toUpperCase();
+            if (!upperID.startsWith("VF") && !upperID.startsWith("VM")) {
+                NotifyError("Profile ID must start with VF or VM.");
+                return;
+            }
+        }
+
+        // 3. Specific Validation for Mobile Number (if filled)
+        if (combinedContact.trim() !== "") {
+            if (combinedContact.length < 5) {
+                NotifyError("Mobile number must be at least 5 digits.");
+                return;
+            }
+        }
+
         // FIXED: Added missing fields (ageTo, gender, combinedContact, emailId)
         const filters = {
             profileID, name, dob, ageFrom, ageTo,
@@ -252,7 +277,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <FilterInput label="Profile ID" value={profileID} onChange={setProfileID} />
+                <div className="flex flex-col">
+                    <FilterInput label="Profile ID" value={profileID} onChange={setProfileID} />
+                    <span className="text-xs text-black mt-1">Note: Must start with <b>VF</b> or <b>VM</b></span>
+                </div>
                 <FilterInput label="Name" value={name} onChange={setName} />
                 <FilterInput label="Date of Birth" type="date" value={dob} onChange={setDob} />
             </div>
@@ -260,7 +288,10 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
             <CollapsibleSection title="Contact Details">
                 {/* <CollapsibleSection title="Contact Details"> */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={handleMobileChange} />
+                    <div className="flex flex-col">
+                        <FilterInput label="Mobile / Phone / WhatsApp" value={combinedContact} onChange={handleMobileChange} />
+                        <span className="text-xs text-black mt-1">Note: Minimum <b>5 digits</b></span>
+                    </div>
                     <FilterInput label="Email ID" value={emailId} onChange={setEmailId} />
                     <div className="flex flex-col">
                         <FilterInput label="Address" value={address} onChange={setAddress} />
