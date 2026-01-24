@@ -105,7 +105,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
           next_action_from_date: filters.nextActionFromDate || "",
           next_action_to_date: filters.nextActionToDate || "",
           // action_point: filters.actionPoints || "",
-          next_action: filters.nextActionComments || "",
+          //next_action: filters.nextActionComments || "",
           action_comments: filters.actionComments || "",
           next_action_comments: filters.nextActionComments || "",
           assign_from_date: filters.assignDateFrom || "",
