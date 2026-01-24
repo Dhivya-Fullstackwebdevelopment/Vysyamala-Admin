@@ -139,70 +139,101 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   Profile
                 </NavLink> */}
               </li>
-              <div
-                className={`translate transform overflow-hidden mb-4 ${!open && 'hidden'
-                  }`}
+              <SidebarLinkGroup
+                activeCondition={
+                  pathname === "/SearchProfile" ||
+                  pathname === "/AdvancedSearch" ||
+                  pathname === "/CallManagementSearch"
+                }
               >
-                <ul className="mt-4 mb-5.5 flex flex-col">
-                  {/* Submenu Items */}
-                  {/* <li>
-                    <NavLink
-                      to="/SearchProfile"
-                      className={({ isActive }) =>
-                        'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
-                        (isActive && '!text-PrimaryRed')
-                      }
-                    >
-                      <FaSearch />
-                      Search Profile
-                    </NavLink>
-                  </li> */}
-                  {hasPermission('search_profile') && (
-                    <li>
+                {(handleClick, open) => {
+                  return (
+                    <>
+                      {/* MAIN MENU */}
                       <NavLink
-                        to="/SearchProfile"
-                        className={({ isActive }) =>
-                          'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
-                          (isActive && '!text-PrimaryRed')
-                        }
+                        to="#"
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out ${(pathname === "/SearchProfile" ||
+                            pathname === "/AdvancedSearch" ||
+                            pathname === "/CallManagementSearch") 
+                          }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          sidebarExpanded ? handleClick() : setSidebarExpanded(true);
+                        }}
                       >
                         <FaSearch />
-                        Basic Search
+                        Search
+
+                        <svg
+                          className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current ${open && "rotate-180"
+                            }`}
+                          width="20"
+                          height="20"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M4.41107 6.9107C4.73651 6.58527 5.26414 6.58527 5.58958 6.9107L10.0003 11.3214L14.4111 6.91071C14.7365 6.58527 15.2641 6.58527 15.5896 6.91071C15.915 7.23614 15.915 7.76378 15.5896 8.08922L10.5896 13.0892C10.2641 13.4147 9.73651 13.4147 9.41107 13.0892L4.41107 8.08922C4.08563 7.76378 4.08563 7.23614 4.41107 6.9107Z"
+                            fill=""
+                          />
+                        </svg>
                       </NavLink>
-                    </li>
-                  )}
-                </ul>
-                {hasPermission('advanced_profiles') && (
-                  <ul>
-                    <li>
-                      <NavLink
-                        to="/AdvancedSearch"
-                        className={({ isActive }) =>
-                          'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
-                          (isActive && '!text-PrimaryRed')
-                        }
-                      >
-                        <FaSearchPlus />
-                        Advanced Search
-                      </NavLink>
-                    </li>
-                  </ul>
-                )}
-                <ul>
-                  <li>
-                    <NavLink
-                      to="/CallManagementSearch"
-                      className={({ isActive }) =>
-                        'mt-6 group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
-                        (isActive && '!text-PrimaryRed')
-                      }
-                    >
-                      <IoCall />
-                      Call Management Search
-                    </NavLink>
-                  </li>
-                </ul>
-              </div>
+
+                      {/* DROPDOWN MENU */}
+                      <div className={`translate transform overflow-hidden ${!open && "hidden"}`}>
+                        <ul className="mt-4 mb-5.5 flex flex-col gap-2.5 pl-6">
+                          {hasPermission("search_profile") && (
+                            <li>
+                              <NavLink
+                                to="/SearchProfile"
+                                className={({ isActive }) =>
+                                  "group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out " +
+                                  (isActive && "!text-PrimaryRed")
+                                }
+                              >
+                                <FaSearch />
+                                Basic Search
+                              </NavLink>
+                            </li>
+                          )}
+
+                          {hasPermission("advanced_profiles") && (
+                            <li>
+                              <NavLink
+                                to="/AdvancedSearch"
+                                className={({ isActive }) =>
+                                  "group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out " +
+                                  (isActive && "!text-PrimaryRed")
+                                }
+                              >
+                                <FaSearchPlus />
+                                Advanced Search
+                              </NavLink>
+                            </li>
+                          )}
+
+                          <li>
+                            <NavLink
+                              to="/CallManagementSearch"
+                              className={({ isActive }) =>
+                                "group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out " +
+                                (isActive && "!text-PrimaryRed")
+                              }
+                            >
+                              <IoCall />
+                              Call Management Search
+                            </NavLink>
+                          </li>
+                        </ul>
+                      </div>
+                    </>
+                  );
+                }}
+              </SidebarLinkGroup>
+
               <SidebarLinkGroup
                 activeCondition={
                   pathname === '/forms' || pathname.includes('forms')
