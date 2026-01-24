@@ -73,7 +73,7 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                     marriage_to: filters.marriageToDate || "",
                     engagement_from: filters.engagementFromDate || "",
                     engagement_to: filters.engagementToDate || "",
-                    admin_details: filters.adminDetails || "",
+                    //admin_details: filters.adminDetails || "",
                     admin_comments: filters.adminComments || "",
 
                     // IMPORTANT: NRI Mapping (using dropdown value)
@@ -210,7 +210,7 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
                 marriage_to: filters.marriageToDate || "",
                 engagement_from: filters.engagementFromDate || "",
                 engagement_to: filters.engagementToDate || "",
-                admin_details: filters.adminDetails || "",
+                //admin_details: filters.adminDetails || "",
                 admin_comments: filters.adminComments || "",
 
                 // IMPORTANT: NRI Mapping (using dropdown value)

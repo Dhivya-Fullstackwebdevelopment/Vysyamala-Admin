@@ -16,7 +16,7 @@ import {
   IconButton, // Added
 } from "@mui/material";
 import { NotifyError } from "../../common/Toast/ToastMessage";
-import { callManagementSearch, callManagementSearchexport } from "../../api/apiConfig";
+import { callManagementSearch, callManagementSearchexport, getUsers } from "../../api/apiConfig";
 import { useNavigate } from "react-router-dom";
 
 const CallManagementSearchResults = ({ filters, onBack }: any) => {
@@ -30,6 +30,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
   const [goToPageInput, setGoToPageInput] = useState<string>(''); // Added for custom input
   const navigate = useNavigate();
   const [exportLoading, setExportLoading] = useState(false);
+  const [userList, setUserList] = useState<any[]>([]);
 
   const columns = [
     // { id: "ProfileId", label: "Profile ID" },
@@ -53,6 +54,63 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
     if (!value) return "N/A";
     return String(value).split("T")[0];
   };
+
+  const renderFilterHeader = () => {
+    const parts: string[] = [];
+
+    // Helper to find the username from the ID
+    // Note: Ensure userList is available in your component state
+    const getOwnerName = (id: string) => {
+      const user = userList.find((u: any) => u.id.toString() === id);
+      return user ? user.username : id;
+    };
+
+    // 1. Owner Name (Aligned to show name instead of ID)
+    if (filters.commonOwnerId) {
+      parts.push(`Owner - ${getOwnerName(filters.commonOwnerId)}`);
+    }
+
+    // 2. Call Dates
+    if (filters.callFromDate || filters.callToDate) {
+      parts.push(`Call date from ${filters.callFromDate || '...'}, to date ${filters.callToDate || '...'}`);
+    }
+
+    // 3. Action Dates
+    if (filters.actionFromDate || filters.actionToDate) {
+      parts.push(`Action date from ${filters.actionFromDate || '...'}, to date ${filters.actionToDate || '...'}`);
+    }
+
+    // 4. Assign Dates
+    if (filters.assignDateFrom || filters.assignDateTo) {
+      parts.push(`Assign date from ${filters.assignDateFrom || '...'}, to date ${filters.assignDateTo || '...'}`);
+    }
+
+    if (parts.length === 0) return null;
+
+    return (
+      <Box
+        sx={{
+          p: "10px 0",          // Vertical padding, 0 horizontal to align with table edge
+          mb: 1,                // Small margin bottom
+          textAlign: "center",    // Align text to the left
+          fontWeight: "500",
+          fontSize: "1rem",
+          color: "#333",        // Professional dark gray color
+        }}
+      >
+        {parts.join(" , ")}
+      </Box>
+    );
+  };
+
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      const data = await getUsers();
+      setUserList(data || []);
+    };
+    loadUsers();
+  }, []);
 
   useEffect(() => {
     const fetchFilteredData = async () => {
@@ -199,7 +257,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
         latest_call_date_to: filters.latest_call_date_to || "",
         latest_action_date_from: filters.latest_action_date_from || "",
         latest_action_date_to: filters.latest_action_date_to || "",
-        export_type:"excel"
+        export_type: "excel"
       };
 
 
@@ -264,6 +322,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
         </Box>
       ) : (
         <>
+          {renderFilterHeader()}
           <div className="mb-3 text-sm text-gray-600 font-medium">
             Showing {totalItems === 0 ? 0 : page * rowsPerPage + 1} to{" "}
             {Math.min((page + 1) * rowsPerPage, totalItems)} of {totalItems} records

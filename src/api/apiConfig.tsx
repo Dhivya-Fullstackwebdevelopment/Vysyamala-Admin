@@ -501,7 +501,7 @@ export const commonSearch = async (data: {
     marriage_to: any;
     engagement_from: any;
     engagement_to: any;
-    admin_details: any;
+    //admin_details: any;
     from_last_action_date?: any;
     to_last_action_date?: any;
     export_type?: string;
