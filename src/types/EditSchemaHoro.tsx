@@ -18,6 +18,7 @@ export const EditScheema2 = z.object({
     rasiKattam: z.string().optional(),
     amsaKattam: z.string().optional(),
     didi: z.string().optional(),
+    padham: z.string().optional().nullable(), // We keep it as string for the UI/Form state
   }),
 
 });
@@ -26,6 +27,7 @@ export const EditScheema2 = z.object({
 
 
 export interface HoroScopeDetails {
+
   HororScopeDetails: {
     timeOfBirth: string;
     PlaceofBirth: string;
@@ -43,5 +45,6 @@ export interface HoroScopeDetails {
     rasiKattam: string;
     amsaKattam: string;
     didi: string;
+    padham?: string;
   };
 }

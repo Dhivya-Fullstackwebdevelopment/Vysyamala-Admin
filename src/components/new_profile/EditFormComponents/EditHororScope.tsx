@@ -183,7 +183,11 @@ const EditHororScopeDetails: React.FC<formProps> = ({ isHoroscopeDetailsOpen, se
       setValue('HororScopeDetails.timeOfBirth', EditData[3].time_of_birth);
       setValue('HororScopeDetails.PlaceofBirth', EditData[3].place_of_birth);
       setValue('HororScopeDetails.BirthStar', EditData[3].birthstar_name);
-      //setValue('HororScopeDetails.Rasi', EditData[3].birth_rasi_name);
+      const padhamValue = EditData[3].padham !== null && EditData[3].padham !== undefined
+        ? EditData[3].padham.toString()
+        : '';
+      setValue('HororScopeDetails.padham', padhamValue);
+      //setValue('HororScopeDetails.Rasi', EditData[3].birth_rasi_name) ;
       setValue('HororScopeDetails.lagnam', EditData[3].lagnam_didi);
       setValue('HororScopeDetails.ChevvaiDhosam', EditData[3].chevvai_dosaham);
       setValue('HororScopeDetails.SarpaDhosham', EditData[3].ragu_dosham);
@@ -429,7 +433,7 @@ const EditHororScopeDetails: React.FC<formProps> = ({ isHoroscopeDetailsOpen, se
               </div>
 
               {/* Birth Star Selector */}
-              <div className="w-full">
+              {/* <div className="w-full">
                 <label
                   htmlFor="birthstar_name"
                   className="block text-[#5a5959e6] font-semibold mb-1"
@@ -455,6 +459,43 @@ const EditHororScopeDetails: React.FC<formProps> = ({ isHoroscopeDetailsOpen, se
                     {errors.HororScopeDetails.BirthStar.message}
                   </p>
                 )}
+              </div> */}
+
+              <div className="w-full flex gap-2"> {/* Wrapper to hold Star and Padham */}
+                <div className="w-3/4">
+                  <label htmlFor="birthstar_name" className="block text-[#5a5959e6] font-semibold mb-1">
+                    Birth Star<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="birthstar_name"
+                    {...register('HororScopeDetails.BirthStar')}
+                    className="outline-none w-full px-4 py-2 border font-medium border-[#b5b2b2e6] text-[#222020e6] rounded"
+                  >
+                    <option value="">-- Select --</option>
+                    {BirthStar?.map((option: any) => (
+                      <option key={option.birth_id} value={option.birth_id}>
+                        {option.birth_star}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="w-1/4">
+                  <label htmlFor="padham" className="block text-[#5a5959e6] font-semibold mb-1">
+                    Padham
+                  </label>
+                  <select
+                    id="padham"
+                    {...register('HororScopeDetails.padham')}
+                    className="outline-none w-full px-4 py-2 border font-medium border-[#b5b2b2e6] text-[#222020e6] rounded"
+                  >
+                    <option value="">Select Padham</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </select>
+                </div>
               </div>
             </div>
 

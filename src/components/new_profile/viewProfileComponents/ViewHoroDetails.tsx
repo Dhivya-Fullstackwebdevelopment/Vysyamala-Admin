@@ -860,28 +860,48 @@ const ViewHoroDetails: React.FC<pageProps> = ({ profile, setBirthStar }) => {
               </div>
 
               {/* Birth Star Selector */}
-              <div className="w-full">
-                <label
-                  htmlFor="birthstar_name"
-                  className="block text-[#5a5959e6] font-semibold mb-1"
-                >
-                  Birth Star<span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={horoDetails.birthstar_name}
-                  disabled
-                  id="birthstar_name"
-                  className="outline-none w-full px-4 py-2 border font-medium border-[#b5b2b2e6]  text-[#222020e6] rounded"
-                >
-                  <option value="" disabled>
-                    -- Select your Birth Star --
-                  </option>
-                  {BirthStar?.map((option: any) => (
-                    <option key={option.birth_id} value={option.birth_id} className='text-black font-semibold'>
-                      {option.birth_star}
+              {/* <div className="w-full"> */}
+              <div className="w-full flex gap-2"> {/* Wrapper to hold Star and Padham */}
+                <div className="w-3/4">
+                  <label
+                    htmlFor="birthstar_name"
+                    className="block text-[#5a5959e6] font-semibold mb-1"
+                  >
+                    Birth Star<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={horoDetails.birthstar_name}
+                    disabled
+                    id="birthstar_name"
+                    className="outline-none w-full px-4 py-2 border font-medium border-[#b5b2b2e6]  text-[#222020e6] rounded"
+                  >
+                    <option value="" disabled>
+                      -- Select your Birth Star --
                     </option>
-                  ))}
-                </select>
+                    {BirthStar?.map((option: any) => (
+                      <option key={option.birth_id} value={option.birth_id} className='text-black font-semibold'>
+                        {option.birth_star}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-1/4">
+                  <label htmlFor="padham" className="block text-[#5a5959e6] font-semibold mb-1">
+                    Padham
+                  </label>
+                  <select
+                    id="padham"
+                    value={horoDetails.padham}
+                    disabled
+                    className="outline-none w-full px-4 py-2 border font-medium border-[#b5b2b2e6] text-[#222020e6] rounded"
+                  >
+                    <option value="">Select Padham</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </select>
+                </div>
               </div>
             </div>
 

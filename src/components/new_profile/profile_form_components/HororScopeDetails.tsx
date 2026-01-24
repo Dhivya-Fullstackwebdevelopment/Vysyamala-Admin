@@ -214,7 +214,7 @@ const HororScopeDetails: React.FC<hororScopeProp> = ({
           className="text-red-600 flex row items-center justify-between text-xl font-semibold  dark:text-white cursor-pointer  after-red-line::after"
           onClick={toggleSection4}
         >
-          Horoscope Details
+          Horoscope Details  
           <svg
             className={`fill-current transform ${isHoroscopeDetailsOpen ? 'rotate-180' : ''
               }`}
