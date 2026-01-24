@@ -31,7 +31,8 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
   const navigate = useNavigate();
 
   const columns = [
-    { id: "ProfileId", label: "Profile ID" },
+    // { id: "ProfileId", label: "Profile ID" },
+    { id: "profile_id", label: "Profile ID" },
     { id: "particulars", label: "Particulars" },
     { id: "call_type", label: "Call Type" },
     { id: "call_comments", label: "Comments" },
