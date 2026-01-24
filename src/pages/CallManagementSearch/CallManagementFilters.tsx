@@ -256,6 +256,74 @@ const CallManagementSearchFilters = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // ✅ 1) Profile ID / Mobile Validation
+        const input = profileOrMobile.trim();
+
+        if (input) {
+            const isProfileId = /^[A-Za-z]/.test(input); // starts with letter means profile id
+
+            if (isProfileId) {
+                const upper = input.toUpperCase();
+                const validPrefix = upper.startsWith("VF") || upper.startsWith("VM");
+
+                if (!validPrefix) {
+                    NotifyError("Profile ID must start with VF or VM");
+                    return;
+                }
+            } else {
+                // ✅ Mobile number validation
+                if (!/^\d+$/.test(input)) {
+                    NotifyError("Mobile number must contain only digits");
+                    return;
+                }
+                if (input.length < 5) {
+                    NotifyError("Mobile number must be atleast 5 digits");
+                    return;
+                }
+            }
+        }
+
+        // ✅ 2) Atleast One Filter should be selected
+        const hasAnyFilter =
+            profileOrMobile ||
+            commonOwnerId ||
+            commonStatus ||
+            commonMode ||
+            commonFromDate ||
+            commonToDate ||
+
+            callFromDate ||
+            callToDate ||
+            nextCallFromDate ||
+            nextCallToDate ||
+            latestCallDateFrom ||
+            latestCallDateTo ||
+            callType.length > 0 ||
+            callStatus.length > 0 ||
+            particulars.length > 0 ||
+            callComments ||
+
+            actionFromDate ||
+            actionToDate ||
+            nextActionFromDate ||
+            nextActionToDate ||
+            latestActionDateFrom ||
+            latestActionDateTo ||
+            actionPoints.length > 0 ||
+            nextActionComments ||
+            actionComments ||
+
+            assignDateFrom ||
+            assignDateTo ||
+            assignBy ||
+            assignToOwner ||
+            assignComments;
+
+        if (!hasAnyFilter) {
+            NotifyError("Please select atleast one filter before searching");
+            return;
+        }
+
         const filters = {
             profileOrMobile,
 
@@ -324,11 +392,17 @@ const CallManagementSearchFilters = ({
             {/* ✅ Basic */}
             {/* ✅ Basic */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <FilterInput
-                    label="Profile ID / Mobile Number"
-                    value={profileOrMobile}
-                    onChange={setProfileOrMobile}
-                />
+                <div className="flex flex-col">
+                    <FilterInput
+                        label="Profile ID / Mobile Number"
+                        value={profileOrMobile}
+                        onChange={setProfileOrMobile}
+                    />
+                    <p className="text-xs text-gray-600 mt-1">
+                        ✅ Note: Profile ID must start with <b>VF</b> or <b>VM</b>.
+                        Mobile number must be minimum <b>5 digits</b>.
+                    </p>
+                </div>
 
                 <FilterSelect
                     label="Owner Name"
