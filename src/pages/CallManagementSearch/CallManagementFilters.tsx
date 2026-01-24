@@ -256,11 +256,24 @@ const CallManagementSearchFilters = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // ✅ 1) Profile ID / Mobile Validation
         const input = profileOrMobile.trim();
 
+        // 1) Logic for "At least one of the main fields must be selected"
+        // We check only: Profile/Mobile, Owner, Status, and Mode
+        const isMainFilterSelected =
+            input !== "" ||
+            commonOwnerId !== "" ||
+            commonStatus !== "" ||
+            commonMode !== "";
+
+        if (!isMainFilterSelected) {
+            NotifyError("Please select at least one filter (Profile ID/Mobile, Owner, Status, or Mode) before searching");
+            return;
+        }
+
+        // 2) Validation for Profile ID / Mobile Number if provided
         if (input) {
-            const isProfileId = /^[A-Za-z]/.test(input); // starts with letter means profile id
+            const isProfileId = /^[A-Za-z]/.test(input); // starts with letter
 
             if (isProfileId) {
                 const upper = input.toUpperCase();
@@ -271,57 +284,16 @@ const CallManagementSearchFilters = ({
                     return;
                 }
             } else {
-                // ✅ Mobile number validation
+                // Mobile number validation
                 if (!/^\d+$/.test(input)) {
                     NotifyError("Mobile number must contain only digits");
                     return;
                 }
                 if (input.length < 5) {
-                    NotifyError("Mobile number must be atleast 5 digits");
+                    NotifyError("Mobile number must be at least 5 digits");
                     return;
                 }
             }
-        }
-
-        // ✅ 2) Atleast One Filter should be selected
-        const hasAnyFilter =
-            profileOrMobile ||
-            commonOwnerId ||
-            commonStatus ||
-            commonMode ||
-            commonFromDate ||
-            commonToDate ||
-
-            callFromDate ||
-            callToDate ||
-            nextCallFromDate ||
-            nextCallToDate ||
-            latestCallDateFrom ||
-            latestCallDateTo ||
-            callType.length > 0 ||
-            callStatus.length > 0 ||
-            particulars.length > 0 ||
-            callComments ||
-
-            actionFromDate ||
-            actionToDate ||
-            nextActionFromDate ||
-            nextActionToDate ||
-            latestActionDateFrom ||
-            latestActionDateTo ||
-            actionPoints.length > 0 ||
-            nextActionComments ||
-            actionComments ||
-
-            assignDateFrom ||
-            assignDateTo ||
-            assignBy ||
-            assignToOwner ||
-            assignComments;
-
-        if (!hasAnyFilter) {
-            NotifyError("Please select atleast one filter before searching");
-            return;
         }
 
         const filters = {
