@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -84,60 +84,105 @@ const SearchProfileResults = ({ filters, onBack, No_Image_Available }: SearchPro
   const [isPrintProfile, setIsPrintProfile] = useState<boolean>(false);
   const [whatsappFormat, setWhatsappFormat] = useState<string>('');
   const [iswhatsappProfile, setIsWhatsappProfile] = useState<boolean>(false);
+  const location = useLocation();
+
+  // useEffect(() => {
+  //   const fetchFilteredData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const MatchingprofileFilter = await userMatchingProfilesFilter(
+  //         String(filters.profileID),
+  //         currentPage + 1,
+  //         itemsPerPage,
+  //         String(filters.selectedComplexions),
+  //         String(filters.selectedEducation),
+  //         String(filters.heightFrom),
+  //         String(filters.heightTo),
+  //         String(filters.minAnnualIncome),
+  //         String(filters.maxAnnualIncome),
+  //         filters.foreignInterest,
+  //         String(filters.selectedState),
+  //         String(filters.selectedCity),
+  //         String(filters.selectedMembership),
+  //         filters.hasphotos,
+  //         filters.selectedBirthStars,
+  //         String(filters.ageDifference),
+  //         filters.selectedProfessions.join(','),
+  //         String(filters.ageFrom),
+  //         String(filters.ageTo),
+  //         String(filters.sarpaDhosam),
+  //         String(filters.chevvaiDhosam),
+  //         String(filters.profileName),
+  //         String(filters.fatherAlive),
+  //         String(filters.motherAlive),
+  //         String(filters.mobileNo),    // Add mobile_no
+  //         String(filters.gender),   // Gender
+  //         String(filters.emailId),  // EmailId
+  //         filters.dobDay, // day component
+  //         filters.dobMonth, // month component
+  //         filters.dobYear, // year component
+  //         String(filters.selectedProfileStatus),
+  //         String(filters.selectedMaritalStatus),
+  //         String(filters.selectedFamilyStatus)
+  //       );
+
+  //       setMatchingData(MatchingprofileFilter.profiles || []);
+  //       setTotalItems(MatchingprofileFilter.total_count || 0);
+  //     } catch (error: any) {
+  //       NotifyError(error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (filters) {
+  //     fetchFilteredData();
+  //   }
+  // }, [filters, currentPage, itemsPerPage]);
 
   useEffect(() => {
-    const fetchFilteredData = async () => {
-      try {
-        setLoading(true);
-        const MatchingprofileFilter = await userMatchingProfilesFilter(
-          String(filters.profileID),
-          currentPage + 1,
-          itemsPerPage,
-          String(filters.selectedComplexions),
-          String(filters.selectedEducation),
-          String(filters.heightFrom),
-          String(filters.heightTo),
-          String(filters.minAnnualIncome),
-          String(filters.maxAnnualIncome),
-          filters.foreignInterest,
-          String(filters.selectedState),
-          String(filters.selectedCity),
-          String(filters.selectedMembership),
-          filters.hasphotos,
-          filters.selectedBirthStars,
-          String(filters.ageDifference),
-          filters.selectedProfessions.join(','),
-          String(filters.ageFrom),
-          String(filters.ageTo),
-          String(filters.sarpaDhosam),
-          String(filters.chevvaiDhosam),
-          String(filters.profileName),
-          String(filters.fatherAlive),
-          String(filters.motherAlive),
-          String(filters.mobileNo),    // Add mobile_no
-          String(filters.gender),   // Gender
-          String(filters.emailId),  // EmailId
-          filters.dobDay, // day component
-          filters.dobMonth, // month component
-          filters.dobYear, // year component
-          String(filters.selectedProfileStatus),
-          String(filters.selectedMaritalStatus),
-          String(filters.selectedFamilyStatus)
-        );
+    const searchParams = new URLSearchParams(location.search);
+    const view = searchParams.get('view');
 
-        setMatchingData(MatchingprofileFilter.profiles || []);
-        setTotalItems(MatchingprofileFilter.total_count || 0);
-      } catch (error: any) {
-        NotifyError(error.message);
-      } finally {
-        setLoading(false);
+    if (view === 'results') {
+      // Extract and split DOB back into individual parts for your API
+      const dob = searchParams.get('dob') || '';
+      let d = '', m = '', y = '';
+      if (dob.includes('-')) {
+        [y, m, d] = dob.split('-');
       }
-    };
 
-    if (filters) {
+      const fetchFilteredData = async () => {
+        try {
+          setLoading(true);
+          
+          // Map URL parameters to your userMatchingProfilesFilter function
+          const response = await userMatchingProfilesFilter(
+            searchParams.get('profileID') || '',
+            currentPage + 1,
+            itemsPerPage,
+            searchParams.get('city') || '',
+            searchParams.get('ageFrom') || '',
+            searchParams.get('ageTo') || '',
+            searchParams.get('profileName') || '',
+            searchParams.get('mobile') || '',
+            searchParams.get('gender') || '',
+            searchParams.get('email') || '',
+            d, m, y // Day, Month, Year parts
+          );
+
+          setMatchingData(response.profiles || []);
+          setTotalItems(response.total_count || 0);
+        } catch (error: any) {
+          NotifyError(error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
       fetchFilteredData();
     }
-  }, [filters, currentPage, itemsPerPage]);
+  }, [location.search, currentPage, itemsPerPage]);
 
   const handleChangePage = (newPage: number) => {
     setCurrentPage(newPage);

@@ -157,44 +157,111 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
     fetchSearchData();
   }, []);
 
+  // const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault();
+
+  //   // Validate age inputs only if they are provided
+  //   const ageFromNum = ageFrom ? Number(ageFrom) : null;
+  //   const ageToNum = ageTo ? Number(ageTo) : null;
+
+  //   if (ageFrom && isNaN(Number(ageFrom))) {
+  //     NotifyError("Age from must be a valid number");
+  //     return;
+  //   }
+
+  //   if (ageTo && isNaN(Number(ageTo))) {
+  //     NotifyError("Age to must be a valid number");
+  //     return;
+  //   }
+
+  //   if (ageFromNum !== null && ageToNum !== null && ageFromNum > ageToNum) {
+  //     NotifyError("Age from cannot be greater than age to");
+  //     return;
+  //   }
+
+  //   // Validate height inputs only if they are provided
+  //   if (heightFrom && isNaN(Number(heightFrom))) {
+  //     NotifyError("Height from must be a valid number");
+  //     return;
+  //   }
+
+  //   if (heightTo && isNaN(Number(heightTo))) {
+  //     NotifyError("Height to must be a valid number");
+  //     return;
+  //   }
+
+  //   if (heightFrom && heightTo && Number(heightFrom) > Number(heightTo)) {
+  //     NotifyError("Height from cannot be greater than height to");
+  //     return;
+  //   }
+
+  //   const hasFilters = profileID || profileName || gender || emailId ||
+  //     ageFrom || ageTo || selectedCity || mobileNo ||
+  //     dobDay || dobMonth || dobYear;
+
+  //   if (!hasFilters) {
+  //     NotifyError("Please select at least one filter before searching.");
+  //     return;
+  //   }
+
+  //   // 2. Profile ID Validation (Must start with VF or VM)
+  //   if (profileID) {
+  //     const upperID = profileID.toUpperCase();
+  //     if (!upperID.startsWith("VF") && !upperID.startsWith("VM")) {
+  //       NotifyError("Profile ID must start with 'VF' or 'VM'");
+  //       return;
+  //     }
+  //   }
+
+  //   if (mobileNo && mobileNo.length < 5) {
+  //     NotifyError("Mobile number must be at least 5 digits long");
+  //     return;
+  //   }
+  //   // Prepare filter data
+  //   const filters = {
+  //     profileID,
+  //     profileName,
+  //     gender,
+  //     emailId,
+  //     selectedComplexions,
+  //     selectedEducation,
+  //     heightFrom,
+  //     heightTo,
+  //     minAnnualIncome,
+  //     maxAnnualIncome,
+  //     foreignInterest,
+  //     selectedState,
+  //     selectedCity,
+  //     selectedMembership,
+  //     hasphotos,
+  //     selectedBirthStars: selectedBirthStars.join(","),
+  //     ageDifference,
+  //     selectedProfessions,
+  //     ageFrom,
+  //     ageTo,
+  //     sarpaDhosam,
+  //     chevvaiDhosam,
+  //     fatherAlive,
+  //     motherAlive,
+  //     // selectedMaritalStatus,
+  //     // selectedFamilyStatus,
+  //     mobileNo,
+  //     dobDay,
+  //     dobMonth,
+  //     dobYear,
+  //     selectedProfileStatus,
+  //     selectedMaritalStatus: selectedMaritalStatus.join(","),
+  //     selectedFamilyStatus: selectedFamilyStatus.join(","),
+  //   };
+
+  //   // Pass filters to parent component
+  //   onFilterSubmit(filters);
+  // };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Validate age inputs only if they are provided
-    const ageFromNum = ageFrom ? Number(ageFrom) : null;
-    const ageToNum = ageTo ? Number(ageTo) : null;
-
-    if (ageFrom && isNaN(Number(ageFrom))) {
-      NotifyError("Age from must be a valid number");
-      return;
-    }
-
-    if (ageTo && isNaN(Number(ageTo))) {
-      NotifyError("Age to must be a valid number");
-      return;
-    }
-
-    if (ageFromNum !== null && ageToNum !== null && ageFromNum > ageToNum) {
-      NotifyError("Age from cannot be greater than age to");
-      return;
-    }
-
-    // Validate height inputs only if they are provided
-    if (heightFrom && isNaN(Number(heightFrom))) {
-      NotifyError("Height from must be a valid number");
-      return;
-    }
-
-    if (heightTo && isNaN(Number(heightTo))) {
-      NotifyError("Height to must be a valid number");
-      return;
-    }
-
-    if (heightFrom && heightTo && Number(heightFrom) > Number(heightTo)) {
-      NotifyError("Height from cannot be greater than height to");
-      return;
-    }
-
+    // 1. Minimum Search Validation
     const hasFilters = profileID || profileName || gender || emailId ||
       ageFrom || ageTo || selectedCity || mobileNo ||
       dobDay || dobMonth || dobYear;
@@ -204,60 +271,27 @@ const SearchProfileFilters = ({ onFilterSubmit, loading }: SearchProfileFiltersP
       return;
     }
 
-    // 2. Profile ID Validation (Must start with VF or VM)
-    if (profileID) {
-      const upperID = profileID.toUpperCase();
-      if (!upperID.startsWith("VF") && !upperID.startsWith("VM")) {
-        NotifyError("Profile ID must start with 'VF' or 'VM'");
-        return;
-      }
-    }
+    // 2. Format DOB for URL (YYYY-MM-DD)
+    const formattedDob = dobYear && dobMonth && dobDay
+      ? `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`
+      : "";
 
-    if (mobileNo && mobileNo.length < 5) {
-      NotifyError("Mobile number must be at least 5 digits long");
-      return;
-    }
-    // Prepare filter data
-    const filters = {
-      profileID,
-      profileName,
-      gender,
-      emailId,
-      selectedComplexions,
-      selectedEducation,
-      heightFrom,
-      heightTo,
-      minAnnualIncome,
-      maxAnnualIncome,
-      foreignInterest,
-      selectedState,
-      selectedCity,
-      selectedMembership,
-      hasphotos,
-      selectedBirthStars: selectedBirthStars.join(","),
-      ageDifference,
-      selectedProfessions,
-      ageFrom,
-      ageTo,
-      sarpaDhosam,
-      chevvaiDhosam,
-      fatherAlive,
-      motherAlive,
-      // selectedMaritalStatus,
-      // selectedFamilyStatus,
-      mobileNo,
-      dobDay,
-      dobMonth,
-      dobYear,
-      selectedProfileStatus,
-      selectedMaritalStatus: selectedMaritalStatus.join(","),
-      selectedFamilyStatus: selectedFamilyStatus.join(","),
-    };
+    // 3. Construct URL Parameters strictly for Basic Search fields
+    const params = new URLSearchParams();
+    params.append("view", "results");
+    if (profileID) params.append("profileID", profileID.toUpperCase());
+    if (profileName) params.append("profileName", profileName);
+    if (gender) params.append("gender", gender);
+    if (emailId) params.append("email", emailId);
+    if (ageFrom) params.append("ageFrom", ageFrom);
+    if (ageTo) params.append("ageTo", ageTo);
+    if (selectedCity) params.append("city", selectedCity);
+    if (mobileNo) params.append("mobile", mobileNo);
+    if (formattedDob) params.append("dob", formattedDob);
 
-    // Pass filters to parent component
-    onFilterSubmit(filters);
+    // 4. Open in new tab (assuming your route is /SearchProfile)
+    window.open(`/SearchProfile?${params.toString()}`, '_blank');
   };
-
   const handleEducationChange = (EducationID: String) => {
     setSelectedEducation(prev =>
       prev.includes(EducationID)
