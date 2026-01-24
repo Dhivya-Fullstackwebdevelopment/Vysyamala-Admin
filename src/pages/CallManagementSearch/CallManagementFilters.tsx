@@ -260,16 +260,58 @@ const CallManagementSearchFilters = ({
 
         // 1) Logic for "At least one of the main fields must be selected"
         // We check only: Profile/Mobile, Owner, Status, and Mode
-        const isMainFilterSelected =
-            input !== "" ||
+        // const isMainFilterSelected =
+        //     input !== "" ||
+        //     commonOwnerId !== "" ||
+        //     commonStatus !== "" ||
+        //     commonMode !== "";
+
+        // if (!isMainFilterSelected) {
+        //     NotifyError("Please select at least one filter (Profile ID/Mobile, Owner, Status, or Mode) before searching");
+        //     return;
+        // }
+
+        const isAnyFilterSelected =
+            profileOrMobile.trim() !== "" ||
             commonOwnerId !== "" ||
             commonStatus !== "" ||
-            commonMode !== "";
+            commonMode !== "" ||
 
-        if (!isMainFilterSelected) {
+            // ✅ CALL FILTERS
+            callFromDate !== "" ||
+            callToDate !== "" ||
+            nextCallFromDate !== "" ||
+            nextCallToDate !== "" ||
+            latestCallDateFrom !== "" ||
+            latestCallDateTo !== "" ||
+            callType.length > 0 ||
+            callStatus.length > 0 ||
+            particulars.length > 0 ||
+            callComments.trim() !== "" ||
+
+            // ✅ ACTION FILTERS
+            actionFromDate !== "" ||
+            actionToDate !== "" ||
+            nextActionFromDate !== "" ||
+            nextActionToDate !== "" ||
+            latestActionDateFrom !== "" ||
+            latestActionDateTo !== "" ||
+            actionPoints.length > 0 ||
+            nextActionComments.trim() !== "" ||
+            actionComments.trim() !== "" ||
+
+            // ✅ ASSIGN FILTERS
+            assignDateFrom !== "" ||
+            assignDateTo !== "" ||
+            assignBy !== "" ||
+            assignToOwner !== "" ||
+            assignComments.trim() !== "";
+
+        if (!isAnyFilterSelected) {
             NotifyError("Please select at least one filter (Profile ID/Mobile, Owner, Status, or Mode) before searching");
             return;
         }
+
 
         // 2) Validation for Profile ID / Mobile Number if provided
         if (input) {

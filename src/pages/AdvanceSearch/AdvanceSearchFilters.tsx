@@ -203,14 +203,62 @@ const AdvanceSearchFilters = ({ onFilterSubmit, loading }: AdvanceSearchFiltersP
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
-        const hasProfileID = profileID.trim() !== "";
-        const hasName = name.trim() !== "";
-        const hasDOB = dob !== "";
+        // const hasProfileID = profileID.trim() !== "";
+        // const hasName = name.trim() !== "";
+        // const hasDOB = dob !== "";
 
-        if (!hasProfileID && !hasName && !hasDOB) {
+        // if (!hasProfileID && !hasName && !hasDOB) {
+        //     NotifyError("Please select at least one filter from Profile ID, Name, or Date of Birth before searching.");
+        //     return; // Stop the function here
+        // }
+
+        const isAnyFilterSelected =
+            profileID.trim() !== "" ||
+            name.trim() !== "" ||
+            dob !== "" ||
+            ageFrom.trim() !== "" ||
+            ageTo.trim() !== "" ||
+            selectedGenders.length > 0 ||
+            combinedContact.trim() !== "" ||
+            emailId.trim() !== "" ||
+            address.trim() !== "" ||
+            lastActionDate !== "" ||
+            lastActionToDate !== "" ||
+            regFromDate !== "" ||
+            regToDate !== "" ||
+            minAnnualIncome !== "" ||
+            maxAnnualIncome !== "" ||
+            fatherName.trim() !== "" ||
+            fatherOccupation.trim() !== "" ||
+            motherName.trim() !== "" ||
+            motherOccupation.trim() !== "" ||
+            businessName.trim() !== "" ||
+            companyName.trim() !== "" ||
+            selectedStates.length > 0 ||
+            cityText.trim() !== "" ||
+            createdBy !== "" ||
+            adminComments.trim() !== "" ||
+            nri !== "" ||
+            selectedProfileStatuses.length > 0 ||
+            selectedDeleteStatuses.length > 0 ||
+            selectedMaritalStatus.length > 0 ||
+            selectedBirthStars.length > 0 ||
+            selectedMembership.length > 0 ||
+            selectedEducation !== "" ||
+            selectedFieldOfStudy !== "" ||
+            selectedDegreeValues.length > 0 ||
+            otherDegree.trim() !== "" ||
+            adminDetails.trim() !== "" ||
+            marriageFromDate !== "" ||
+            marriageToDate !== "" ||
+            engagementFromDate !== "" ||
+            engagementToDate !== "";
+
+        if (!isAnyFilterSelected) {
             NotifyError("Please select at least one filter from Profile ID, Name, or Date of Birth before searching.");
-            return; // Stop the function here
+            return;
         }
+
 
         if (profileID.trim() !== "") {
             const upperID = profileID.toUpperCase();
