@@ -4,7 +4,7 @@ import {
     Box, Button, Checkbox, CircularProgress, Paper, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, TextField, Typography, IconButton
 } from '@mui/material';
-import { commonSearch } from '../../api/apiConfig';
+import { commonSearch, commonSearchExport } from '../../api/apiConfig';
 import { NotifyError } from '../../common/Toast/ToastMessage';
 import { MdVerified } from 'react-icons/md';
 import { GoUnverified } from 'react-icons/go';
@@ -19,6 +19,7 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
     const [goToPageInput, setGoToPageInput] = useState<string>('');
+    const [exportLoading, setExportLoading] = useState(false);
 
     const columns = [
         { id: "select", label: "Select" },
@@ -135,6 +136,144 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
         }
     }, [filters, currentPage, itemsPerPage]);
 
+
+    const handleExport = async () => {
+        try {
+            setExportLoading(true);
+
+            // const exportPayload = {
+            //     search_profile_id: filters.profileID || "",
+            //     profile_name: filters.name || "",
+            //     gender: filters.gender || "",
+            //     email_id: filters.emailId || "",
+            //     mobile_no: filters.combinedContact || "",
+            //     age_from: filters.ageFrom || "",
+            //     age_to: filters.ageTo || "",
+            //     from_last_action_date: filters.lastActionDate || "",
+            //     to_last_action_date: filters.lastActionToDate || "",
+            //     from_doj: filters.regFromDate || "",
+            //     to_doj: filters.regToDate || "",
+            //     dob_date: filters.dob ? filters.dob.split('-')[2] : "",
+            //     dob_month: filters.dob ? filters.dob.split('-')[1] : "",
+            //     dob_year: filters.dob ? filters.dob.split('-')[0] : "",
+            //     state: filters.states || "",
+            //     city: filters.cityText || "",
+            //     status: filters.profileStatus || "",
+            //     created_by: filters.createdBy || "",
+            //     address: filters.address || "",
+            //     foreign_intrest: filters.nri || "",
+            //     matching_stars: filters.selectedBirthStars || "",
+            //     min_anual_income: filters.minAnnualIncome || "",
+            //     max_anual_income: filters.maxAnnualIncome || "",
+            //     membership: filters.selectedMembership || "",
+            //     martial_status: filters.selectedMaritalStatus || "",
+            //     education: filters.highestEducation || "",
+            //     field_of_study: filters.fieldOfStudy || "",
+            //     degree: filters.degrees || "",
+            //     delete_status: filters.deleteStatus || "",
+
+            //     // ADDED PARAMS FOR EXPORT
+            //     export_type: "csv",
+            //     page_number: 1, // Usually exports all, but passing 1 as safe default
+            //     per_page: totalItems // Export all found records
+            // };
+
+            const exportPayload = {
+                // IDs and Names
+                search_profile_id: filters.profileID || "",
+                profile_name: filters.name || "",
+
+                // Personal
+                gender: filters.gender || "",
+                email_id: filters.emailId || "",
+                mobile_no: filters.combinedContact || "",
+                age_from: filters.ageFrom || "",
+                age_to: filters.ageTo || "", // Fixed: Age To Passing
+
+                // last_action_date: filters.lastActionDate || "",
+                from_last_action_date: filters.lastActionDate || "",
+                to_last_action_date: filters.lastActionToDate || "",
+                from_doj: filters.regFromDate || "", // Maps Reg From -> from_doj
+                to_doj: filters.regToDate || "",
+                // DOB Parsing
+                dob_date: filters.dob ? filters.dob.split('-')[2] : "",
+                dob_month: filters.dob ? filters.dob.split('-')[1] : "",
+                dob_year: filters.dob ? filters.dob.split('-')[0] : "",
+
+                // Location & Status
+                state: filters.states || "",
+                city: filters.cityText || "",
+                status: filters.profileStatus || "",
+                created_by: filters.createdBy || "",
+                address: filters.address || "",
+                marriage_from: filters.marriageFromDate || "",
+                marriage_to: filters.marriageToDate || "",
+                engagement_from: filters.engagementFromDate || "",
+                engagement_to: filters.engagementToDate || "",
+                admin_details: filters.adminDetails || "",
+                admin_comments: filters.adminComments || "",
+
+                // IMPORTANT: NRI Mapping (using dropdown value)
+                foreign_intrest: filters.nri || "",
+
+                // IMPORTANT: Stars Mapping (using the joined string)
+                matching_stars: filters.selectedBirthStars || "",
+
+                // Income
+                min_anual_income: filters.minAnnualIncome || "",
+                max_anual_income: filters.maxAnnualIncome || "",
+
+                // Dropdowns
+                membership: filters.selectedMembership || "",
+                martial_status: filters.selectedMaritalStatus || "",
+
+                // Education
+                education: filters.highestEducation || "",
+                field_of_study: filters.fieldOfStudy || "",
+                degree: filters.degrees || "",
+
+                // Professional & Family
+                father_name: filters.fatherName || "",
+                father_occupation: filters.fatherOccupation || "",
+                mother_name: filters.motherName || "",
+                mother_occupation: filters.motherOccupation || "",
+                business_name: filters.businessName || "",
+                company_name: filters.companyName || "",
+
+                // Delete Status
+                delete_status: filters.deleteStatus || "",
+
+                // Pagination
+                page_number: currentPage + 1, // API usually 1-based
+                per_page: itemsPerPage,
+                export_type: "excel",
+            };
+
+            const response = await commonSearchExport(exportPayload);
+
+            // If your API returns a file (Blob)
+            if (response instanceof Blob) {
+                const url = window.URL.createObjectURL(response);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `Advance_Search_Results_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                document.body.appendChild(link);
+                link.click();
+                link.parentNode?.removeChild(link);
+            } else if (response.Status === 1 && response.file_url) {
+                // If your API returns a URL instead of a Blob
+                window.open(response.file_url, '_blank');
+            } else {
+                NotifyError("Export failed or no data available.");
+            }
+        } catch (error) {
+            console.error("Export Error:", error);
+            NotifyError("An error occurred during export.");
+        } finally {
+            setExportLoading(false);
+        }
+    };
+
     // --- Pagination Handlers ---
     const handleGoToPage = () => {
         const pageNumber = parseInt(goToPageInput, 10);
@@ -165,6 +304,16 @@ const CommonSearchResults = ({ filters, onBack, No_Image_Available }: any) => {
             <div className="flex justify-between items-center mb-4">
                 <Button variant="contained" onClick={onBack}>
                     Back to Filters
+                </Button>
+                <Button
+                    variant="contained"
+                    color="success"
+                    onClick={handleExport}
+                    disabled={exportLoading || data.length === 0}
+                    startIcon={exportLoading ? <CircularProgress size={20} color="inherit" /> : null}
+                    sx={{ fontWeight: 'bold' }}
+                >
+                    {exportLoading ? 'Exporting...' : 'Export Profiles'}
                 </Button>
                 {/* <Typography variant="h6">Total Records: {totalItems}</Typography> */}
             </div>

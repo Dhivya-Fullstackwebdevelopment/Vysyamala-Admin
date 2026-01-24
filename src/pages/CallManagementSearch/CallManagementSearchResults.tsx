@@ -16,7 +16,7 @@ import {
   IconButton, // Added
 } from "@mui/material";
 import { NotifyError } from "../../common/Toast/ToastMessage";
-import { callManagementSearch } from "../../api/apiConfig";
+import { callManagementSearch, callManagementSearchexport } from "../../api/apiConfig";
 import { useNavigate } from "react-router-dom";
 
 const CallManagementSearchResults = ({ filters, onBack }: any) => {
@@ -29,6 +29,7 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [goToPageInput, setGoToPageInput] = useState<string>(''); // Added for custom input
   const navigate = useNavigate();
+  const [exportLoading, setExportLoading] = useState(false);
 
   const columns = [
     // { id: "ProfileId", label: "Profile ID" },
@@ -141,6 +142,92 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
     }
   }, [filters]);
 
+
+  const handleExport = async () => {
+    try {
+      setExportLoading(true);
+
+      const parseArrayParam = (val: any) => {
+        if (!val) return ""; // Return empty string if no value
+
+        // If it's already an array, just return it
+        if (Array.isArray(val)) return val;
+
+        // If it's a string (from URL), split by comma and convert to numbers
+        return String(val)
+          .split(",")
+          .map(item => item.trim())
+          .filter(item => item !== "" && !isNaN(Number(item))) // Remove empty or non-numeric items
+          .map(Number); // Convert to actual numbers
+      };
+
+      const exportPayload = {
+        search_value: filters.profileOrMobile || "",
+        owner: filters.commonOwnerId || "",
+        plan: filters.commonMode || "",
+        status: filters.commonStatus || "",
+        // from_date: filters.commonFromDate || "",
+        // to_date: filters.commonToDate || "",
+        call_from_date: filters.callFromDate || "",
+        call_to_date: filters.callToDate || "",
+        next_call_from_date: filters.nextCallFromDate || "",
+        next_call_to_date: filters.nextCallToDate || "",
+        // call_type: filters.callType || "",
+        // call_status: filters.callStatus || "",
+        // particulars: filters.particulars || "",
+
+        call_type: parseArrayParam(filters.callType), // Parses "1,2" -> [1,2]
+        call_status: parseArrayParam(filters.callStatus),
+        particulars: parseArrayParam(filters.particulars),
+        action_point: parseArrayParam(filters.actionPoints),
+
+        call_comments: filters.callComments || "",
+        action_from_date: filters.actionFromDate || "",
+        action_to_date: filters.actionToDate || "",
+        next_action_from_date: filters.nextActionFromDate || "",
+        next_action_to_date: filters.nextActionToDate || "",
+        // action_point: filters.actionPoints || "",
+        //next_action: filters.nextActionComments || "",
+        action_comments: filters.actionComments || "",
+        next_action_comments: filters.nextActionComments || "",
+        assign_from_date: filters.assignDateFrom || "",
+        assign_to_date: filters.assignDateTo || "",
+        assigned_by: filters.assignBy || "",
+        assigned_to: filters.assignToOwner || "",
+        assign_notes: filters.assignComments || "",
+        latest_call_date_from: filters.latest_call_date_from || "",
+        latest_call_date_to: filters.latest_call_date_to || "",
+        latest_action_date_from: filters.latest_action_date_from || "",
+        latest_action_date_to: filters.latest_action_date_to || "",
+        export_type:"excel"
+      };
+
+
+      const response = await callManagementSearchexport(exportPayload);
+
+      // If your API returns a file (Blob)
+      if (response instanceof Blob) {
+        const url = window.URL.createObjectURL(response);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Call_Management_Search_Results_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+      } else if (response.Status === 1 && response.file_url) {
+        // If your API returns a URL instead of a Blob
+        window.open(response.file_url, '_blank');
+      } else {
+        NotifyError("Export failed or no data available.");
+      }
+    } catch (error) {
+      console.error("Export Error:", error);
+      NotifyError("An error occurred during export.");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   // --- Pagination Handlers ---
   const handleGoToPage = () => {
     const pageNumber = parseInt(goToPageInput, 10);
@@ -158,7 +245,16 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
         <Button variant="contained" onClick={onBack}>
           Back to Filters
         </Button>
-
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleExport}
+          disabled={exportLoading || data.length === 0}
+          startIcon={exportLoading ? <CircularProgress size={20} color="inherit" /> : null}
+          sx={{ fontWeight: 'bold' }}
+        >
+          {exportLoading ? 'Exporting...' : 'Export Profiles'}
+        </Button>
         {/* Removed generic Typography here, it is now in the pagination bar */}
       </div>
 
@@ -201,14 +297,14 @@ const CallManagementSearchResults = ({ filters, onBack }: any) => {
                           {columns.map((col) => (
                             <TableCell key={col.id}>
                               {/* ✅ Clickable Profile ID */}
-                              {col.id === "ProfileId" ? (
+                              {col.id === "profile_id" ? (
                                 <span
                                   className="text-blue-600 cursor-pointer hover:underline"
                                   onClick={() =>
-                                    window.open(`/viewProfile?profileId=${row.ProfileId}`, "_blank")
+                                    window.open(`/viewProfile?profileId=${row.profile_id}`, "_blank")
                                   }
                                 >
-                                  {row.ProfileId ?? "N/A"}
+                                  {row.profile_id ?? "N/A"}
                                 </span>
                               ) : ["call_date", "next_call_date", "next_action_date", "lad_call_date"].includes(col.id) ? (
                                 formatDateOnly(row[col.id])

@@ -504,6 +504,7 @@ export const commonSearch = async (data: {
     admin_details: any;
     from_last_action_date?: any;
     to_last_action_date?: any;
+    export_type?: string;
 }) => {
     try {
         const response = await apiAxios.post('api/common-search/', data);
@@ -512,6 +513,18 @@ export const commonSearch = async (data: {
         throw error;
     }
 };
+
+export const commonSearchExport = async (data: any) => {
+    try {
+        const response = await apiAxios.post('api/common-search/', data, {
+            responseType: 'blob', // 👈 Required for binary data like Excel
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
 // User Matching Profiles Page -> Matching Records Send Email
 export const userMatchingProfilesSendEmail = async (Format: string, ProfileID: string, ToProfileID: string, ProfileOwner: string) => {
     try {
@@ -1297,3 +1310,12 @@ export const callManagementSearch = async (payload: any) => {
     const res = await apiAxios.post("api/call-management-search/", payload);
     return res.data;
 };
+
+export const callManagementSearchexport = async (payload: any) => {
+    // const res = await apiAxios.post("api/call-management-search/", payload);
+     const res = await apiAxios.post('api/call-management-search/', payload, {
+            responseType: 'blob', // 👈 Required for binary data like Excel
+        });
+    return res.data;
+};
+
