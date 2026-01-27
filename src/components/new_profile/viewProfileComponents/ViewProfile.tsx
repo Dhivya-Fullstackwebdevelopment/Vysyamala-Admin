@@ -848,7 +848,9 @@ const ViewProfile: React.FC<pageProps> = ({
                   {/* {membershipActivation !== 0 && ( */}
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="font-semibold text-[#5a5959e6]">Profile Status:</span>
-                    <span className="text-[#5a5959e6]">{profileView?.profile_status || "N/A"}</span>
+                    <span className="text-[#5a5959e6]">{profileView?.profile_status || "N/A"} {profileView?.others && profileView?.others.trim() !== "" && (
+                      <> / {profileView.others}</>
+                    )}</span>
                     <div className="h-4 border-l-2 border-gray-400 mx-1"></div>
                     <span className="font-semibold text-[#5a5959e6]">Profile Owner:</span>
                     <span className="text-[#5a5959e6]">{profileView?.profile_owner || "N/A"}</span>
