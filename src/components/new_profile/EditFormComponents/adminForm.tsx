@@ -117,11 +117,13 @@ const ProfileForm: React.FC<PageProps> = ({ profileId, EditData }) => {
   } = useForm<profileView>();
 
   const [loading, setLoading] = useState(false);
+  const [savedAdminComments, setSavedAdminComments] = useState("");
 
   // ✅ Load Admin Comments when EditData changes
   useEffect(() => {
     if (EditData?.[6]?.Admin_comments) {
       console.log("Loaded Admin Comments:", EditData[6].Admin_comments);
+      setSavedAdminComments(EditData[6].Admin_comments);
       setValue("profileView.Admin_comments", EditData[6].Admin_comments);
     }
   }, [EditData, setValue]);
@@ -153,10 +155,21 @@ const ProfileForm: React.FC<PageProps> = ({ profileId, EditData }) => {
         formData
       );
 
+      // if (response.status === 200) {
+      //   toast.success("Admin comments updated successfully!");
+      // } else {
+      //   toast.error("Failed to update comments.");
+      // }
       if (response.status === 200) {
         toast.success("Admin comments updated successfully!");
-      } else {
-        toast.error("Failed to update comments.");
+
+        // ✅ Mark this as SAVED value
+        setSavedAdminComments(adminComments);
+
+        // ✅ Sync form with saved value
+        setValue("profileView.Admin_comments", adminComments, {
+          shouldDirty: false,
+        });
       }
     } catch (error) {
       console.error("Error updating comments:", error);
