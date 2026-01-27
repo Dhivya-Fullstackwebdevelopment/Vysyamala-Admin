@@ -239,7 +239,7 @@ const ViewBasicDetails: React.FC<pageProps> = ({ profile, setGennder }) => {
                 Gender <span className="text-red-500">*</span>
               </label>
 
-              <label className="block text-[#5a5959e6] font-bold mb-1 ml-30 capitalize">
+              <label className="block text-[#5a5959e6] font-bold mb-1 ml-20 capitalize">
                 {basicDetails.Gender}
               </label>
               {/* <input

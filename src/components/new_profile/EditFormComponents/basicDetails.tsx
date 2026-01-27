@@ -405,7 +405,7 @@ const BasicDetails: React.FC<formProps> = ({
               <label className="block text-[#5a5959e6] font-semibold mb-1">
                 Gender <span className="text-red-500">*</span>
               </label>
-              <label className="block text-[#222020e6] font-medium mb-1 ml-30 capitalize">
+              <label className="block text-[#222020e6] font-medium mb-1 ml-20 capitalize">
                 {selectedGender}
               </label>
               {/* <input
