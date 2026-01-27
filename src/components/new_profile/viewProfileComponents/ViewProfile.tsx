@@ -292,6 +292,7 @@ const ViewProfile: React.FC<pageProps> = ({
   const [isPdfOptionsVisible, setIsPdfOptionsVisible] = useState(false);
   const [addonPackage, setAddonPackage] = useState<AddOnPackage[]>([]);
   const [adminComments, setAdminComments] = useState<string>('');
+  const [lastSavedComments, setLastSavedComments] = useState<string>('');
   const [isSavingComments, setIsSavingComments] = useState<boolean>(false); // To show loading state
 
   const navigate = useNavigate();
@@ -349,6 +350,7 @@ const ViewProfile: React.FC<pageProps> = ({
         setValue('profileView.membership_fromdate', formattedDateFrom);
         setValue('profileView.membership_todate', formattedDate);
         setAdminComments(profile[6].Admin_comments || '');
+        setLastSavedComments(profile[6].Admin_comments || '');
       }
     }
   }, [profile, setValue]);
@@ -406,6 +408,7 @@ const ViewProfile: React.FC<pageProps> = ({
 
       if (response.status === 200) {
         toast.success('Admin comments saved successfully!');
+        setLastSavedComments(adminComments);
         setProfileView((prev: any) => ({ ...prev, Admin_comments: adminComments }));
       } else {
         toast.error(response.data.message || 'Failed to save admin comments.', { type: 'error' });
@@ -936,7 +939,7 @@ const ViewProfile: React.FC<pageProps> = ({
                     id="admin-comments"
                     value={adminComments}
                     onChange={(e) => setAdminComments(e.target.value)}
-                    onBlur={handleSaveAdminComments}
+                    //onBlur={handleSaveAdminComments}
                     className="w-full h-32 sm:h-40 border-2 border-green-500 rounded-3xl p-4 text-[#5a5959e6] focus:outline-none focus:border-blue-700 transition duration-300 resize-none"
                   // ... other props
                   />
@@ -944,7 +947,7 @@ const ViewProfile: React.FC<pageProps> = ({
                     variant="contained"
                     size="small"
                     onClick={handleSaveAdminComments}
-                    // disabled={isSavingComments}
+                    disabled={isSavingComments}
                     className="bg-green-600 hover:bg-green-700 text-white mt-2"
                   >
                     {isSavingComments ? 'Saving...' : 'Save Admin Comments'}
