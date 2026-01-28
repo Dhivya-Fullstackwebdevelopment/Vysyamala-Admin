@@ -13,6 +13,8 @@ import {
   TextField,
   Button,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -26,6 +28,7 @@ interface Column {
 interface ViewedProfilesData {
   results: any[];
   count: number;
+  message?: string; // Add message field for backend errors
 }
 
 const getViewedProfiles = async (fromDate: string, toDate: string, page: number, rowsPerPage: number) => {
@@ -36,7 +39,7 @@ const getViewedProfiles = async (fromDate: string, toDate: string, page: number,
     limit: rowsPerPage.toString(), // Ensure correct API parameter
   });
 
-  const url = `https://app.vysyamala.com/api/call_action_received/?${params.toString()}`;
+  const url = `https://app.vysyamala.com/api/viewed-profiles/?from_date=${fromDate}&to_date=${toDate}&page=${page + 1}&limit=${rowsPerPage}`;
   const response = await axios.get(url);
   return response.data;
 };
@@ -54,30 +57,74 @@ const ViewedProfiles: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true); // State for loading
+  const [loading, setLoading] = useState<boolean>(false); // Changed to false initially
   const [totalCount, setTotalCount] = useState<number>(0);
+  
+  // Toast state
+  const [toastOpen, setToastOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
+  const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
 
-  useEffect(() => {
-    fetchData();
-  }, [fromDate, toDate, page, rowsPerPage, search]);
+  // Use local state for date inputs before submitting
+  const [localFromDate, setLocalFromDate] = useState<string>('');
+  const [localToDate, setLocalToDate] = useState<string>('');
+
+  // Remove the useEffect that automatically fetches data
+  // API will only be called when Submit button is clicked
+  // or when pagination/search changes AFTER initial submit
 
   const fetchData = async () => {
+    // Don't fetch if dates are not set
+    if (!fromDate || !toDate) {
+      return;
+    }
+    
     setLoading(true);
     try {
       const response = await getViewedProfiles(fromDate, toDate, page, rowsPerPage);
       setData(response);
       setTotalCount(response.count);
-    } catch (error) {
+      
+      // Check if there's a message from backend (like "No profile visitors found")
+      if (response.message) {
+        showToast(response.message, 'info');
+      } else if (response.count === 0) {
+        showToast('No data found for the selected date range', 'info');
+      }
+    } catch (error: any) {
       console.error('Error fetching data:', error);
+      // Handle different types of errors
+      if (error.response && error.response.data && error.response.data.message) {
+        showToast(error.response.data.message, 'error');
+      } else if (error.message) {
+        showToast(error.message, 'error');
+      } else {
+        showToast('An error occurred while fetching data', 'error');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // This useEffect runs only when pagination or search changes AFTER initial data load
+  useEffect(() => {
+    // Only fetch data if dates are already set (meaning submit was clicked before)
+    if (fromDate && toDate) {
+      fetchData();
+    }
+  }, [page, rowsPerPage, search]); // Removed fromDate and toDate from dependencies
+
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
+    
+    // Sort locally without API call
+    const sortedData = stableSort(
+      data.results,
+      getComparator(isAsc ? 'desc' : 'asc', property)
+    );
+    setData({ ...data, results: sortedData });
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,14 +135,26 @@ const ViewedProfiles: React.FC = () => {
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     if (name === 'fromDate') {
-      setFromDate(value);
+      setLocalFromDate(value);
     } else if (name === 'toDate') {
-      setToDate(value);
+      setLocalToDate(value);
     }
   };
 
   const handleSubmit = () => {
-    fetchData(); // Call the API with the selected filters
+    // Don't submit if dates are not selected
+    if (!localFromDate || !localToDate) {
+      showToast('Please select both From Date and To Date', 'warning');
+      return;
+    }
+    
+    // Apply the locally selected dates to the actual filter state
+    setFromDate(localFromDate);
+    setToDate(localToDate);
+    setPage(0); // Reset to first page when submitting new dates
+    
+    // Fetch data with the selected dates
+    fetchData();
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -107,6 +166,20 @@ const ViewedProfiles: React.FC = () => {
   ) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
+  };
+
+  // Toast functions
+  const showToast = (message: string, severity: 'success' | 'info' | 'warning' | 'error' = 'info') => {
+    setToastMessage(message);
+    setToastSeverity(severity);
+    setToastOpen(true);
+  };
+
+  const handleCloseToast = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToastOpen(false);
   };
 
   const columns: Column[] = [
@@ -180,9 +253,30 @@ const ViewedProfiles: React.FC = () => {
     getComparator(order, orderBy),
   );
 
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black">Viewed Profiles <span className="text-lg font-normal">({totalCount})</span></h1>
+      
+      {/* Toast/Snackbar for messages */}
+      <Snackbar 
+        open={toastOpen} 
+        autoHideDuration={6000} 
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseToast} 
+          severity={toastSeverity} 
+          sx={{ width: '100%' }}
+          variant="filled"
+        >
+          {toastMessage}
+        </Alert>
+      </Snackbar>
+      
       <div className="w-full py-2 flex justify-between">
         <div className="w-full flex text-right justify-between ">
           <div className="flex items-center space-x-2">
@@ -190,20 +284,25 @@ const ViewedProfiles: React.FC = () => {
               label="From Date"
               type="date"
               name="fromDate"
-              value={fromDate}
+              value={localFromDate}
               onChange={handleDateChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{
+                max: today // Restrict to today only
+              }}
+              required
             />
             <TextField
               label="To Date"
               type="date"
               name="toDate"
-              value={toDate}
+              value={localToDate}
               onChange={handleDateChange}
               InputLabelProps={{ shrink: true }}
               inputProps={{
-                max: new Date().toISOString().split('T')[0] // This disables future dates
+                max: today // Restrict to today only
               }}
+              required
             />
 
             <Button variant="contained" onClick={handleSubmit}>
@@ -216,6 +315,7 @@ const ViewedProfiles: React.FC = () => {
             margin="normal"
             value={search}
             onChange={handleSearchChange}
+            disabled={!fromDate || !toDate} // Disable search until dates are submitted
           />
         </div>
       </div>
@@ -224,7 +324,7 @@ const ViewedProfiles: React.FC = () => {
           <Table sx={{ border: '1px solid #E0E0E0' }} stickyHeader>
             <TableHead>
               <TableRow>
-                {columns.map((column, index) => (
+                {columns.map((column, _index) => (
                   <TableCell
                     sx={{
                       borderBottom: '1px solid #E0E0E0', // Applying bottom border
@@ -249,9 +349,6 @@ const ViewedProfiles: React.FC = () => {
                     </TableSortLabel>
                   </TableCell>
                 ))}
-                {/* <TableCell className="!text-red-600 !text-base !text-nowrap !font-semibold">
-                  Actions
-                </TableCell> */}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -261,10 +358,15 @@ const ViewedProfiles: React.FC = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : (
-                // filteredResults
-                //   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                data.results
+              ) : data.results.length === 0 && fromDate && toDate ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">
+                    {/* No message here since we show toast */}
+                  </TableCell>
+                </TableRow>
+              ) : data.results.length > 0 ? (
+                filteredResults
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row, index) => (
                     <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                       {columns.map((column) => (
@@ -276,38 +378,33 @@ const ViewedProfiles: React.FC = () => {
                           {row[column.id]}
                         </TableCell>
                       ))}
-                      {/* <TableCell>
-                     
-                     <Button>
-                       <Link to={`/editProfile?profileId=${row.ProfileId}`}>
-                         Edit
-                       </Link>
-                     </Button>
-                     <Button onClick={() => handleDelete(row.ContentId)}>
-                       Delete
-                     </Button>
-                   </TableCell> */}
                     </TableRow>
                   ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">
+                    Select dates and click Submit to view data
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
-        <TablePagination
-          rowsPerPageOptions={[1, 2, 10, 25, 100]}
-          component="div"
-          count={data.count}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {data.results.length > 0 && (
+          <TablePagination
+            rowsPerPageOptions={[1, 2, 10, 25, 100]}
+            component="div"
+            count={filteredResults.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        )}
       </Paper>
     </>
   );
 };
 
 export default ViewedProfiles;
-
-

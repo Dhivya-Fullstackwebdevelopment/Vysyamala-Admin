@@ -13,6 +13,8 @@ import {
   TextField,
   Button,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -28,6 +30,7 @@ interface Column {
 interface WishlistsProfileData {
   results: any[];
   count: number;
+  message?: string;
 }
 
 const getWishlistsProfile = async (fromDate: string, toDate: string, page: number, rowsPerPage: number) => {
@@ -53,50 +56,176 @@ const WishlistsProfile: React.FC = () => {
     count: 0,
   });
   const [search, setSearch] = useState<string>('');
+  
+  // States for actual filters (used in API calls)
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true);
+  
+  // Local states for date inputs before submit
+  const [localFromDate, setLocalFromDate] = useState<string>('');
+  const [localToDate, setLocalToDate] = useState<string>('');
+  
+  const [loading, setLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
+  
+  // Toast states
+  const [toastOpen, setToastOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
+  const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
 
+  // This effect runs only when pagination changes AFTER initial data load
   useEffect(() => {
-    fetchData();
-  }, [fromDate, toDate, page, rowsPerPage, search]);
+    // Only fetch data if dates are already set (meaning submit was clicked before)
+    if (fromDate && toDate) {
+      fetchData();
+    }
+  }, [page, rowsPerPage]);
 
   const fetchData = async () => {
+    // Validate dates before API call
+    if (!fromDate || !toDate) {
+      showToast("Please select both From Date and To Date", "warning");
+      return;
+    }
+    
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
+      showToast("Invalid date format. Please use YYYY-MM-DD format", "error");
+      return;
+    }
+    
+    // Validate date range
+    if (new Date(fromDate) > new Date(toDate)) {
+      showToast("From Date cannot be after To Date", "warning");
+      return;
+    }
+    
     setLoading(true);
     try {
       const response = await getWishlistsProfile(fromDate, toDate, page, rowsPerPage);
       setData(response);
       setTotalCount(response.count);
-    } catch (error) {
+      
+      // Check if there's a message from backend
+      if (response.message) {
+        showToast(response.message, "info");
+      } else if (response.count === 0) {
+        showToast("No data found for the selected date range", "info");
+      }
+    } catch (error: any) {
       console.error('Error fetching data:', error);
+      
+      // Handle 404 error
+      if (error.response && error.response.status === 404) {
+        showToast("API endpoint not found. Please check the server configuration.", "error");
+      }
+      // Handle 400 Bad Request error
+      else if (error.response && error.response.status === 400) {
+        let errorMsg = "Invalid request parameters";
+        
+        if (error.response.data) {
+          if (typeof error.response.data === 'string') {
+            errorMsg = error.response.data;
+          } else if (error.response.data.message) {
+            errorMsg = error.response.data.message;
+          } else if (error.response.data.detail) {
+            errorMsg = error.response.data.detail;
+          } else if (error.response.data.error) {
+            errorMsg = error.response.data.error;
+          }
+        }
+        showToast(errorMsg, "error");
+      }
+      // Handle 500 Internal Server Error
+      else if (error.response && error.response.status === 500) {
+        showToast("Internal server error. Please try again later.", "error");
+      }
+      // Handle network errors
+      else if (error.code === 'ERR_NETWORK') {
+        showToast("Network error. Please check your internet connection.", "error");
+      }
+      // Handle other errors
+      else if (error.message) {
+        showToast(error.message, "error");
+      } 
+      else {
+        showToast("An error occurred while fetching data", "error");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  // Toast functions
+  const showToast = (message: string, severity: 'success' | 'info' | 'warning' | 'error' = 'info') => {
+    setToastMessage(message);
+    setToastSeverity(severity);
+    setToastOpen(true);
+  };
+
+  const handleCloseToast = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToastOpen(false);
   };
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
+    
+    // Sort locally without API call
+    const sortedData = stableSort(
+      data.results,
+      getComparator(isAsc ? 'desc' : 'asc', property)
+    );
+    setData({ ...data, results: sortedData });
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
     setPage(0); // Reset page to 0 when search term changes
+    
+    // Search locally without API call
+    const filtered = data.results.filter((row) =>
+      Object.values(row).some((value) =>
+        String(value).toLowerCase().includes(event.target.value.toLowerCase())
+      )
+    );
+    setData({ ...data, results: filtered });
+    setTotalCount(filtered.length);
   };
 
-  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLocalDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     if (name === 'fromDate') {
-      setFromDate(value);
+      setLocalFromDate(value);
     } else if (name === 'toDate') {
-      setToDate(value);
+      setLocalToDate(value);
     }
   };
 
   const handleSubmit = () => {
-    fetchData(); // Call the API with the selected filters
+    // Validate dates
+    if (!localFromDate || !localToDate) {
+      showToast("Please select both From Date and To Date", "warning");
+      return;
+    }
+    
+    if (new Date(localFromDate) > new Date(localToDate)) {
+      showToast("From Date cannot be after To Date", "warning");
+      return;
+    }
+    
+    // Apply the locally selected dates to the actual filter state
+    setFromDate(localFromDate);
+    setToDate(localToDate);
+    setPage(0); // Reset to first page when submitting new dates
+    
+    // Fetch data with the selected dates
+    fetchData();
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -143,6 +272,7 @@ const WishlistsProfile: React.FC = () => {
       ? (a: any, b: any) => descendingComparator(a, b, orderBy)
       : (a: any, b: any) => -descendingComparator(a, b, orderBy);
   };
+  
   const stableSort = (array: any[], comparator: (a: any, b: any) => number) => {
     const stabilizedThis = array.map(
       (el, index) => [el, index] as [any, number],
@@ -155,6 +285,7 @@ const WishlistsProfile: React.FC = () => {
     return stabilizedThis.map((el) => el[0]);
   };
 
+  // Filter results based on search
   const filteredResults = stableSort(
     data.results.filter((row) =>
       Object.values(row).some((value) =>
@@ -164,9 +295,30 @@ const WishlistsProfile: React.FC = () => {
     getComparator(order, orderBy),
   );
 
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black">Wishlist Profiles <span className="text-lg font-normal">({totalCount})</span></h1>
+      
+      {/* Toast/Snackbar for messages */}
+      <Snackbar 
+        open={toastOpen} 
+        autoHideDuration={6000} 
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseToast} 
+          severity={toastSeverity} 
+          sx={{ width: '100%' }}
+          variant="filled"
+        >
+          {toastMessage}
+        </Alert>
+      </Snackbar>
+      
       <div className="w-full py-2 flex justify-between">
         <div className="w-full text-right flex justify-between">
           <div className="flex items-center space-x-2">
@@ -174,20 +326,25 @@ const WishlistsProfile: React.FC = () => {
               label="From Date"
               type="date"
               name="fromDate"
-              value={fromDate}
-              onChange={handleDateChange}
+              value={localFromDate}
+              onChange={handleLocalDateChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{
+                max: today // Restrict to today only
+              }}
+              required
             />
             <TextField
               label="To Date"
               type="date"
               name="toDate"
-              value={toDate}
-              onChange={handleDateChange}
+              value={localToDate}
+              onChange={handleLocalDateChange}
               InputLabelProps={{ shrink: true }}
               inputProps={{
-                max: new Date().toISOString().split('T')[0] // This disables future dates
+                max: today // Restrict to today only
               }}
+              required
             />
 
             <Button variant="contained" onClick={handleSubmit}>
@@ -200,6 +357,7 @@ const WishlistsProfile: React.FC = () => {
             margin="normal"
             value={search}
             onChange={handleSearchChange}
+            disabled={!fromDate || !toDate} // Disable search until dates are submitted
           />
         </div>
       </div>
@@ -213,7 +371,6 @@ const WishlistsProfile: React.FC = () => {
                   <TableCell
                     sx={{
                       borderBottom: '1px solid #E0E0E0',
-
                       background: '#FFF9C9',
                       color: '#DC2635',
                       fontSize: '1rem',
@@ -233,9 +390,6 @@ const WishlistsProfile: React.FC = () => {
                     </TableSortLabel>
                   </TableCell>
                 ))}
-                {/* <TableCell className="!text-red-600 !text-base !text-nowrap !font-semibold">
-                  Actions
-                </TableCell> */}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -245,10 +399,15 @@ const WishlistsProfile: React.FC = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : (
-                // filteredResults
-                //   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                data.results
+              ) : data.results.length === 0 && fromDate && toDate ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">
+                    {/* Message shown in toast */}
+                  </TableCell>
+                </TableRow>
+              ) : data.results.length > 0 ? (
+                filteredResults
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row, index) => (
                     <TableRow
                       sx={{ whiteSpace: 'nowrap' }}
@@ -262,33 +421,30 @@ const WishlistsProfile: React.FC = () => {
                           {row[column.id]}
                         </TableCell>
                       ))}
-                      {/* <TableCell>
-                     
-                     <Button>
-                       <Link to={`/editProfile?profileId=${row.ProfileId}`}>
-                         Edit
-                       </Link>
-                     </Button>
-                     <Button onClick={() => handleDelete(row.ContentId)}>
-                       Delete
-                     </Button>
-                   </TableCell> */}
                     </TableRow>
                   ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">
+                    Select dates and click Submit to view data
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component="div"
-          count={data.count}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {data.results.length > 0 && (
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 100]}
+            component="div"
+            count={filteredResults.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        )}
       </Paper>
     </>
   );
