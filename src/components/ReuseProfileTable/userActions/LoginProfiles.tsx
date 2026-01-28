@@ -12,9 +12,14 @@ import {
   TextField,
   Button,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // ✅ import navigate hook
+import { getMembershipPlans } from '../../../api/apiConfig';
 
 interface Column {
   id: string;
@@ -30,12 +35,15 @@ interface LoginLogsData {
   results: any[];
 }
 
-const getLoginLogs = async (date: string, fromDate: string, toDate: string, page: number, rowsPerPage: number) => {
+const getLoginLogs = async (date: string, fromDate: string, toDate: string, page: number, rowsPerPage: number, planId?: string) => {
   const params = new URLSearchParams();
 
+  // Only append if the value is actually present
   if (date) params.append('date', date);
   if (fromDate) params.append('from_date', fromDate);
   if (toDate) params.append('to_date', toDate);
+  if (planId) params.append('plan', planId);
+
   params.append('page', (page + 1).toString());
   params.append('per_page', rowsPerPage.toString());
 
@@ -63,14 +71,47 @@ const LoginProfiles: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number>(0);
   const navigate = useNavigate(); // ✅ hook
 
+  const [plans, setPlans] = useState<{ id: number; plan_name: string }[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
+  const [fromDateInput, setFromDateInput] = useState<string>('');
+  const [toDateInput, setToDateInput] = useState<string>('');
+  const [specificDateInput, setSpecificDateInput] = useState<string>('');
+  const [planInput, setPlanInput] = useState<string>('');
+  const [filters, setFilters] = useState({
+    fromDate: '',
+    toDate: '',
+    specificDate: '',
+    planId: ''
+  });
+
+  // Fetch Plans on mount
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await getMembershipPlans();
+        if (res.status) setPlans(res.plans);
+      } catch (err) {
+        console.error("Failed to fetch plans", err);
+      }
+    };
+    fetchPlans();
+  }, []);
+
   useEffect(() => {
     fetchData();
-  }, [date, fromDate, toDate, page, rowsPerPage]);
+  }, [page, rowsPerPage, filters]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getLoginLogs(date, fromDate, toDate, page, rowsPerPage);
+      const response = await getLoginLogs(
+        filters.specificDate,
+        filters.fromDate,
+        filters.toDate,
+        page,
+        rowsPerPage,
+        filters.planId
+      );
       setData(response);
       setTotalCount(response.count);
     } catch (error) {
@@ -102,9 +143,19 @@ const LoginProfiles: React.FC = () => {
     }
   };
 
+  // const handleSubmit = () => {
+  //   setPage(0);
+  //   fetchData();
+  // };
+
   const handleSubmit = () => {
     setPage(0);
-    fetchData();
+    setFilters({
+      fromDate: fromDate,        // Use fromDate instead of fromDateInput
+      toDate: toDate,            // Use toDate instead of toDateInput
+      specificDate: specificDateInput,
+      planId: selectedPlan
+    });
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -129,6 +180,8 @@ const LoginProfiles: React.FC = () => {
     { id: 'Profile_name', label: 'Profile Name', minWidth: 150, align: 'left' },
     { id: 'EmailId', label: 'Email ID', minWidth: 200, align: 'left' },
     { id: 'Mobile_no', label: 'Mobile No', minWidth: 130, align: 'left' },
+    { id: 'plan_name', label: 'Plan', minWidth: 130, align: 'left' },
+    { id: 'status_name', label: 'Status', minWidth: 130, align: 'left' },
     { id: 'Last_login_date', label: 'Last Login Date', minWidth: 120, align: 'left' },
   ];
 
@@ -173,8 +226,9 @@ const LoginProfiles: React.FC = () => {
               label="Specific Date"
               type="date"
               name="date"
-              value={date}
-              onChange={handleDateChange}
+              value={specificDateInput}
+              // onChange={handleDateChange}
+              onChange={(e) => setSpecificDateInput(e.target.value)}
               InputLabelProps={{ shrink: true }}
             />
             <TextField
@@ -182,7 +236,8 @@ const LoginProfiles: React.FC = () => {
               type="date"
               name="fromDate"
               value={fromDate}
-              onChange={handleDateChange}
+              // onChange={handleDateChange} 
+              onChange={(e) => setFromDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
             />
             <TextField
@@ -190,12 +245,37 @@ const LoginProfiles: React.FC = () => {
               type="date"
               name="toDate"
               value={toDate}
-              onChange={handleDateChange}
+              // onChange={handleDateChange}
+              onChange={(e) => setToDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
               inputProps={{
                 max: new Date().toISOString().split('T')[0] // This disables future dates
               }}
             />
+            <FormControl sx={{ minWidth: 200 }} size="medium">
+              <InputLabel id="plan-select-label">Select Plan</InputLabel>
+              <Select
+                labelId="plan-select-label"
+                value={selectedPlan}
+                label="Select Plan"
+                onChange={(e) => setSelectedPlan(e.target.value)}
+                // onChange={(e) => setPlanInput(e.target.value)}
+                sx={{
+                  textAlign: 'left', // Ensures text aligns to the left as per your image
+                  '.MuiSelect-select': {
+                    paddingLeft: '14px', // Standard MUI padding for alignment
+                  }
+                }}
+              >
+                <MenuItem value=""><em>Select Plans</em></MenuItem>
+                {plans.map((plan) => (
+                  <MenuItem key={plan.id} value={plan.id.toString()}>
+                    {plan.plan_name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <Button variant="contained" onClick={handleSubmit}>
               Submit
             </Button>
@@ -264,31 +344,29 @@ const LoginProfiles: React.FC = () => {
                       tabIndex={-1}
                       key={index}
                     >
-                      {columns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          onClick={
-                            column.id === 'ProfileId'
-                              ? () => navigate(`/viewProfile?profileId=${row.ProfileId}`)
-                              : undefined
-                          }
-                          sx={
-                            column.id === 'ProfileId'
-                              ? {
-                                color: 'blue',
-                                cursor: 'pointer',
-                                textDecoration: 'none',
-                                '&:hover': { textDecoration: 'underline' },
-                              }
-                              : {}
-                          }
-                        >
-                          {column.id === 'Last_login_date'
-                            ? formatDateOnly(row[column.id])
-                            : row[column.id]}
-                        </TableCell>
-                      ))}
+                      {columns.map((column) => {
+                        const rawValue = row[column.id];
+                        // Determine display value: format it if it's a date, otherwise check if it exists
+                        let displayValue = column.id === 'Last_login_date'
+                          ? formatDateOnly(rawValue)
+                          : rawValue;
+
+                        // Final check for empty/null values
+                        if (displayValue === null || displayValue === undefined || displayValue === '') {
+                          displayValue = 'N/A';
+                        }
+
+                        return (
+                          <TableCell
+                            key={column.id}
+                            align={column.align}
+                            onClick={column.id === 'ProfileId' ? () => navigate(`/viewProfile?profileId=${row.ProfileId}`) : undefined}
+                            sx={column.id === 'ProfileId' ? { color: 'blue', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } } : {}}
+                          >
+                            {displayValue}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))
               )}

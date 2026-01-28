@@ -56,18 +56,18 @@ const WishlistsProfile: React.FC = () => {
     count: 0,
   });
   const [search, setSearch] = useState<string>('');
-  
+
   // States for actual filters (used in API calls)
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
-  
+
   // Local states for date inputs before submit
   const [localFromDate, setLocalFromDate] = useState<string>('');
   const [localToDate, setLocalToDate] = useState<string>('');
-  
+
   const [loading, setLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
-  
+
   // Toast states
   const [toastOpen, setToastOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -81,77 +81,29 @@ const WishlistsProfile: React.FC = () => {
     }
   }, [page, rowsPerPage]);
 
-  const fetchData = async () => {
-    // Validate dates before API call
-    if (!fromDate || !toDate) {
+  const fetchData = async (fDate?: string, tDate?: string) => {
+    // Use passed arguments OR fall back to existing state
+    const effectiveFromDate = fDate || fromDate;
+    const effectiveToDate = tDate || toDate;
+
+    // 1. Validate using the effective values (not the state)
+    if (!effectiveFromDate || !effectiveToDate) {
       showToast("Please select both From Date and To Date", "warning");
       return;
     }
-    
-    // Validate date format
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
-      showToast("Invalid date format. Please use YYYY-MM-DD format", "error");
-      return;
-    }
-    
-    // Validate date range
-    if (new Date(fromDate) > new Date(toDate)) {
-      showToast("From Date cannot be after To Date", "warning");
-      return;
-    }
-    
+
     setLoading(true);
     try {
-      const response = await getWishlistsProfile(fromDate, toDate, page, rowsPerPage);
+      const response = await getWishlistsProfile(effectiveFromDate, effectiveToDate, page, rowsPerPage);
       setData(response);
       setTotalCount(response.count);
-      
-      // Check if there's a message from backend
-      if (response.message) {
-        showToast(response.message, "info");
-      } else if (response.count === 0) {
+
+      if (response.count === 0) {
         showToast("No data found for the selected date range", "info");
       }
     } catch (error: any) {
       console.error('Error fetching data:', error);
-      
-      // Handle 404 error
-      if (error.response && error.response.status === 404) {
-        showToast("API endpoint not found. Please check the server configuration.", "error");
-      }
-      // Handle 400 Bad Request error
-      else if (error.response && error.response.status === 400) {
-        let errorMsg = "Invalid request parameters";
-        
-        if (error.response.data) {
-          if (typeof error.response.data === 'string') {
-            errorMsg = error.response.data;
-          } else if (error.response.data.message) {
-            errorMsg = error.response.data.message;
-          } else if (error.response.data.detail) {
-            errorMsg = error.response.data.detail;
-          } else if (error.response.data.error) {
-            errorMsg = error.response.data.error;
-          }
-        }
-        showToast(errorMsg, "error");
-      }
-      // Handle 500 Internal Server Error
-      else if (error.response && error.response.status === 500) {
-        showToast("Internal server error. Please try again later.", "error");
-      }
-      // Handle network errors
-      else if (error.code === 'ERR_NETWORK') {
-        showToast("Network error. Please check your internet connection.", "error");
-      }
-      // Handle other errors
-      else if (error.message) {
-        showToast(error.message, "error");
-      } 
-      else {
-        showToast("An error occurred while fetching data", "error");
-      }
+      showToast("An error occurred while fetching data", "error");
     } finally {
       setLoading(false);
     }
@@ -175,7 +127,7 @@ const WishlistsProfile: React.FC = () => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-    
+
     // Sort locally without API call
     const sortedData = stableSort(
       data.results,
@@ -187,7 +139,7 @@ const WishlistsProfile: React.FC = () => {
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
     setPage(0); // Reset page to 0 when search term changes
-    
+
     // Search locally without API call
     const filtered = data.results.filter((row) =>
       Object.values(row).some((value) =>
@@ -213,19 +165,19 @@ const WishlistsProfile: React.FC = () => {
       showToast("Please select both From Date and To Date", "warning");
       return;
     }
-    
+
     if (new Date(localFromDate) > new Date(localToDate)) {
       showToast("From Date cannot be after To Date", "warning");
       return;
     }
-    
+
     // Apply the locally selected dates to the actual filter state
     setFromDate(localFromDate);
     setToDate(localToDate);
     setPage(0); // Reset to first page when submitting new dates
-    
+
     // Fetch data with the selected dates
-    fetchData();
+    fetchData(localFromDate, localToDate);
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -247,16 +199,20 @@ const WishlistsProfile: React.FC = () => {
       align: 'center',
     },
     { id: 'profile_from_name', label: 'Profile From Name', minWidth: 150 },
-    { id: 'profile_from_mobile', label: 'Profile From Mobile', minWidth: 150 },
+    // { id: 'profile_from_mobile', label: 'Profile From Mobile', minWidth: 150 },
     { id: 'profile_from_gender', label: 'Profile From Gender', minWidth: 100 },
     { id: 'profile_from_city', label: 'Profile From City', minWidth: 150 },
     { id: 'profile_from_state', label: 'Profile From State', minWidth: 150 },
+    { id: 'profile_from_plan', label: 'Profile From Plan', minWidth: 150 },
+    { id: 'profile_from_status', label: 'Profile From Status', minWidth: 150 },
     { id: 'profile_to_id', label: 'Profile To ID', minWidth: 150 },
     { id: 'profile_to_name', label: 'Profile To Name', minWidth: 150 },
-    { id: 'profile_to_mobile', label: 'Profile To Mobile', minWidth: 150 },
+    // { id: 'profile_to_mobile', label: 'Profile To Mobile', minWidth: 150 },
     { id: 'profile_to_gender', label: 'Profile To Gender', minWidth: 100 },
     { id: 'profile_to_city', label: 'Profile To City', minWidth: 150 },
     { id: 'profile_to_state', label: 'Profile To State', minWidth: 150 },
+    { id: 'profile_to_plan', label: 'Profile To Plan', minWidth: 150 },
+    { id: 'profile_to_status', label: 'Profile To Status', minWidth: 150 },
     { id: 'marked_datetime', label: 'Marked Date/Time', minWidth: 200 },
     { id: 'status', label: 'Status', minWidth: 100 },
   ];
@@ -272,7 +228,7 @@ const WishlistsProfile: React.FC = () => {
       ? (a: any, b: any) => descendingComparator(a, b, orderBy)
       : (a: any, b: any) => -descendingComparator(a, b, orderBy);
   };
-  
+
   const stableSort = (array: any[], comparator: (a: any, b: any) => number) => {
     const stabilizedThis = array.map(
       (el, index) => [el, index] as [any, number],
@@ -301,24 +257,24 @@ const WishlistsProfile: React.FC = () => {
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black">Wishlist Profiles <span className="text-lg font-normal">({totalCount})</span></h1>
-      
+
       {/* Toast/Snackbar for messages */}
-      <Snackbar 
-        open={toastOpen} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={6000}
         onClose={handleCloseToast}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseToast} 
-          severity={toastSeverity} 
+        <Alert
+          onClose={handleCloseToast}
+          severity={toastSeverity}
           sx={{ width: '100%' }}
           variant="filled"
         >
           {toastMessage}
         </Alert>
       </Snackbar>
-      
+
       <div className="w-full py-2 flex justify-between">
         <div className="w-full text-right flex justify-between">
           <div className="flex items-center space-x-2">
@@ -416,11 +372,21 @@ const WishlistsProfile: React.FC = () => {
                       tabIndex={-1}
                       key={index}
                     >
-                      {columns.map((column) => (
-                        <TableCell key={column.id} align={column.align}>
-                          {row[column.id]}
-                        </TableCell>
-                      ))}
+                      {columns.map((column) => {
+                        let value = row[column.id];
+
+                        // 1. Format the Date column (Marked Date/Time)
+                        // if (column.id === 'marked_datetime' && value) {
+                        //   value = value.includes('T') ? value.split('T')[0] : value;
+                        // }
+
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {/* 👈 FIX: Fallback to N/A if value is empty/null */}
+                            {value || "N/A"}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))
               ) : (

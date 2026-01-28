@@ -15,6 +15,8 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -31,7 +33,7 @@ interface ViewedProfilesData {
   message?: string; // Add message field for backend errors
 }
 
-const getViewedProfiles = async (fromDate: string, toDate: string, page: number, rowsPerPage: number) => {
+const getViewedProfiles = async (fromDate: string, toDate: string, page: number, rowsPerPage: number, mutualOnly: boolean) => {
   const params = new URLSearchParams({
     from_date: fromDate,
     to_date: toDate,
@@ -39,11 +41,15 @@ const getViewedProfiles = async (fromDate: string, toDate: string, page: number,
     limit: rowsPerPage.toString(), // Ensure correct API parameter
   });
 
-  const url = `https://app.vysyamala.com/api/viewed-profiles/?from_date=${fromDate}&to_date=${toDate}&page=${page + 1}&limit=${rowsPerPage}`;
+  if (mutualOnly) {
+    params.append('mutual_only', '1');
+  }
+
+  // const url = `https://app.vysyamala.com/api/viewed-profiles/?from_date=${fromDate}&to_date=${toDate}&page=${page + 1}&limit=${rowsPerPage}`;
+  const url = `https://app.vysyamala.com/api/viewed-profiles/?${params.toString()}`;
   const response = await axios.get(url);
   return response.data;
 };
-
 
 const ViewedProfiles: React.FC = () => {
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
@@ -59,7 +65,7 @@ const ViewedProfiles: React.FC = () => {
   const [toDate, setToDate] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false); // Changed to false initially
   const [totalCount, setTotalCount] = useState<number>(0);
-  
+
   // Toast state
   const [toastOpen, setToastOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -68,24 +74,38 @@ const ViewedProfiles: React.FC = () => {
   // Use local state for date inputs before submitting
   const [localFromDate, setLocalFromDate] = useState<string>('');
   const [localToDate, setLocalToDate] = useState<string>('');
-
+  const [mutualOnly, setMutualOnly] = useState<boolean>(false);
+  const [localMutualOnly, setLocalMutualOnly] = useState<boolean>(false);
   // Remove the useEffect that automatically fetches data
   // API will only be called when Submit button is clicked
   // or when pagination/search changes AFTER initial submit
 
-  const fetchData = async () => {
-    // Don't fetch if dates are not set
-    if (!fromDate || !toDate) {
+  // Inside ViewedProfiles component
+  const fetchData = async (fDate?: string, tDate?: string, isMutual?: boolean) => {
+    // Use passed arguments OR fall back to existing state
+    const effectiveFromDate = fDate || fromDate;
+    const effectiveToDate = tDate || toDate;
+    const effectiveMutual = isMutual !== undefined ? isMutual : mutualOnly;
+
+    // Don't fetch if dates are not provided
+    if (!effectiveFromDate || !effectiveToDate) {
       return;
     }
-    
+
     setLoading(true);
     try {
-      const response = await getViewedProfiles(fromDate, toDate, page, rowsPerPage);
+      // Pass the "effective" values directly to the API helper
+      const response = await getViewedProfiles(
+        effectiveFromDate,
+        effectiveToDate,
+        page,
+        rowsPerPage,
+        effectiveMutual
+      );
+
       setData(response);
       setTotalCount(response.count);
-      
-      // Check if there's a message from backend (like "No profile visitors found")
+
       if (response.message) {
         showToast(response.message, 'info');
       } else if (response.count === 0) {
@@ -93,19 +113,11 @@ const ViewedProfiles: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error fetching data:', error);
-      // Handle different types of errors
-      if (error.response && error.response.data && error.response.data.message) {
-        showToast(error.response.data.message, 'error');
-      } else if (error.message) {
-        showToast(error.message, 'error');
-      } else {
-        showToast('An error occurred while fetching data', 'error');
-      }
+      showToast('An error occurred while fetching data', 'error');
     } finally {
       setLoading(false);
     }
   };
-
   // This useEffect runs only when pagination or search changes AFTER initial data load
   useEffect(() => {
     // Only fetch data if dates are already set (meaning submit was clicked before)
@@ -118,7 +130,7 @@ const ViewedProfiles: React.FC = () => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-    
+
     // Sort locally without API call
     const sortedData = stableSort(
       data.results,
@@ -147,14 +159,15 @@ const ViewedProfiles: React.FC = () => {
       showToast('Please select both From Date and To Date', 'warning');
       return;
     }
-    
+
     // Apply the locally selected dates to the actual filter state
     setFromDate(localFromDate);
     setToDate(localToDate);
+    setMutualOnly(localMutualOnly);
     setPage(0); // Reset to first page when submitting new dates
-    
+
     // Fetch data with the selected dates
-    fetchData();
+    fetchData(localFromDate, localToDate, localMutualOnly);
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -192,7 +205,7 @@ const ViewedProfiles: React.FC = () => {
     { id: 'profile_viewer_name', label: 'Viewer Name', minWidth: 150 },
     { id: 'profile_viewer_dob', label: 'Viewer Date of Birth', minWidth: 150 },
     { id: 'profile_viewer_city', label: 'Viewer City', minWidth: 150 },
-    { id: 'profile_viewer_mobile', label: 'Viewer Mobile', minWidth: 150 },
+    // { id: 'profile_viewer_mobile', label: 'Viewer Mobile', minWidth: 150 },
     { id: 'profile_viewer_gender', label: 'Viewer Gender', minWidth: 100 },
     { id: 'profile_viewer_planid', label: 'Viewer Plan ID', minWidth: 150 },
     {
@@ -209,7 +222,7 @@ const ViewedProfiles: React.FC = () => {
     { id: 'viewed_profile_name', label: 'Viewed Name', minWidth: 150 },
     { id: 'viewed_profile_dob', label: 'Viewed Date of Birth', minWidth: 150 },
     { id: 'viewed_profile_city', label: 'Viewed City', minWidth: 150 },
-    { id: 'viewed_profile_mobile', label: 'Viewed Mobile', minWidth: 150 },
+    // { id: 'viewed_profile_mobile', label: 'Viewed Mobile', minWidth: 150 },
     { id: 'viewed_profile_gender', label: 'Viewed Gender', minWidth: 100 },
     { id: 'viewed_profile_planid', label: 'Viewed Plan ID', minWidth: 150 },
     {
@@ -259,24 +272,24 @@ const ViewedProfiles: React.FC = () => {
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black">Viewed Profiles <span className="text-lg font-normal">({totalCount})</span></h1>
-      
+
       {/* Toast/Snackbar for messages */}
-      <Snackbar 
-        open={toastOpen} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={6000}
         onClose={handleCloseToast}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseToast} 
-          severity={toastSeverity} 
+        <Alert
+          onClose={handleCloseToast}
+          severity={toastSeverity}
           sx={{ width: '100%' }}
           variant="filled"
         >
           {toastMessage}
         </Alert>
       </Snackbar>
-      
+
       <div className="w-full py-2 flex justify-between">
         <div className="w-full flex text-right justify-between ">
           <div className="flex items-center space-x-2">
@@ -303,6 +316,16 @@ const ViewedProfiles: React.FC = () => {
                 max: today // Restrict to today only
               }}
               required
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={localMutualOnly}
+                  onChange={(e) => setLocalMutualOnly(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Viewed & Visitors Profiles"
             />
 
             <Button variant="contained" onClick={handleSubmit}>
@@ -369,15 +392,30 @@ const ViewedProfiles: React.FC = () => {
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row, index) => (
                     <TableRow hover role="checkbox" tabIndex={-1} key={index}>
-                      {columns.map((column) => (
-                        <TableCell
-                          sx={{ whiteSpace: 'nowrap' }}
-                          key={column.id}
-                          align={column.align}
-                        >
-                          {row[column.id]}
-                        </TableCell>
-                      ))}
+                      {columns.map((column) => {
+                        // Get the raw value from the row
+                        let value = row[column.id];
+
+                        // 1. Format Dates if the column is a datetime field
+                        // if (column.id === 'datetime' && value) {
+                        //   value = value.includes('T') ? value.split('T')[0] : value;
+                        // }
+
+                        // 2. Format Birth Dates
+                        if (column.id.includes('dob') && value) {
+                          value = value.includes('T') ? value.split('T')[0] : value;
+                        }
+
+                        return (
+                          <TableCell
+                            sx={{ whiteSpace: 'nowrap' }}
+                            key={column.id}
+                            align={column.align}
+                          >
+                            {value !== null && value !== undefined && value !== "" ? value : "N/A"}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))
               ) : (

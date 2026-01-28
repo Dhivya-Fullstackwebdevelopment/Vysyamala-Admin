@@ -18,6 +18,7 @@ import axios from 'axios';
 
 import { Link } from 'react-router-dom';
 import { photoRequest } from '../../../services/api';
+import { toast } from 'react-toastify';
 
 interface Column {
   id: string;
@@ -55,17 +56,29 @@ const PhotoRequestProfiles: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [localFromDate, setLocalFromDate] = useState<string>('');
+  const [localToDate, setLocalToDate] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  useEffect(() => {
-    fetchData();
-  }, [fromDate, toDate, page]);
+  // useEffect(() => {
+  //   fetchData();
+  // }, [fromDate, toDate, page]);
 
-  const fetchData = async () => {
+  const fetchData = async (fDate?: string, tDate?: string) => {
+    const effectiveFromDate = fDate || fromDate;
+    const effectiveToDate = tDate || toDate;
+
+    // Do not call API if dates are missing
+    if (!effectiveFromDate || !effectiveToDate) {
+      return;
+    }
+
     setLoading(true);
+    setHasSearched(true);
     try {
-      const response = await getPhotoRequestProfiles(fromDate, toDate, page);
+      const response = await getPhotoRequestProfiles(effectiveFromDate, effectiveToDate, page);
       setData(response);
       setTotalCount(response.count);
     } catch (error) {
@@ -74,6 +87,12 @@ const PhotoRequestProfiles: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (fromDate && toDate) {
+      fetchData();
+    }
+  }, [page]);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -88,15 +107,22 @@ const PhotoRequestProfiles: React.FC = () => {
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    if (name === 'fromDate') {
-      setFromDate(value);
-    } else if (name === 'toDate') {
-      setToDate(value);
-    }
+    if (name === 'fromDate') setLocalFromDate(value);
+    else if (name === 'toDate') setLocalToDate(value);
   };
 
   const handleSubmit = () => {
-    fetchData(); // Call the API with the selected filters
+    if (!localFromDate || !localToDate) {
+      toast.error("Please select both From Date and To Date");
+      return;
+    }
+    // Update established states
+    setFromDate(localFromDate);
+    setToDate(localToDate);
+    setPage(0);
+
+    // Call API immediately with local values (bypasses async state delay)
+    fetchData(localFromDate, localToDate);
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -122,12 +148,16 @@ const PhotoRequestProfiles: React.FC = () => {
     { id: 'profile_from_gender', label: 'From Gender', minWidth: 100 },
     { id: 'profile_from_city', label: 'From City', minWidth: 150 },
     { id: 'profile_from_state', label: 'From State', minWidth: 150 },
+    { id: 'profile_from_plan', label: 'From Plan', minWidth: 150 },
+    { id: 'profile_from_status', label: 'From Status', minWidth: 150 },
     { id: 'profile_to_id', label: 'To Profile ID', minWidth: 150 },
     { id: 'profile_to_name', label: 'To Name', minWidth: 150 },
     { id: 'profile_to_mobile', label: 'To Mobile', minWidth: 150 },
     { id: 'profile_to_gender', label: 'To Gender', minWidth: 100 },
     { id: 'profile_to_city', label: 'To City', minWidth: 150 },
     { id: 'profile_to_state', label: 'To State', minWidth: 150 },
+    { id: 'profile_to_plan', label: 'To Plan', minWidth: 150 },
+    { id: 'profile_to_status', label: 'To Status', minWidth: 150 },
     { id: 'req_datetime', label: 'Request Date/Time', minWidth: 200 },
     { id: 'response_datetime', label: 'Response Date/Time', minWidth: 200 },
     { id: 'response_message', label: 'Response Message', minWidth: 200 },
@@ -176,7 +206,7 @@ const PhotoRequestProfiles: React.FC = () => {
               label="From Date"
               type="date"
               name="fromDate"
-              value={fromDate}
+              value={localFromDate}
               onChange={handleDateChange}
               InputLabelProps={{ shrink: true }}
             />
@@ -184,7 +214,7 @@ const PhotoRequestProfiles: React.FC = () => {
               label="To Date"
               type="date"
               name="toDate"
-              value={toDate}
+              value={localToDate}
               onChange={handleDateChange}
               InputLabelProps={{ shrink: true }}
               inputProps={{
@@ -243,35 +273,43 @@ const PhotoRequestProfiles: React.FC = () => {
             </TableHead>
             <TableBody>
               {loading ? (
+                /* State 1: Loading */
                 <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
+                  <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
+              ) : !hasSearched ? (
+                /* State 2: Initial Page Load (No API called yet) */
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center" sx={{ py: 5, color: 'gray' }}>
+                    Select dates and click Submit to view data
+                  </TableCell>
+                </TableRow>
+              ) : data.results.length === 0 ? (
+                /* State 3: API called but no data returned */
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center" sx={{ py: 5 }}>
+                    No records found for the selected period.
+                  </TableCell>
+                </TableRow>
               ) : (
-                // filteredResults
-                //   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                data.results
-                  .map((row, index) => (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={index}>
-                      {columns.map((column) => (
+                /* State 4: Data rendering */
+                data.results.map((row, index) => (
+                  <TableRow hover role="checkbox" tabIndex={-1} key={index}>
+                    {columns.map((column) => {
+                      let value = row[column.id];
+                      // if ((column.id === 'req_datetime' || column.id === 'response_datetime') && value) {
+                      //   value = value.includes('T') ? value.split('T')[0] : value;
+                      // }
+                      return (
                         <TableCell key={column.id} align={column.align}>
-                          {row[column.id]}
+                          {value || "N/A"}
                         </TableCell>
-                      ))}
-                      {/* <TableCell>
-                     
-                     <Button>
-                       <Link to={`/editProfile?profileId=${row.ProfileId}`}>
-                         Edit
-                       </Link>
-                     </Button>
-                     <Button onClick={() => handleDelete(row.ContentId)}>
-                       Delete
-                     </Button>
-                   </TableCell> */}
-                    </TableRow>
-                  ))
+                      );
+                    })}
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>

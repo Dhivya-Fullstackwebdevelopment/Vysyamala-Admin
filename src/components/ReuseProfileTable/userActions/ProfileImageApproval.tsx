@@ -158,9 +158,23 @@ const ProfileImageApproval: React.FC = () => {
     setPage(0);
   };
 
+  // const formatDate = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleDateString('en-GB'); // Format as DD/MM/YYYY
+  // };
+
   const formatDate = (dateString: string) => {
+    // 1. Handle missing, null, or undefined data
+    if (!dateString) return 'N/A';
+
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); // Format as DD/MM/YYYY
+
+    // 2. Check if the date is valid
+    if (isNaN(date.getTime())) return 'N/A';
+
+    // 3. Extract only the YYYY-MM-DD part
+    // This takes "2026-01-26T07:50:18..." and returns "2026-01-26"
+    return date.toISOString().split('T')[0];
   };
 
   const columns: Column[] = [
@@ -190,12 +204,12 @@ const ProfileImageApproval: React.FC = () => {
       minWidth: 100,
       align: 'left'
     },
-    {
-      id: 'Profile_mobile_no',
-      label: 'Mobile No',
-      minWidth: 130,
-      align: 'left'
-    },
+    // {
+    //   id: 'Profile_mobile_no',
+    //   label: 'Mobile No',
+    //   minWidth: 130,
+    //   align: 'left'
+    // },
     {
       id: 'Profile_dob',
       label: 'Date of Birth',
@@ -215,6 +229,28 @@ const ProfileImageApproval: React.FC = () => {
       label: 'Email',
       minWidth: 200,
       align: 'left'
+    },
+
+    {
+      id: 'profile_plan',
+      label: 'Plan',
+      minWidth: 200,
+      align: 'left'
+    },
+
+    {
+      id: 'profile_status',
+      label: 'Status',
+      minWidth: 200,
+      align: 'left'
+    },
+
+    {
+      id: 'latest_uploaded_at',
+      label: 'Photo Update Date',
+      minWidth: 200,
+      align: 'left',
+      format: (value: string) => formatDate(value)
     },
 
   ];
@@ -330,13 +366,17 @@ const ProfileImageApproval: React.FC = () => {
               ) : data.results.length > 0 ? (
                 data.results.map((row: ProfileData, index: number) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.profile_id || index}>
-                    {columns.map((column) => (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.format
-                          ? column.format(row[column.id as keyof ProfileData], row)
-                          : row[column.id as keyof ProfileData]}
-                      </TableCell>
-                    ))}
+                    {columns.map((column) => {
+                      const value = row[column.id as keyof ProfileData];
+                      return (
+                        <TableCell key={column.id} align={column.align}>
+                          {column.format
+                            ? column.format(value, row)
+                            : (value || 'N/A')
+                          }
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               ) : (
