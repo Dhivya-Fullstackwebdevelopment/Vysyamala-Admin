@@ -167,22 +167,27 @@ export const getExpressIntrest = async (
   toDate: string,
   states: number[],
   page: number,
-  rowsPerPage: number
+  rowsPerPage: number,
+  status: string
 ) => {
   const params = new URLSearchParams({
     from_date: fromDate,
     to_date: toDate,
     page: page.toString(),
-    page_size: rowsPerPage.toString()
+    page_size: rowsPerPage.toString(),
+
   });
 
   // Only add profile_state if states array is not empty
   if (states && states.length > 0) {
     params.append('profile_state', states.join(','));
   }
+  if (status !== "") {
+    params.append('status', status);
+  }
 
   const url = `https://app.vysyamala.com/api/express-interest/?${params.toString()}`;
-  
+
   try {
     const response = await axios.get(url);
     return response.data;

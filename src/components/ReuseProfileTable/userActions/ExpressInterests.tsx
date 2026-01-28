@@ -18,6 +18,10 @@ import {
   Box,
   Snackbar,
   Alert,
+  InputLabel,
+  MenuItem,
+  FormControl,
+  Select,
 } from '@mui/material';
 import axios from 'axios';
 import {
@@ -45,24 +49,25 @@ const ExpressInterest: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [data, setData] = useState<ExpressInterestData>({ results: [], count: 0 });
   const [search, setSearch] = useState<string>("");
-  
+
   // States for actual filters (used in API calls)
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [selectedStates, setSelectedStates] = useState<number[]>([]);
-  
+
   // Local states for date inputs before submit
   const [localFromDate, setLocalFromDate] = useState<string>("");
   const [localToDate, setLocalToDate] = useState<string>("");
-  
+
   const [states, setStates] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
-  
+
   // Toast states
   const [toastOpen, setToastOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
+
 
   // Load state preferences on mount
   useEffect(() => {
@@ -97,42 +102,42 @@ const ExpressInterest: React.FC = () => {
       showToast("Please select both From Date and To Date", "warning");
       return;
     }
-    
+
     // Validate date format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
       showToast("Invalid date format. Please use YYYY-MM-DD format", "error");
       return;
     }
-    
+
     // Validate date range
     if (new Date(fromDate) > new Date(toDate)) {
       showToast("From Date cannot be after To Date", "warning");
       return;
     }
-    
+
     // Validate page number
     if (page < 1) {
       showToast("Invalid page number", "error");
       return;
     }
-    
+
     setLoading(true);
     try {
       // Don't pass empty states array to API
       const statesToSend = selectedStates.length > 0 ? selectedStates : [];
-      
-      const response = await getExpressIntrest(fromDate, toDate, statesToSend, page, rowsPerPage);
+
+      const response = await getExpressIntrest(fromDate, toDate, statesToSend, page, rowsPerPage, statusFilter);
       setData(response);
       setTotalCount(response.count);
-      
+
       // Check if there's no data
       if (response.count === 0) {
         showToast("No data found for the selected criteria", "info");
       }
     } catch (error: any) {
       console.error("Error fetching data:", error);
-      
+
       // Handle 404 error specifically
       if (error.response && error.response.status === 404) {
         showToast("API endpoint not found. Please check the server configuration.", "error");
@@ -140,7 +145,7 @@ const ExpressInterest: React.FC = () => {
       // Handle 400 Bad Request error
       else if (error.response && error.response.status === 400) {
         let errorMsg = "Invalid request parameters";
-        
+
         // Try to extract more specific error message from response
         if (error.response.data) {
           if (typeof error.response.data === 'string') {
@@ -166,7 +171,7 @@ const ExpressInterest: React.FC = () => {
       // Handle other errors
       else if (error.message) {
         showToast(error.message, "error");
-      } 
+      }
       else {
         showToast("An error occurred while fetching data", "error");
       }
@@ -193,7 +198,7 @@ const ExpressInterest: React.FC = () => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-    
+
     // Sort locally without API call
     const sortedData = stableSort(
       data.results,
@@ -233,17 +238,17 @@ const ExpressInterest: React.FC = () => {
       showToast("Please select both From Date and To Date", "warning");
       return;
     }
-    
+
     if (new Date(localFromDate) > new Date(localToDate)) {
       showToast("From Date cannot be after To Date", "warning");
       return;
     }
-    
+
     // Apply the locally selected dates to the actual filter state
     setFromDate(localFromDate);
     setToDate(localToDate);
     setPage(1); // Reset to first page when submitting new dates
-    
+
     // Fetch data with the selected dates
     fetchData();
   };
@@ -296,10 +301,14 @@ const ExpressInterest: React.FC = () => {
   const columns: Column[] = [
     { id: "profile_from_id", label: "From Profile ID", minWidth: 100, align: "center" },
     { id: "profile_from_name", label: "From Name", minWidth: 150 },
-    { id: "profile_from_mobile", label: "From Mobile", minWidth: 150 },
+    { id: "profile_from_mobile", label: "From Mobile No", minWidth: 150 },
+    { id: "from_plan", label: "From Plan Name", minWidth: 150 },
+    { id: "from_state", label: "From State", minWidth: 150 },
     { id: "profile_to_id", label: "To Profile ID", minWidth: 100 },
     { id: "profile_to_name", label: "To Name", minWidth: 150 },
-    { id: "profile_to_mobile", label: "To Mobile", minWidth: 150 },
+    { id: "profile_to_mobile", label: "To Mobile No", minWidth: 150 },
+    { id: "to_plan", label: "To Plan Name", minWidth: 150 },
+    { id: "to_state", label: "To State", minWidth: 150 },
     { id: "to_express_message", label: "Message", minWidth: 200 },
     { id: "req_datetime", label: "Request Date", minWidth: 150 },
     { id: "response_datetime", label: "Response Date", minWidth: 150 },
@@ -309,27 +318,30 @@ const ExpressInterest: React.FC = () => {
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 
+  const [statusFilter, setStatusFilter] = useState<string>("");
+
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black">Express Interests <span className="text-lg font-normal">({totalCount})</span></h1>
-      
+
       {/* Toast/Snackbar for messages */}
-      <Snackbar 
-        open={toastOpen} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={6000}
         onClose={handleCloseToast}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseToast} 
-          severity={toastSeverity} 
+        <Alert
+          onClose={handleCloseToast}
+          severity={toastSeverity}
           sx={{ width: '100%' }}
           variant="filled"
         >
           {toastMessage}
         </Alert>
       </Snackbar>
-      
+
       <Box className="w-full">
         <div className="w-full py-2 flex justify-between">
           <div className="w-full text-right flex justify-between">
@@ -377,19 +389,60 @@ const ExpressInterest: React.FC = () => {
                 ) : (
                   <Typography>Loading states...</Typography>
                 )}
-                <Button variant="contained" onClick={handleSubmit}>
+                <FormControl
+                  size="small"
+                  sx={{
+                    minWidth: 200,
+                  }}
+                >
+                  <InputLabel id="status-filter-label">Status</InputLabel>
+                  <Select
+                    labelId="status-filter-label"
+                    value={statusFilter}
+                    label="Status"
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    sx={{
+                      height: 40,
+                      backgroundColor: 'white',
+                      '& .MuiSelect-select': {
+                        textAlign: 'left', // 👈 Forces selected text to the left
+                        display: 'flex',
+                        alignItems: 'center',
+                      },
+                    }}
+                  >
+                    <MenuItem value="">Select Status</MenuItem>
+                    <MenuItem value="0">Removed</MenuItem>
+                    <MenuItem value="1">Request Sent</MenuItem>
+                    <MenuItem value="2">Accepted</MenuItem>
+                    <MenuItem value="3">Rejected</MenuItem>
+                  </Select>
+                </FormControl>
+                <Button variant="contained" onClick={handleSubmit}
+                  sx={{
+                    marginLeft: 3
+                  }}
+                >
                   Submit
                 </Button>
               </div>
             </div>
+
+            {/* Search */}
             <TextField
               label="Search"
               variant="outlined"
-              margin="normal"
               value={search}
               onChange={handleSearchChange}
-              disabled={!fromDate || !toDate} // Disable search until dates are submitted
+              disabled={!fromDate || !toDate}
+              size="small"
+            // sx={{
+            //   minWidth: 200,
+            //   '& .MuiInputBase-root': { height: 40, backgroundColor: 'white' }
+            // }}
             />
+            {/* </Box> */}
+
           </div>
         </div>
 
@@ -464,7 +517,7 @@ const ExpressInterest: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        
+
         {data.results.length > 0 && (
           <TablePagination
             rowsPerPageOptions={[2, 5, 10, 25, 50, 100]}
