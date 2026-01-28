@@ -495,16 +495,26 @@ const ExpressInterest: React.FC = () => {
                 filteredResults
                   .slice((page - 1) * rowsPerPage, (page - 1) * rowsPerPage + rowsPerPage)
                   .map((row, index) => (
-                    <TableRow key={index}>
-                      {columns.map((column) => (
-                        <TableCell
-                          sx={{ whiteSpace: 'nowrap' }}
-                          key={column.id}
-                          align={column.align}
-                        >
-                          {row[column.id]}
-                        </TableCell>
-                      ))}
+                    <TableRow key={index} hover>
+                      {columns.map((column) => {
+                        let value = row[column.id];
+
+                        // 👈 Format dates for these specific columns
+                        if ((column.id === 'req_datetime' || column.id === 'response_datetime') && value) {
+                          // This takes "2026-01-26T07:26:35Z" and keeps only "2026-01-26"
+                          value = value.split('T')[0];
+                        }
+
+                        return (
+                          <TableCell
+                            sx={{ whiteSpace: 'nowrap' }}
+                            key={column.id}
+                            align={column.align}
+                          >
+                            {value || "N/A"}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))
               ) : (
