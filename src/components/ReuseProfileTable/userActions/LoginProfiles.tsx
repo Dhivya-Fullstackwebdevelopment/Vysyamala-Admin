@@ -16,6 +16,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Typography,
 } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // ✅ import navigate hook
@@ -57,6 +58,7 @@ const LoginProfiles: React.FC = () => {
   const [orderBy, setOrderBy] = useState<string>('ProfileId');
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [goToPageInput, setGoToPageInput] = useState<string>('');
   const [data, setData] = useState<LoginLogsData>({
     count: 0,
     next: null,
@@ -156,6 +158,15 @@ const LoginProfiles: React.FC = () => {
       specificDate: specificDateInput,
       planId: selectedPlan
     });
+  };
+
+  const handleGoToPage = () => {
+    const pageNum = parseInt(goToPageInput, 10);
+    const totalPages = Math.ceil(totalCount / rowsPerPage);
+    if (!isNaN(pageNum) && pageNum > 0 && pageNum <= totalPages) {
+      setPage(pageNum - 1);
+      setGoToPageInput('');
+    }
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -322,67 +333,59 @@ const LoginProfiles: React.FC = () => {
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : filteredResults.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    No data found
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={columns.length} align="center"><CircularProgress /></TableCell></TableRow>
+              ) : data.results.length === 0 ? (
+                <TableRow><TableCell colSpan={columns.length} align="center" sx={{ py: 5 }}>No data found. Select filters and click Submit.</TableCell></TableRow>
               ) : (
-                filteredResults
-                  .slice(0, rowsPerPage)
-                  .map((row, index) => (
-                    <TableRow
-                      sx={{ whiteSpace: 'nowrap' }}
-                      hover
-                      role="checkbox"
-                      tabIndex={-1}
-                      key={index}
-                    >
-                      {columns.map((column) => {
-                        const rawValue = row[column.id];
-                        // Determine display value: format it if it's a date, otherwise check if it exists
-                        let displayValue = column.id === 'Last_login_date'
-                          ? formatDateOnly(rawValue)
-                          : rawValue;
-
-                        // Final check for empty/null values
-                        if (displayValue === null || displayValue === undefined || displayValue === '') {
-                          displayValue = 'N/A';
-                        }
-
-                        return (
-                          <TableCell
-                            key={column.id}
-                            align={column.align}
-                            onClick={column.id === 'ProfileId' ? () => navigate(`/viewProfile?profileId=${row.ProfileId}`) : undefined}
-                            sx={column.id === 'ProfileId' ? { color: 'blue', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } } : {}}
-                          >
-                            {displayValue}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))
+                data.results.map((row, index) => (
+                  <TableRow key={index} hover>
+                    {columns.map((col) => {
+                      let val = row[col.id] || "N/A";
+                      if (col.id === 'Last_login_date' && val !== "N/A") val = val.split(' ')[0];
+                      return (
+                        <TableCell
+                          key={col.id}
+                          sx={col.id === 'ProfileId' ? { color: 'blue', cursor: 'pointer' } : {}}
+                          onClick={col.id === 'ProfileId' ? () => navigate(`/viewProfile?profileId=${row.ProfileId}`) : undefined}
+                        >
+                          {val}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component="div"
-          count={data.count}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {data.results.length > 0 && (
+          <div className="flex items-center justify-between p-4">
+            <Typography variant="body2">Page {page + 1} of {Math.ceil(totalCount / rowsPerPage)}</Typography>
+            <div className="flex items-center gap-2">
+              <Typography variant="body2">Go to:</Typography>
+              <TextField size="small" type="number" value={goToPageInput} onChange={(e) => setGoToPageInput(e.target.value)} style={{ width: '70px' }} />
+              <Button variant="contained" size="small" onClick={handleGoToPage}>Go</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>{'<<'}</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>Prev</Button>
+
+              {(() => {
+                const total = Math.ceil(totalCount / rowsPerPage);
+                const curr = page + 1;
+                const btns = [];
+                for (let i = Math.max(1, curr - 1); i <= Math.min(total, curr + 1); i++) {
+                  btns.push(
+                    <Button key={i} variant={curr === i ? "contained" : "outlined"} size="small" onClick={() => setPage(i - 1)}>{i}</Button>
+                  );
+                }
+                return btns;
+              })()}
+
+              <Button variant="outlined" size="small" onClick={() => setPage(page + 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>Next</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(Math.ceil(totalCount / rowsPerPage) - 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>{'>>'}</Button>
+            </div>
+          </div>
+        )}
       </Paper>
     </>
   );

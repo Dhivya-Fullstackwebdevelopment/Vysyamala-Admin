@@ -28,7 +28,7 @@ import {
   fetchStatePreferences,
   getExpressIntrest,
 } from '../../../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Column {
   id: string;
@@ -45,8 +45,9 @@ interface ExpressInterestData {
 const ExpressInterest: React.FC = () => {
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [orderBy, setOrderBy] = useState<string>("profile_from_id");
-  const [page, setPage] = useState<number>(1);
+  const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [goToPageInput, setGoToPageInput] = useState<string>('');
   const [data, setData] = useState<ExpressInterestData>({ results: [], count: 0 });
   const [search, setSearch] = useState<string>("");
 
@@ -67,7 +68,7 @@ const ExpressInterest: React.FC = () => {
   const [toastOpen, setToastOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
-
+  const navigate = useNavigate();
 
   // Load state preferences on mount
   useEffect(() => {
@@ -88,60 +89,52 @@ const ExpressInterest: React.FC = () => {
     loadStates();
   }, []);
 
-  // This effect runs only when pagination changes AFTER initial data load
-  useEffect(() => {
-    // Only fetch data if dates are already set (meaning submit was clicked before)
-    if (fromDate && toDate) {
-      fetchData();
-    }
-  }, [page, rowsPerPage, selectedStates]);
-
   // Inside ExpressInterest component
-  const fetchData = async (fDate?: string, tDate?: string) => {
-    // Use passed arguments if they exist, otherwise fallback to current state
+  const fetchData = async (fDate?: string, tDate?: string, targetPage?: number) => {
     const effectiveFromDate = fDate || fromDate;
     const effectiveToDate = tDate || toDate;
+    // Use targetPage if provided (like from handleSubmit), otherwise use current state
+    const effectivePage = (targetPage !== undefined ? targetPage : page) + 1;
 
-    // 1. Validate using the effective values (not the state)
-    if (!effectiveFromDate || !effectiveToDate) {
-      showToast("Please select both From Date and To Date", "warning");
-      return;
-    }
-
-    // 2. Validate format using effective values
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(effectiveFromDate) || !dateRegex.test(effectiveToDate)) {
-      showToast("Invalid date format. Please use YYYY-MM-DD format", "error");
-      return;
-    }
+    if (!effectiveFromDate || !effectiveToDate) return;
 
     setLoading(true);
     try {
-      const statesToSend = selectedStates.length > 0 ? selectedStates : [];
-
-      // 3. Pass effective dates to the API call
       const response = await getExpressIntrest(
         effectiveFromDate,
         effectiveToDate,
-        statesToSend,
-        page,
+        selectedStates,
+        effectivePage, // Always 1 on initial valid load
         rowsPerPage,
         statusFilter
       );
 
       setData(response);
       setTotalCount(response.count);
-
-      if (response.count === 0) {
-        showToast("No data found for the selected criteria", "info");
-      }
     } catch (error: any) {
-      console.error("Error fetching data:", error);
       showToast("An error occurred while fetching data", "error");
     } finally {
       setLoading(false);
     }
   };
+
+  const handleGoToPage = () => {
+    const pageNumber = parseInt(goToPageInput, 10);
+    const totalPages = Math.ceil(totalCount / rowsPerPage);
+    if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= totalPages) {
+      setPage(pageNumber - 1);
+      setGoToPageInput('');
+    } else {
+      showToast("Invalid page number", "warning");
+    }
+  };
+
+  useEffect(() => {
+    // Only fetch data if dates are already set (meaning submit was clicked before)
+    if (fromDate && toDate) {
+      fetchData();
+    }
+  }, [page, rowsPerPage, selectedStates]);
 
   // Toast functions
   const showToast = (message: string, severity: 'success' | 'info' | 'warning' | 'error' = 'info') => {
@@ -210,7 +203,7 @@ const ExpressInterest: React.FC = () => {
     // Apply the locally selected dates to the actual filter state
     setFromDate(localFromDate);
     setToDate(localToDate);
-    setPage(1); // Reset to first page when submitting new dates
+    setPage(0); // Reset to first page when submitting new dates
 
     // Fetch data with the selected dates
     fetchData(localFromDate, localToDate);
@@ -450,68 +443,163 @@ const ExpressInterest: React.FC = () => {
             </TableHead>
             <TableBody>
               {loading ? (
+                // Show loader while fetching
                 <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
+                  <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
                     <CircularProgress />
+                    <Typography variant="body2" sx={{ mt: 1 }}>Loading data...</Typography>
                   </TableCell>
                 </TableRow>
-              ) : data.results.length === 0 && fromDate && toDate ? (
+              ) : data.results.length === 0 ? (
+                // Show "No Data" if results are empty
                 <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    {/* Message shown in toast */}
+                  <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
+                    <Typography color="textSecondary">
+                      {fromDate && toDate
+                        ? "No records found for the selected criteria."
+                        : "Please Select dates and click Submit to view data"}
+                    </Typography>
                   </TableCell>
                 </TableRow>
-              ) : data.results.length > 0 ? (
-                filteredResults
-                  .slice((page - 1) * rowsPerPage, (page - 1) * rowsPerPage + rowsPerPage)
-                  .map((row, index) => (
-                    <TableRow key={index} hover>
-                      {columns.map((column) => {
-                        let value = row[column.id];
+              ) : (
+                // Render the rows. Note: No .slice() here because API handles pagination.
+                filteredResults.map((row, index) => (
+                  <TableRow
+                    key={index}
+                    hover
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    {columns.map((column) => {
+                      let value = row[column.id];
 
-                        // 👈 Format dates for these specific columns
-                        if ((column.id === 'req_datetime' || column.id === 'response_datetime') && value) {
-                          // This takes "2026-01-26T07:26:35Z" and keeps only "2026-01-26"
-                          value = value.split('T')[0];
-                        }
+                      // 1. Format Dates for specific columns
+                      if ((column.id === 'req_datetime' || column.id === 'response_datetime') && value) {
+                        // Converts "2026-01-26T07:26:35Z" -> "2026-01-26"
+                        value = value.split('T')[0];
+                      }
 
-                        if (column.id === 'status') {
-                          value = statusLabels[String(row[column.id])] || value;
-                        }
+                      // 2. Map Status IDs to readable Labels
+                      if (column.id === 'status') {
+                        value = statusLabels[String(row[column.id])] || value;
+                      }
 
+                      // 3. Handle Profile ID linking (Optional UI enhancement)
+                      if (column.id === 'profile_from_id' || column.id === 'profile_to_id') {
                         return (
                           <TableCell
-                            sx={{ whiteSpace: 'nowrap' }}
                             key={column.id}
                             align={column.align}
+                            sx={{
+                              whiteSpace: 'nowrap',
+                              color: 'blue',
+                              cursor: 'pointer',
+                              '&:hover': { textDecoration: 'underline' }
+                            }}
+                            onClick={() => navigate(`/viewProfile?profileId=${value}`)}
                           >
                             {value || "N/A"}
                           </TableCell>
                         );
-                      })}
-                    </TableRow>
-                  ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    Select dates and click Submit to view data
-                  </TableCell>
-                </TableRow>
+                      }
+
+                      return (
+                        <TableCell
+                          key={column.id}
+                          align={column.align}
+                          sx={{ whiteSpace: 'nowrap' }}
+                        >
+                          {value || "N/A"}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
         {data.results.length > 0 && (
-          <TablePagination
-            rowsPerPageOptions={[2, 5, 10, 25, 50, 100]}
-            component="div"
-            count={filteredResults.length}
-            rowsPerPage={rowsPerPage}
-            page={page - 1}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px' }}>
+            <Typography variant="body2">
+              Page <strong>{page + 1}</strong> of <strong>{Math.ceil(totalCount / rowsPerPage)}</strong>
+            </Typography>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px' }}>
+                <Typography variant="body2">Go to page:</Typography>
+                <TextField
+                  size="small"
+                  type="number"
+                  value={goToPageInput}
+                  onChange={(e) => setGoToPageInput(e.target.value)}
+                  style={{ width: '80px' }}
+                />
+                <Button variant="contained" size="small" onClick={handleGoToPage} disabled={!goToPageInput}>
+                  Go
+                </Button>
+              </div>
+
+              {/* Start/Prev Buttons */}
+              <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>
+                {'<<'}
+              </Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>
+                Prev
+              </Button>
+
+              {/* Dynamic Page Numbers */}
+              {(() => {
+                const totalPages = Math.ceil(totalCount / rowsPerPage);
+                const currentPage = page + 1;
+                const pages = [];
+
+                // Page 1
+                pages.push(
+                  <Button key={1} variant={currentPage === 1 ? "contained" : "outlined"} size="small" onClick={() => setPage(0)}>
+                    1
+                  </Button>
+                );
+
+                if (currentPage > 3) pages.push(<Typography key="el-s">...</Typography>);
+
+                // Middle Pages
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+                for (let i = start; i <= end; i++) {
+                  pages.push(
+                    <Button key={i} variant={currentPage === i ? "contained" : "outlined"} size="small" onClick={() => setPage(i - 1)}>
+                      {i}
+                    </Button>
+                  );
+                }
+
+                if (currentPage < totalPages - 2) pages.push(<Typography key="el-e">...</Typography>);
+
+                // Last Page
+                if (totalPages > 1) {
+                  pages.push(
+                    <Button key={totalPages} variant={currentPage === totalPages ? "contained" : "outlined"} size="small" onClick={() => setPage(totalPages - 1)}>
+                      {totalPages}
+                    </Button>
+                  );
+                }
+                return pages;
+              })()}
+
+              {/* Next/End Buttons */}
+              <Button variant="outlined" size="small"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>
+                Next
+              </Button>
+              <Button variant="outlined" size="small"
+                onClick={() => setPage(Math.ceil(totalCount / rowsPerPage) - 1)}
+                disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>
+                {'>>'}
+              </Button>
+            </div>
+          </div>
         )}
       </Box>
     </>

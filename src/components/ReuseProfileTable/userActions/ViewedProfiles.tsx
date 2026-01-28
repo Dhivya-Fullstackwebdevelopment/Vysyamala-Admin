@@ -17,8 +17,10 @@ import {
   Alert,
   Checkbox,
   FormControlLabel,
+  Typography,
 } from '@mui/material';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 interface Column {
   id: string;
@@ -56,15 +58,14 @@ const ViewedProfiles: React.FC = () => {
   const [orderBy, setOrderBy] = useState<string>('profile_from_id');
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [data, setData] = useState<ViewedProfilesData>({
-    results: [],
-    count: 0,
-  });
+  const [goToPageInput, setGoToPageInput] = useState<string>('');
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [data, setData] = useState<ViewedProfilesData>({ results: [], count: 0 });
+
   const [search, setSearch] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false); // Changed to false initially
-  const [totalCount, setTotalCount] = useState<number>(0);
 
   // Toast state
   const [toastOpen, setToastOpen] = useState<boolean>(false);
@@ -76,9 +77,7 @@ const ViewedProfiles: React.FC = () => {
   const [localToDate, setLocalToDate] = useState<string>('');
   const [mutualOnly, setMutualOnly] = useState<boolean>(false);
   const [localMutualOnly, setLocalMutualOnly] = useState<boolean>(false);
-  // Remove the useEffect that automatically fetches data
-  // API will only be called when Submit button is clicked
-  // or when pagination/search changes AFTER initial submit
+  const navigate = useNavigate();
 
   // Inside ViewedProfiles component
   const fetchData = async (fDate?: string, tDate?: string, isMutual?: boolean) => {
@@ -105,17 +104,22 @@ const ViewedProfiles: React.FC = () => {
 
       setData(response);
       setTotalCount(response.count);
-
-      if (response.message) {
-        showToast(response.message, 'info');
-      } else if (response.count === 0) {
-        showToast('No data found for the selected date range', 'info');
-      }
     } catch (error: any) {
       console.error('Error fetching data:', error);
       showToast('An error occurred while fetching data', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoToPage = () => {
+    const pageNumber = parseInt(goToPageInput, 10);
+    const totalPages = Math.ceil(totalCount / rowsPerPage);
+    if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= totalPages) {
+      setPage(pageNumber - 1);
+      setGoToPageInput('');
+    } else {
+      showToast('Invalid page number', 'warning');
     }
   };
   // This useEffect runs only when pagination or search changes AFTER initial data load
@@ -124,7 +128,7 @@ const ViewedProfiles: React.FC = () => {
     if (fromDate && toDate) {
       fetchData();
     }
-  }, [page, rowsPerPage, search]); // Removed fromDate and toDate from dependencies
+  }, [page, rowsPerPage]); // Removed fromDate and toDate from dependencies
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -376,69 +380,158 @@ const ViewedProfiles: React.FC = () => {
             </TableHead>
             <TableBody>
               {loading ? (
+                // 1. Loading State
                 <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
+                  <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : data.results.length === 0 && fromDate && toDate ? (
+              ) : data.results.length === 0 ? (
+                // 2. Empty State
                 <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    {/* No message here since we show toast */}
+                  <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
+                    <Typography color="textSecondary">
+                      {fromDate && toDate
+                        ? "No records found for the selected criteria."
+                        : "Please Select dates and click Submit to view data"}
+                    </Typography>
                   </TableCell>
                 </TableRow>
-              ) : data.results.length > 0 ? (
-                filteredResults
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row, index) => (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={index}>
-                      {columns.map((column) => {
-                        // Get the raw value from the row
-                        let value = row[column.id];
-
-                        // 1. Format Dates if the column is a datetime field
-                        // if (column.id === 'datetime' && value) {
-                        //   value = value.includes('T') ? value.split('T')[0] : value;
-                        // }
-
-                        // 2. Format Birth Dates
-                        if (column.id.includes('dob') && value) {
-                          value = value.includes('T') ? value.split('T')[0] : value;
-                        }
-
-                        return (
-                          <TableCell
-                            sx={{ whiteSpace: 'nowrap' }}
-                            key={column.id}
-                            align={column.align}
-                          >
-                            {value !== null && value !== undefined && value !== "" ? value : "N/A"}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))
               ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    Select dates and click Submit to view data
-                  </TableCell>
-                </TableRow>
+                // 3. Data Rows (Note: No .slice() here because the API already paginates)
+                filteredResults.map((row, index) => (
+                  <TableRow
+                    key={index}
+                    hover
+                    role="checkbox"
+                    tabIndex={-1}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    {columns.map((column) => {
+                      let value = row[column.id];
+
+                      // Format Date of Birth columns (profile_viewer_dob, viewed_profile_dob)
+                      if (column.id.includes('dob') && value) {
+                        value = value.includes('T') ? value.split('T')[0] : value;
+                      }
+
+                      // Format the Viewed Date/Time column
+                      if (column.id === 'datetime' && value) {
+                        // Converts "2026-01-27T18:10:44+00:00" -> "2026-01-27"
+                        value = value.includes('T') ? value.split('T')[0] : value;
+                      }
+
+                      // Format Status (if your API returns a number)
+                      if (column.id === 'status' && value !== null) {
+                        // Adjust these labels based on your actual status map
+                        const statusMap: Record<string, string> = { "1": "Viewed", "0": "Hidden" };
+                        value = statusMap[String(value)] || value;
+                      }
+
+                      // Special handling for Profile IDs to make them clickable (Optional)
+                      const isProfileIdColumn = column.id === 'profile_viewer_profileId' || column.id === 'viewed_profile_profileId';
+
+                      return (
+                        <TableCell
+                          key={column.id}
+                          align={column.align}
+                          sx={{
+                            whiteSpace: 'nowrap',
+                            ...(isProfileIdColumn && {
+                              color: 'blue',
+                              cursor: 'pointer',
+                              '&:hover': { textDecoration: 'underline' }
+                            })
+                          }}
+                          onClick={isProfileIdColumn ? () => navigate(`/viewProfile?profileId=${value}`) : undefined}
+                        >
+                          {value !== null && value !== undefined && value !== "" ? value : "N/A"}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
         </TableContainer>
 
         {data.results.length > 0 && (
-          <TablePagination
-            rowsPerPageOptions={[1, 2, 10, 25, 100]}
-            component="div"
-            count={filteredResults.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px' }}>
+            <Typography variant="body2">
+              Page <strong>{page + 1}</strong> of <strong>{Math.ceil(totalCount / rowsPerPage)}</strong>
+            </Typography>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px' }}>
+                <Typography variant="body2">Go to page:</Typography>
+                <TextField
+                  size="small"
+                  type="number"
+                  value={goToPageInput}
+                  onChange={(e) => setGoToPageInput(e.target.value)}
+                  style={{ width: '80px' }}
+                />
+                <Button variant="contained" size="small" onClick={handleGoToPage} disabled={!goToPageInput}>
+                  Go
+                </Button>
+              </div>
+
+              <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>
+                {'<<'}
+              </Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>
+                Prev
+              </Button>
+
+              {/* Dynamic Page Number Buttons */}
+              {(() => {
+                const totalPages = Math.ceil(totalCount / rowsPerPage);
+                const currentPage = page + 1;
+                const pages = [];
+
+                pages.push(
+                  <Button key={1} variant={currentPage === 1 ? "contained" : "outlined"} size="small" onClick={() => setPage(0)}>
+                    1
+                  </Button>
+                );
+
+                if (currentPage > 3) pages.push(<Typography key="el-s">...</Typography>);
+
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+                for (let i = start; i <= end; i++) {
+                  pages.push(
+                    <Button key={i} variant={currentPage === i ? "contained" : "outlined"} size="small" onClick={() => setPage(i - 1)}>
+                      {i}
+                    </Button>
+                  );
+                }
+
+                if (currentPage < totalPages - 2) pages.push(<Typography key="el-e">...</Typography>);
+
+                if (totalPages > 1) {
+                  pages.push(
+                    <Button key={totalPages} variant={currentPage === totalPages ? "contained" : "outlined"} size="small" onClick={() => setPage(totalPages - 1)}>
+                      {totalPages}
+                    </Button>
+                  );
+                }
+                return pages;
+              })()}
+
+              <Button variant="outlined" size="small"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>
+                Next
+              </Button>
+              <Button variant="outlined" size="small"
+                onClick={() => setPage(Math.ceil(totalCount / rowsPerPage) - 1)}
+                disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>
+                {'>>'}
+              </Button>
+            </div>
+          </div>
         )}
       </Paper>
     </>

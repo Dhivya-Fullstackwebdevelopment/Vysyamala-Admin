@@ -8,15 +8,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
   TableSortLabel,
   TextField,
   Button,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import axios from 'axios';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { photoRequest } from '../../../services/api';
 import { toast } from 'react-toastify';
 
@@ -53,6 +53,7 @@ const PhotoRequestProfiles: React.FC = () => {
     results: [],
     count: 0,
   });
+  const [goToPageInput, setGoToPageInput] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
@@ -61,7 +62,7 @@ const PhotoRequestProfiles: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
-
+  const navigate = useNavigate();
   // useEffect(() => {
   //   fetchData();
   // }, [fromDate, toDate, page]);
@@ -123,6 +124,17 @@ const PhotoRequestProfiles: React.FC = () => {
 
     // Call API immediately with local values (bypasses async state delay)
     fetchData(localFromDate, localToDate);
+  };
+
+  const handleGoToPage = () => {
+    const pageNum = parseInt(goToPageInput, 10);
+    const totalPages = Math.ceil(totalCount / rowsPerPage);
+    if (!isNaN(pageNum) && pageNum > 0 && pageNum <= totalPages) {
+      setPage(pageNum - 1);
+      setGoToPageInput('');
+    } else {
+      toast.warning("Invalid page number");
+    }
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -273,57 +285,58 @@ const PhotoRequestProfiles: React.FC = () => {
             </TableHead>
             <TableBody>
               {loading ? (
-                /* State 1: Loading */
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center" sx={{ py: 3 }}>
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={columns.length} align="center"><CircularProgress /></TableCell></TableRow>
               ) : !hasSearched ? (
-                /* State 2: Initial Page Load (No API called yet) */
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center" sx={{ py: 5, color: 'gray' }}>
-                    Select dates and click Submit to view data
-                  </TableCell>
+                <TableRow><TableCell colSpan={columns.length} align="center" sx={{ py: 5 }}>Please Select dates and click Submit to view data</TableCell></TableRow>
+              ) : data.results.map((row, index) => (
+                <TableRow key={index} hover>
+                  {columns.map((col) => {
+                    let val = row[col.id];
+                    if (col.id === 'req_datetime' && val) val = val.split('T')[0];
+                    const isId = col.id.includes('_id');
+                    return (
+                      <TableCell
+                        key={col.id}
+                        sx={{ color: isId ? 'blue' : 'inherit', cursor: isId ? 'pointer' : 'default' }}
+                        onClick={isId ? () => navigate(`/viewProfile?profileId=${val}`) : undefined}
+                      >
+                        {val || "N/A"}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
-              ) : data.results.length === 0 ? (
-                /* State 3: API called but no data returned */
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center" sx={{ py: 5 }}>
-                    No records found for the selected period.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                /* State 4: Data rendering */
-                data.results.map((row, index) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={index}>
-                    {columns.map((column) => {
-                      let value = row[column.id];
-                      // if ((column.id === 'req_datetime' || column.id === 'response_datetime') && value) {
-                      //   value = value.includes('T') ? value.split('T')[0] : value;
-                      // }
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {value || "N/A"}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
 
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component="div"
-          count={data.count}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {data.results.length > 0 && (
+          <div className="flex items-center justify-between p-4">
+            <Typography variant="body2">Page {page + 1} of {Math.ceil(totalCount / rowsPerPage)}</Typography>
+            <div className="flex items-center gap-2">
+              <Typography variant="body2">Go to:</Typography>
+              <TextField size="small" type="number" value={goToPageInput} onChange={(e) => setGoToPageInput(e.target.value)} style={{ width: '70px' }} />
+              <Button variant="contained" size="small" onClick={handleGoToPage}>Go</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>{'<<'}</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>Prev</Button>
+
+              {(() => {
+                const total = Math.ceil(totalCount / rowsPerPage);
+                const curr = page + 1;
+                const btns = [];
+                for (let i = Math.max(1, curr - 1); i <= Math.min(total, curr + 1); i++) {
+                  btns.push(
+                    <Button key={i} variant={curr === i ? "contained" : "outlined"} size="small" onClick={() => setPage(i - 1)}>{i}</Button>
+                  );
+                }
+                return btns;
+              })()}
+
+              <Button variant="outlined" size="small" onClick={() => setPage(page + 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>Next</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(Math.ceil(totalCount / rowsPerPage) - 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>{'>>'}</Button>
+            </div>
+          </div>
+        )}
       </Paper>
     </>
   );

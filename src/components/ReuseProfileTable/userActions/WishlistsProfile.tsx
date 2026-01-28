@@ -15,10 +15,11 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  Typography,
 } from '@mui/material';
 import axios from 'axios';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Column {
   id: string;
@@ -55,6 +56,7 @@ const WishlistsProfile: React.FC = () => {
     results: [],
     count: 0,
   });
+  const [goToPageInput, setGoToPageInput] = useState<string>('');
   const [search, setSearch] = useState<string>('');
 
   // States for actual filters (used in API calls)
@@ -72,6 +74,7 @@ const WishlistsProfile: React.FC = () => {
   const [toastOpen, setToastOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
+  const navigate = useNavigate();
 
   // This effect runs only when pagination changes AFTER initial data load
   useEffect(() => {
@@ -178,6 +181,17 @@ const WishlistsProfile: React.FC = () => {
 
     // Fetch data with the selected dates
     fetchData(localFromDate, localToDate);
+  };
+
+  const handleGoToPage = () => {
+    const pageNumber = parseInt(goToPageInput, 10);
+    const totalPages = Math.ceil(totalCount / rowsPerPage);
+    if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= totalPages) {
+      setPage(pageNumber - 1);
+      setGoToPageInput('');
+    } else {
+      showToast('Invalid page number', 'warning');
+    }
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -355,44 +369,33 @@ const WishlistsProfile: React.FC = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : data.results.length === 0 && fromDate && toDate ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} align="center">
-                    {/* Message shown in toast */}
-                  </TableCell>
-                </TableRow>
               ) : data.results.length > 0 ? (
-                filteredResults
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row, index) => (
-                    <TableRow
-                      sx={{ whiteSpace: 'nowrap' }}
-                      hover
-                      role="checkbox"
-                      tabIndex={-1}
-                      key={index}
-                    >
-                      {columns.map((column) => {
-                        let value = row[column.id];
-
-                        // 1. Format the Date column (Marked Date/Time)
-                        // if (column.id === 'marked_datetime' && value) {
-                        //   value = value.includes('T') ? value.split('T')[0] : value;
-                        // }
-
-                        return (
-                          <TableCell key={column.id} align={column.align}>
-                            {/* 👈 FIX: Fallback to N/A if value is empty/null */}
-                            {value || "N/A"}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))
+                filteredResults.map((row, index) => (
+                  <TableRow key={index} hover sx={{ whiteSpace: 'nowrap' }}>
+                    {columns.map((col) => {
+                      let val = row[col.id];
+                      if (col.id === 'marked_datetime' && val) val = val.split('T')[0];
+                      const isId = col.id === 'profile_from_id' || col.id === 'profile_to_id';
+                      return (
+                        <TableCell
+                          key={col.id}
+                          sx={{
+                            color: isId ? 'blue' : 'inherit',
+                            cursor: isId ? 'pointer' : 'default',
+                            '&:hover': { textDecoration: isId ? 'underline' : 'none' }
+                          }}
+                          onClick={isId ? () => navigate(`/viewProfile?profileId=${val}`) : undefined}
+                        >
+                          {val || "N/A"}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} align="center">
-                    Select dates and click Submit to view data
+                    {fromDate ? "No data found for this range" : "Please Select dates and click Submit to view data"}
                   </TableCell>
                 </TableRow>
               )}
@@ -401,15 +404,32 @@ const WishlistsProfile: React.FC = () => {
         </TableContainer>
 
         {data.results.length > 0 && (
-          <TablePagination
-            rowsPerPageOptions={[10, 25, 100]}
-            component="div"
-            count={filteredResults.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+          <div className="flex items-center justify-between p-4">
+            <Typography variant="body2">Page {page + 1} of {Math.ceil(totalCount / rowsPerPage)}</Typography>
+            <div className="flex items-center gap-2">
+              <Typography variant="body2">Go to:</Typography>
+              <TextField size="small" type="number" value={goToPageInput} onChange={(e) => setGoToPageInput(e.target.value)} style={{ width: '70px' }} />
+              <Button variant="contained" size="small" onClick={handleGoToPage}>Go</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>{'<<'}</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(page - 1)} disabled={page === 0}>Prev</Button>
+
+              {/* Page Numbers */}
+              {(() => {
+                const total = Math.ceil(totalCount / rowsPerPage);
+                const curr = page + 1;
+                const btns = [];
+                for (let i = Math.max(1, curr - 1); i <= Math.min(total, curr + 1); i++) {
+                  btns.push(
+                    <Button key={i} variant={curr === i ? "contained" : "outlined"} size="small" onClick={() => setPage(i - 1)}>{i}</Button>
+                  );
+                }
+                return btns;
+              })()}
+
+              <Button variant="outlined" size="small" onClick={() => setPage(page + 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>Next</Button>
+              <Button variant="outlined" size="small" onClick={() => setPage(Math.ceil(totalCount / rowsPerPage) - 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>{'>>'}</Button>
+            </div>
+          </div>
         )}
       </Paper>
     </>
