@@ -96,85 +96,48 @@ const ExpressInterest: React.FC = () => {
     }
   }, [page, rowsPerPage, selectedStates]);
 
-  const fetchData = async () => {
-    // Validate dates before API call
-    if (!fromDate || !toDate) {
+  // Inside ExpressInterest component
+  const fetchData = async (fDate?: string, tDate?: string) => {
+    // Use passed arguments if they exist, otherwise fallback to current state
+    const effectiveFromDate = fDate || fromDate;
+    const effectiveToDate = tDate || toDate;
+
+    // 1. Validate using the effective values (not the state)
+    if (!effectiveFromDate || !effectiveToDate) {
       showToast("Please select both From Date and To Date", "warning");
       return;
     }
 
-    // Validate date format
+    // 2. Validate format using effective values
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
+    if (!dateRegex.test(effectiveFromDate) || !dateRegex.test(effectiveToDate)) {
       showToast("Invalid date format. Please use YYYY-MM-DD format", "error");
-      return;
-    }
-
-    // Validate date range
-    if (new Date(fromDate) > new Date(toDate)) {
-      showToast("From Date cannot be after To Date", "warning");
-      return;
-    }
-
-    // Validate page number
-    if (page < 1) {
-      showToast("Invalid page number", "error");
       return;
     }
 
     setLoading(true);
     try {
-      // Don't pass empty states array to API
       const statesToSend = selectedStates.length > 0 ? selectedStates : [];
 
-      const response = await getExpressIntrest(fromDate, toDate, statesToSend, page, rowsPerPage, statusFilter);
+      // 3. Pass effective dates to the API call
+      const response = await getExpressIntrest(
+        effectiveFromDate,
+        effectiveToDate,
+        statesToSend,
+        page,
+        rowsPerPage,
+        statusFilter
+      );
+
       setData(response);
       setTotalCount(response.count);
 
-      // Check if there's no data
       if (response.count === 0) {
         showToast("No data found for the selected criteria", "info");
       }
     } catch (error: any) {
       console.error("Error fetching data:", error);
-
-      // Handle 404 error specifically
-      if (error.response && error.response.status === 404) {
-        showToast("API endpoint not found. Please check the server configuration.", "error");
-      }
-      // Handle 400 Bad Request error
-      else if (error.response && error.response.status === 400) {
-        let errorMsg = "Invalid request parameters";
-
-        // Try to extract more specific error message from response
-        if (error.response.data) {
-          if (typeof error.response.data === 'string') {
-            errorMsg = error.response.data;
-          } else if (error.response.data.message) {
-            errorMsg = error.response.data.message;
-          } else if (error.response.data.detail) {
-            errorMsg = error.response.data.detail;
-          } else if (error.response.data.error) {
-            errorMsg = error.response.data.error;
-          }
-        }
-        showToast(errorMsg, "error");
-      }
-      // Handle 500 Internal Server Error
-      else if (error.response && error.response.status === 500) {
-        showToast("Internal server error. Please try again later.", "error");
-      }
-      // Handle network errors
-      else if (error.code === 'ERR_NETWORK') {
-        showToast("Network error. Please check your internet connection.", "error");
-      }
-      // Handle other errors
-      else if (error.message) {
-        showToast(error.message, "error");
-      }
-      else {
-        showToast("An error occurred while fetching data", "error");
-      }
+      showToast("An error occurred while fetching data", "error");
     } finally {
       setLoading(false);
     }
@@ -236,7 +199,7 @@ const ExpressInterest: React.FC = () => {
     // Validate dates
     if (!localFromDate || !localToDate) {
       showToast("Please select both From Date and To Date", "warning");
-      return;
+
     }
 
     if (new Date(localFromDate) > new Date(localToDate)) {
@@ -250,7 +213,7 @@ const ExpressInterest: React.FC = () => {
     setPage(1); // Reset to first page when submitting new dates
 
     // Fetch data with the selected dates
-    fetchData();
+    fetchData(localFromDate, localToDate);
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -297,6 +260,13 @@ const ExpressInterest: React.FC = () => {
     ),
     getComparator(order, orderBy),
   );
+
+  const statusLabels: Record<string, string> = {
+    "0": "Removed",
+    "1": "Request Sent",
+    "2": "Accepted",
+    "3": "Rejected"
+  };
 
   const columns: Column[] = [
     { id: "profile_from_id", label: "From Profile ID", minWidth: 100, align: "center" },
@@ -503,6 +473,10 @@ const ExpressInterest: React.FC = () => {
                         if ((column.id === 'req_datetime' || column.id === 'response_datetime') && value) {
                           // This takes "2026-01-26T07:26:35Z" and keeps only "2026-01-26"
                           value = value.split('T')[0];
+                        }
+
+                        if (column.id === 'status') {
+                          value = statusLabels[String(row[column.id])] || value;
                         }
 
                         return (
