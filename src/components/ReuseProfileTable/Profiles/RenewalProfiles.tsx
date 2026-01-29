@@ -98,7 +98,7 @@ interface RenewalProfile {
     status: string;
     plan_name: string;
     Last_login_date: string;
-    degree:string;
+    degree: string;
 }
 
 
@@ -147,6 +147,7 @@ const RenewalProfiles: React.FC = () => {
         results: [],
         count: 0,
     });
+    const [goToPageInput, setGoToPageInput] = useState<string>('');
     const [search, setSearch] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     // const [selectAll, setSelectAll] = useState<boolean>(false);
@@ -310,6 +311,17 @@ const RenewalProfiles: React.FC = () => {
         }
 
         return value ?? 'N/A'; // Return 'N/A' for null or undefined values
+    };
+
+    const handleGoToPage = () => {
+        const p = Number(goToPageInput);
+        const totalPages = Math.ceil(totalCount / rowsPerPage);
+        if (p > 0 && p <= totalPages) {
+            setPage(p - 1);
+            setGoToPageInput('');
+        } else {
+            alert('Invalid page number');
+        }
     };
 
     return (
@@ -476,15 +488,84 @@ const RenewalProfiles: React.FC = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[10, 25, 100]}
-                    component="div"
-                    count={data.count}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                {totalCount > 0 && (
+                    <div className="flex items-center justify-between p-4 border-t bg-white">
+                        <Typography variant="body2">
+                            Page <strong>{page + 1}</strong> of <strong>{Math.ceil(totalCount / rowsPerPage)}</strong>
+                        </Typography>
+
+                        <div className="flex items-center gap-2">
+                            <Typography variant="body2">Go to Page:</Typography>
+                            <TextField
+                                size="small"
+                                type="number"
+                                value={goToPageInput}
+                                onChange={(e) => setGoToPageInput(e.target.value)}
+                                style={{ width: '70px' }}
+                            />
+                            <Button variant="contained" size="small" onClick={handleGoToPage}>
+                                Go
+                            </Button>
+
+                            {/* Navigation Buttons */}
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setPage(0)}
+                                disabled={page === 0}
+                            >
+                                {'<<'}
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setPage(Math.max(0, page - 1))}
+                                disabled={page === 0}
+                            >
+                                Prev
+                            </Button>
+
+                            {/* Dynamic Page Numbers (Shows current and neighbors) */}
+                            {(() => {
+                                const total = Math.ceil(totalCount / rowsPerPage);
+                                const curr = page + 1;
+                                const btns = [];
+                                // Show page 1, current-1, current, current+1, and last page logic can be added here
+                                // For now, following your ClickToCall style:
+                                for (let i = Math.max(1, curr - 1); i <= Math.min(total, curr + 1); i++) {
+                                    btns.push(
+                                        <Button
+                                            key={i}
+                                            variant={curr === i ? "contained" : "outlined"}
+                                            size="small"
+                                            onClick={() => setPage(i - 1)}
+                                        >
+                                            {i}
+                                        </Button>
+                                    );
+                                }
+                                return btns;
+                            })()}
+
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setPage(page + 1)}
+                                disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}
+                            >
+                                Next
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setPage(Math.ceil(totalCount / rowsPerPage) - 1)}
+                                disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}
+                            >
+                                {'>>'}
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Paper>
         </div>
     );
