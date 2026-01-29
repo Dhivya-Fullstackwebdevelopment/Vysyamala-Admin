@@ -293,6 +293,36 @@ const PhotoRequestProfiles: React.FC = () => {
                   {columns.map((col) => {
                     let val = row[col.id];
                     // if (col.id === 'req_datetime' && val) val = val.split('T')[0];
+                    if (col.id === 'req_datetime' && val) {
+                      const dateObj = new Date(val);
+
+                      // Extract YYYY-MM-DD
+                      const datePart = dateObj.toISOString().split('T')[0];
+
+                      // Extract Time in Indian format (10:06 am)
+                      const timePart = dateObj.toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      }).toLowerCase(); // ensure 'am/pm' is lowercase
+
+                      val = `${datePart}, ${timePart}`;
+                    }
+                    if (col.id === 'response_datetime' && val) {
+                      const dateObj = new Date(val);
+
+                      // Extract YYYY-MM-DD
+                      const datePart = dateObj.toISOString().split('T')[0];
+
+                      // Extract Time in Indian format (10:06 am)
+                      const timePart = dateObj.toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      }).toLowerCase(); // ensure 'am/pm' is lowercase
+
+                      val = `${datePart}, ${timePart}`;
+                    }
                     const isId = col.id.includes('_id');
                     return (
                       <TableCell

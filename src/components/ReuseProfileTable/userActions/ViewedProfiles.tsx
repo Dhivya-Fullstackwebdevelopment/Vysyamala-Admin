@@ -421,6 +421,23 @@ const ViewedProfiles: React.FC = () => {
                       //   value = value.includes('T') ? value.split('T')[0] : value;
                       // }
 
+                      // 2. Format Viewed Date/Time (Target: 2026-01-28, 10:06 am)
+                      if (column.id === 'datetime' && value) {
+                        const dateObj = new Date(value);
+
+                        // Extract YYYY-MM-DD
+                        const datePart = dateObj.toISOString().split('T')[0];
+
+                        // Extract Time in Indian format (10:06 am)
+                        const timePart = dateObj.toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        }).toLowerCase(); // ensure 'am/pm' is lowercase
+
+                        value = `${datePart}, ${timePart}`;
+                      }
+
                       // Format Status (if your API returns a number)
                       if (column.id === 'status' && value !== null) {
                         // Adjust these labels based on your actual status map

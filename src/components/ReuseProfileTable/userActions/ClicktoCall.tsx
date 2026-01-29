@@ -246,7 +246,19 @@ const ClickToCallProfiles: React.FC = () => {
                                 filteredResults.map((row, idx) => (
                                     <TableRow key={idx} hover>
                                         {columns.map((col) => {
-                                            const value = row[col.id];
+                                            let value = row[col.id];
+                                            
+                                            // --- DATE FORMATTING LOGIC ---
+                                            if (col.id === 'click_to_call_datetime' && value) {
+                                                const dateObj = new Date(value);
+                                                const datePart = dateObj.toISOString().split('T')[0];
+                                                const timePart = dateObj.toLocaleTimeString('en-IN', {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    hour12: true,
+                                                }).toLowerCase();
+                                                value = `${datePart}, ${timePart}`;
+                                            }
                                             const isProfileId = col.id.includes('profile_id') || col.id.includes('_id');
                                             return (
                                                 <TableCell
@@ -255,7 +267,7 @@ const ClickToCallProfiles: React.FC = () => {
                                                     sx={isProfileId ? { color: 'blue', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } } : {}}
                                                     onClick={isProfileId ? () => navigate(`/viewProfile?profileId=${value}`) : undefined}
                                                 >
-                                                    {col.id === 'click_to_call_datetime' ? new Date(value).toLocaleString() : (value || 'N/A')}
+                                                    {(value || 'N/A')}
                                                 </TableCell>
                                             );
                                         })}
