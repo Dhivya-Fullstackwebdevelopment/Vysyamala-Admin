@@ -282,7 +282,7 @@ const ClickToCallProfiles: React.FC = () => {
                     <div className="flex items-center justify-between p-4 border-t bg-white">
                         <Typography variant="body2">Page <strong>{page + 1}</strong> of <strong>{Math.ceil(totalCount / rowsPerPage)}</strong></Typography>
                         <div className="flex items-center gap-2">
-                            <Typography variant="body2">Go to:</Typography>
+                            <Typography variant="body2">Go to Page:</Typography>
                             <TextField size="small" type="number" value={goToPageInput} onChange={(e) => setGoToPageInput(e.target.value)} style={{ width: '70px' }} />
                             <Button variant="contained" size="small" onClick={handleGoToPage}>Go</Button>
                             <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>{'<<'}</Button>
