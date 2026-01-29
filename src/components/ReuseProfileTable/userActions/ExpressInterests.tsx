@@ -144,7 +144,7 @@ const ExpressInterest: React.FC = () => {
     if (fromDate && toDate) {
       fetchData();
     }
-  }, [page, rowsPerPage, selectedStates]);
+  }, [page, rowsPerPage]);
 
   // Toast functions
   const showToast = (message: string, severity: 'success' | 'info' | 'warning' | 'error' = 'info') => {
@@ -216,7 +216,7 @@ const ExpressInterest: React.FC = () => {
     setPage(0); // Reset to first page when submitting new dates
 
     // Fetch data with the selected dates
-    fetchData(localFromDate, localToDate);
+    fetchData(localFromDate, localToDate, 0);
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
