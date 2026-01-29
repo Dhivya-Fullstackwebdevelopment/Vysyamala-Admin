@@ -33,7 +33,6 @@ interface ClickToCallResponse {
     count: number;
 }
 
-// API Helper - Dynamically adds params only if they have values
 const getClickToCallProfiles = async (
     fromDate: string,
     toDate: string,
@@ -42,12 +41,9 @@ const getClickToCallProfiles = async (
     profileId?: string
 ) => {
     const params = new URLSearchParams();
-
-    // Always included
     params.append('page', (page + 1).toString());
     params.append('page_size', limit.toString());
 
-    // Only append if they are not empty (Initial load fix)
     if (fromDate) params.append('from_date', fromDate);
     if (toDate) params.append('to_date', toDate);
     if (profileId) params.append('profile_id', profileId);
@@ -59,39 +55,29 @@ const getClickToCallProfiles = async (
 const ClickToCallProfiles: React.FC = () => {
     const navigate = useNavigate();
 
-    // State for API data
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage] = useState<number>(10);
     const [totalCount, setTotalCount] = useState(0);
     const [data, setData] = useState<ClickToCallResponse>({ results: [], count: 0 });
     const [loading, setLoading] = useState(false);
 
-    // Filter States - Initialized to empty strings for the first load
+    // Filter States
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [profileId, setProfileId] = useState('');
 
-    // Input States (UI only)
+    // Trigger State to force API call on every submit click
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    // Input States
     const [localFromDate, setLocalFromDate] = useState('');
     const [localToDate, setLocalToDate] = useState('');
     const [localProfileId, setLocalProfileId] = useState('');
     const [search, setSearch] = useState('');
     const [goToPageInput, setGoToPageInput] = useState('');
 
-    // Sorting
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<string>('click_to_call_datetime');
-
-    // Toast
-    const [toastOpen, setToastOpen] = useState(false);
-    const [toastMsg, setToastMsg] = useState('');
-    const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
-
-    const showToast = (msg: string, severity: typeof toastSeverity = 'info') => {
-        setToastMsg(msg);
-        setToastSeverity(severity);
-        setToastOpen(true);
-    };
 
     const columns: Column[] = [
         { id: 'profile_from_id', label: 'From Profile ID', minWidth: 150, align: 'center' },
@@ -100,14 +86,12 @@ const ClickToCallProfiles: React.FC = () => {
         { id: 'profile_from_status', label: 'From Status', minWidth: 120 },
         { id: 'profile_from_state', label: 'From State', minWidth: 150 },
         { id: 'profile_from_city', label: 'From City', minWidth: 150 },
-
         { id: 'profile_to_id', label: 'To Profile ID', minWidth: 150 },
         { id: 'profile_to_name', label: 'To Name', minWidth: 150 },
         { id: 'profile_to_plan', label: 'To Plan', minWidth: 120 },
         { id: 'profile_to_status', label: 'To Status', minWidth: 120 },
         { id: 'profile_to_state', label: 'To State', minWidth: 150 },
         { id: 'profile_to_city', label: 'To City', minWidth: 150 },
-
         { id: 'click_to_call_datetime', label: 'Click To Call Date/Time', minWidth: 300 },
     ];
 
@@ -124,36 +108,29 @@ const ClickToCallProfiles: React.FC = () => {
         }
     };
 
-    // Trigger fetch on initial mount and when filters/page change
+    // Dependencies now include refreshTrigger
     useEffect(() => {
         fetchData();
-    }, [page, fromDate, toDate, profileId]);
-
-    // const handleSubmit = () => {
-    //     setPage(0);
-    //     setFromDate(localFromDate);
-    //     setToDate(localToDate);
-    //     setProfileId(localProfileId);
-    // };
+    }, [page, fromDate, toDate, profileId, refreshTrigger]);
 
     const handleSubmit = () => {
-        // Validation: Ensure both dates are selected
-        if (!localFromDate || !localToDate) {
-            toast.error('Please select both From Date and To Date');
-            return;
-        }
+        // if (!localFromDate || !localToDate) {
+        //     toast.error('Please select both From Date and To Date');
+        //     return;
+        // }
 
-        // Validation: From Date cannot be after To Date
         if (new Date(localFromDate) > new Date(localToDate)) {
             toast.error('From Date cannot be after To Date');
             return;
         }
 
-        // If valid, updating these states triggers the useEffect to call API
         setPage(0);
         setFromDate(localFromDate);
         setToDate(localToDate);
         setProfileId(localProfileId);
+
+        // Increments the counter to ensure the useEffect runs even if dates are identical
+        setRefreshTrigger(prev => prev + 1);
     };
 
     const handleGoToPage = () => {
@@ -163,7 +140,7 @@ const ClickToCallProfiles: React.FC = () => {
             setPage(p - 1);
             setGoToPageInput('');
         } else {
-            showToast('Invalid page number', 'warning');
+            toast.warn('Invalid page number');
         }
     };
 
@@ -192,10 +169,6 @@ const ClickToCallProfiles: React.FC = () => {
             <h1 className="text-2xl font-bold mb-4 text-black">
                 Click To Call Profiles <span className="text-lg font-normal">({totalCount})</span>
             </h1>
-
-            <Snackbar open={toastOpen} autoHideDuration={6000} onClose={() => setToastOpen(false)}>
-                <Alert severity={toastSeverity} variant="filled">{toastMsg}</Alert>
-            </Snackbar>
 
             <div className="w-full py-4 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
