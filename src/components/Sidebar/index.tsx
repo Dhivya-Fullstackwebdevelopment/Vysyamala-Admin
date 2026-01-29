@@ -153,8 +153,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       <NavLink
                         to="#"
                         className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out ${(pathname === "/SearchProfile" ||
-                            pathname === "/AdvancedSearch" ||
-                            pathname === "/CallManagementSearch") 
+                          pathname === "/AdvancedSearch" ||
+                          pathname === "/CallManagementSearch")
                           }`}
                         onClick={(e) => {
                           e.preventDefault();
@@ -614,7 +614,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                               Login Profiles
                             </NavLink>
                           </li>
-
+                          <li>
+                            <NavLink
+                              to="ClicktoCall"
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-black hover:text-PrimaryRed duration-300 ease-in-out hover:text-PrimaryRed ' +
+                                (isActive && '!text-PrimaryRed')
+                              }
+                            >
+                              <GoDot />
+                              Click to Call
+                            </NavLink>
+                          </li>
                         </ul>
                       </div>
 

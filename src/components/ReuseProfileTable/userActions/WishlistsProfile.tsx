@@ -374,7 +374,7 @@ const WishlistsProfile: React.FC = () => {
                   <TableRow key={index} hover sx={{ whiteSpace: 'nowrap' }}>
                     {columns.map((col) => {
                       let val = row[col.id];
-                      if (col.id === 'marked_datetime' && val) val = val.split('T')[0];
+                      // if (col.id === 'marked_datetime' && val) val = val.split('T')[0];
                       const isId = col.id === 'profile_from_id' || col.id === 'profile_to_id';
                       return (
                         <TableCell

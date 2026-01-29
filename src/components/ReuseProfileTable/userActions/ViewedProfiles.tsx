@@ -416,10 +416,10 @@ const ViewedProfiles: React.FC = () => {
                       }
 
                       // Format the Viewed Date/Time column
-                      if (column.id === 'datetime' && value) {
-                        // Converts "2026-01-27T18:10:44+00:00" -> "2026-01-27"
-                        value = value.includes('T') ? value.split('T')[0] : value;
-                      }
+                      // if (column.id === 'datetime' && value) {
+                      //   // Converts "2026-01-27T18:10:44+00:00" -> "2026-01-27"
+                      //   value = value.includes('T') ? value.split('T')[0] : value;
+                      // }
 
                       // Format Status (if your API returns a number)
                       if (column.id === 'status' && value !== null) {

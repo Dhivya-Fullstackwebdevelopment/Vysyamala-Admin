@@ -292,7 +292,7 @@ const PhotoRequestProfiles: React.FC = () => {
                 <TableRow key={index} hover>
                   {columns.map((col) => {
                     let val = row[col.id];
-                    if (col.id === 'req_datetime' && val) val = val.split('T')[0];
+                    // if (col.id === 'req_datetime' && val) val = val.split('T')[0];
                     const isId = col.id.includes('_id');
                     return (
                       <TableCell

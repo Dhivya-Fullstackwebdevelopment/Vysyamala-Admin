@@ -129,6 +129,7 @@ import AdvanceSearchFilters from './pages/AdvanceSearch/AdvanceSearchFilters';
 import AdvanceSearchDashboard from './pages/AdvanceSearch/AdvanceSearchDashboard';
 import CallManagementSearchFilters from './pages/CallManagementSearch/CallManagementFilters';
 import CallManagementDashboard from './pages/CallManagementSearch/CallManagementDashboard';
+import ClickToCallProfiles from './components/ReuseProfileTable/userActions/ClicktoCall';
 
 function App() {
   const { pathname } = useLocation();
@@ -1156,6 +1157,7 @@ function App() {
                 {/* <Route path="/AdvancedSearch" element={<AdvanceSearchFilters />} /> */}
                 <Route path="/AdvancedSearch" element={<AdvanceSearchDashboard />} />
                 <Route path="/CallManagementSearch" element={<CallManagementDashboard />} />
+                <Route path="/ClicktoCall" element={<ClickToCallProfiles />} />
               </Routes>
             </DefaultLayout>
           }

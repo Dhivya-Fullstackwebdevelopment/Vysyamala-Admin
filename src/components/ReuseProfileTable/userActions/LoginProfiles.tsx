@@ -45,7 +45,7 @@ const getLoginLogs = async (date: string, fromDate: string, toDate: string, page
   if (toDate) params.append('to_date', toDate);
   if (planId) params.append('plan', planId);
 
-  params.append('page', (page + 1).toString());
+  params.append('page_number', (page + 1).toString());
   params.append('per_page', rowsPerPage.toString());
 
   const url = `https://app.vysyamala.com/api/login-logs/?${params.toString()}`;
@@ -345,7 +345,11 @@ const LoginProfiles: React.FC = () => {
                       return (
                         <TableCell
                           key={col.id}
-                          sx={col.id === 'ProfileId' ? { color: 'blue', cursor: 'pointer' } : {}}
+                          sx={col.id === 'ProfileId' ? {
+                            color: 'blue', cursor: 'pointer', '&:hover': {
+                              textDecoration: 'underline',
+                            },
+                          } : {}}
                           onClick={col.id === 'ProfileId' ? () => navigate(`/viewProfile?profileId=${row.ProfileId}`) : undefined}
                         >
                           {val}
