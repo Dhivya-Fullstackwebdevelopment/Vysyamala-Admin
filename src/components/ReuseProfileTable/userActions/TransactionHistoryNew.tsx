@@ -350,53 +350,32 @@ const TransactionHistoryNew: React.FC = () => {
     };
 
     // Custom pagination component
+    // Custom pagination component
     const renderCustomPagination = () => {
         const totalPages = Math.ceil(data.count / rowsPerPage);
-        const maxVisiblePages = 5;
-        let startPage, endPage;
-
-        if (totalPages <= maxVisiblePages) {
-            startPage = 0;
-            endPage = totalPages - 1;
-        } else {
-            const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
-            const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
-
-            if (page < maxPagesBeforeCurrent) {
-                startPage = 0;
-                endPage = maxVisiblePages - 1;
-            } else if (page + maxPagesAfterCurrent >= totalPages) {
-                startPage = totalPages - maxVisiblePages;
-                endPage = totalPages - 1;
-            } else {
-                startPage = page - maxPagesBeforeCurrent;
-                endPage = page + maxPagesAfterCurrent;
-            }
-        }
-
-        const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
-
+        const currentPage = page + 1;
 
         return (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-white border-t border-gray-200">
+                {/* Showing X to Y of Z records */}
                 <div className="text-sm text-gray-600">
-                    Showing {page * rowsPerPage + 1} to {Math.min((page + 1) * rowsPerPage, data.count)} of {data.count} records
+                    Showing <strong>{page * rowsPerPage + 1}</strong> to <strong>{Math.min((page + 1) * rowsPerPage, data.count)}</strong> of <strong>{data.count}</strong> records
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2">
-                        <Typography variant="body2">Go to page:</Typography>
+                <div className="flex items-center gap-3">
+                    {/* Go to Page Input */}
+                    <div className="flex items-center gap-2 pr-4 border-gray-300">
+                        <Typography variant="body2">Go to Page:</Typography>
                         <TextField
                             size="small"
                             type="number"
                             value={goToPageInput}
                             onChange={(e) => setGoToPageInput(e.target.value)}
-                            inputProps={{
-                                min: 1,
-                                max: Math.ceil(data.count / rowsPerPage),
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') handleGoToPage();
                             }}
-                            style={{ width: '80px' }}
-                            onKeyPress={(e) => e.key === 'Enter' && handleGoToPage()}
+                            style={{ width: '70px' }}
+                            inputProps={{ min: 1, max: totalPages }}
                         />
                         <Button
                             variant="contained"
@@ -408,56 +387,67 @@ const TransactionHistoryNew: React.FC = () => {
                         </Button>
                     </div>
 
-                    <IconButton
-                        onClick={() => setPage(0)}
-                        disabled={page === 0}
-                        aria-label="first page"
-                    >
-                        {"<<"}
-                    </IconButton>
+                    {/* Navigation Buttons */}
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setPage(0)}
+                            disabled={page === 0}
+                            sx={{ minWidth: '40px' }}
+                        >
+                            {'<<'}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setPage(Math.max(0, page - 1))}
+                            disabled={page === 0}
+                        >
+                            Prev
+                        </Button>
 
-                    <IconButton
-                        onClick={() => setPage(prev => Math.max(prev - 1, 0))}
-                        disabled={page === 0}
-                        aria-label="previous page"
-                    >
-                        {"<"}
-                    </IconButton>
+                        {/* Dynamic Page Numbers */}
+                        {(() => {
+                            const btns = [];
+                            // Logic to show 1 page before and 1 page after current
+                            const start = Math.max(1, currentPage - 1);
+                            const end = Math.min(totalPages, currentPage + 1);
 
-                    <div className="flex">
-                        {pages.map((pageNum) => (
-                            <Button
-                                key={pageNum}
-                                variant={page === pageNum ? "contained" : "text"}
-                                onClick={() => setPage(pageNum)}
-                                style={{
-                                    minWidth: '32px',
-                                    height: '32px',
-                                    margin: '0 2px',
-                                    backgroundColor: page === pageNum ? '#1976d2' : 'transparent',
-                                    color: page === pageNum ? '#fff' : '#000',
-                                }}
-                            >
-                                {pageNum + 1}
-                            </Button>
-                        ))}
+                            for (let i = start; i <= end; i++) {
+                                btns.push(
+                                    <Button
+                                        key={i}
+                                        variant={currentPage === i ? "contained" : "outlined"}
+                                        size="small"
+                                        onClick={() => setPage(i - 1)}
+                                        sx={{ minWidth: '35px' }}
+                                    >
+                                        {i}
+                                    </Button>
+                                );
+                            }
+                            return btns;
+                        })()}
+
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setPage(page + 1)}
+                            disabled={page >= totalPages - 1}
+                        >
+                            Next
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setPage(totalPages - 1)}
+                            disabled={page >= totalPages - 1}
+                            sx={{ minWidth: '40px' }}
+                        >
+                            {'>>'}
+                        </Button>
                     </div>
-
-                    <IconButton
-                        onClick={() => setPage(prev => Math.min(prev + 1, Math.ceil(data.count / rowsPerPage) - 1))}
-                        disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}
-                        aria-label="next page"
-                    >
-                        {">"}
-                    </IconButton>
-
-                    <IconButton
-                        onClick={() => setPage(Math.ceil(data.count / rowsPerPage) - 1)}
-                        disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}
-                        aria-label="last page"
-                    >
-                        {">>"}
-                    </IconButton>
                 </div>
             </div>
         );
