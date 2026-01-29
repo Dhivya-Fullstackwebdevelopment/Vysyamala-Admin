@@ -321,7 +321,7 @@ const ViewedProfiles: React.FC = () => {
               }}
               required
             />
-            <FormControlLabel
+            {/* <FormControlLabel
               control={
                 <Checkbox
                   checked={localMutualOnly}
@@ -330,11 +330,33 @@ const ViewedProfiles: React.FC = () => {
                 />
               }
               label="Viewed & Visitors Profiles"
-            />
+            /> */}
 
             <Button variant="contained" onClick={handleSubmit}>
               Submit
             </Button>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={localMutualOnly}
+                  onChange={(e) => {
+                    const newValue = e.target.checked;
+                    setLocalMutualOnly(newValue);
+
+                    // Only call API if dates are already selected
+                    if (localFromDate && localToDate) {
+                      setMutualOnly(newValue); // Sync the actual filter state
+                      setPage(0);              // Reset to first page
+                      fetchData(localFromDate, localToDate, newValue);
+                    } else {
+                      showToast('Please select dates first', 'warning');
+                    }
+                  }}
+                  color="primary"
+                />
+              }
+              label="Viewed & Visitors Profiles"
+            />
           </div>
           <TextField
             label="Search"

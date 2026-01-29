@@ -112,7 +112,9 @@ const ExpressInterest: React.FC = () => {
       setData(response);
       setTotalCount(response.count);
     } catch (error: any) {
-      showToast("An error occurred while fetching data", "error");
+      // showToast("An error occurred while fetching data", "error");
+      const errorMsg = error.response?.data?.error || "An error occurred while fetching data";
+      showToast(errorMsg, "error");
     } finally {
       setLoading(false);
     }
@@ -398,7 +400,7 @@ const ExpressInterest: React.FC = () => {
               value={search}
               onChange={handleSearchChange}
               disabled={!fromDate || !toDate}
-              size="small"
+            // size="small"
             // sx={{
             //   minWidth: 200,
             //   '& .MuiInputBase-root': { height: 40, backgroundColor: 'white' }
