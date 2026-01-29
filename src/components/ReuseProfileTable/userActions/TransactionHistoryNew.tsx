@@ -94,7 +94,7 @@ const TransactionHistoryNew: React.FC = () => {
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<string>('created_at');
     const [page, setPage] = useState<number>(0);
-    const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+    const [rowsPerPage, setRowsPerPage] = useState<number>(50);
     const [data, setData] = useState<TransactionHistoryData>({
         count: 0,
         next: null,
