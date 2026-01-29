@@ -70,6 +70,14 @@ const ExpressInterest: React.FC = () => {
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
   const navigate = useNavigate();
 
+  const stateAbbreviations: Record<string, string> = {
+    "1": "AP",
+    "2": "TN & PY",
+    "3": "TG",
+    "4": "KA",
+    "5": "Kerala",
+    "6": "OTH"
+  };
   // Load state preferences on mount
   useEffect(() => {
     const loadStates = async () => {
@@ -335,25 +343,51 @@ const ExpressInterest: React.FC = () => {
                 }}
                 required
               />
-              <div className="flex flex-wrap p-2">
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, auto)', // Creates 3 columns
+                  gap: '4px 16px', // Slightly increased horizontal gap for readability
+                  justifyContent: 'start',
+                  p: 1,
+                  border: 'none', // 👈 Border removed
+                  backgroundColor: 'transparent' // 👈 Background set to transparent
+                }}
+              >
                 {states.length > 0 ? (
                   states.map((state) => (
                     <FormControlLabel
                       key={state.State_Pref_id}
+                      sx={{
+                        marginRight: 0,
+                        '& .MuiFormControlLabel-label': {
+                          fontSize: '0.85rem', // 👈 Increased from 0.75rem
+                          fontWeight: 500,
+                          marginLeft: '2px' // 👈 Added small space between box and text
+                        }
+                      }}
                       control={
                         <Checkbox
+                          disableRipple
+                          size="medium" // 👈 Changed from small to medium
                           value={state.State_Pref_id}
                           checked={selectedStates.includes(state.State_Pref_id)}
                           onChange={handleStateChange}
-                          color="primary"
+                          sx={{
+                            p: 0.5,
+                            '& .MuiSvgIcon-root': { fontSize: 20 } // 👈 Increased icon size from 18 to 20
+                          }}
                         />
                       }
-                      label={state.State_name}
+                      label={stateAbbreviations[String(state.State_Pref_id)] || state.State_name}
                     />
                   ))
                 ) : (
-                  <Typography>Loading states...</Typography>
+                  <Typography variant="caption">Loading states...</Typography>
                 )}
+              </Box>
+              <div className="flex flex-wrap p-2">
+
                 <FormControl
                   size="small"
                   sx={{
@@ -383,6 +417,7 @@ const ExpressInterest: React.FC = () => {
                     <MenuItem value="3">Rejected</MenuItem>
                   </Select>
                 </FormControl>
+
                 <Button variant="contained" onClick={handleSubmit}
                   sx={{
                     marginLeft: 3
@@ -390,6 +425,8 @@ const ExpressInterest: React.FC = () => {
                 >
                   Submit
                 </Button>
+
+
               </div>
             </div>
 
