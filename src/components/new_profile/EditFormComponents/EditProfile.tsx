@@ -1182,7 +1182,7 @@ const EditViewProfile: React.FC<pageProps> = ({
                               {/* {(!shouldHideSecondaryStatus || isPreApprovedAndProtected) && !isPreApprovedAndProtected && Number(watch('profileView.status')) !== 0 && */}
                               {shouldShowSecondaryStatusControls && Number(watch('profileView.status')) !== 0 &&
                                 watch('profileView.primary_status') &&
-                                ![7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22].includes(Number(watch('profileView.primary_status'))) && (
+                                ![7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22].includes(Number(watch('profileView.primary_status'))) && (
                                   <select
                                     {...register('profileView.secondary_status', {
                                       setValueAs: (value) => value === "" ? undefined : Number(value)
