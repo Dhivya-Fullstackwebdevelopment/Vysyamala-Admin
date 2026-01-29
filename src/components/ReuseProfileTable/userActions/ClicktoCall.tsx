@@ -133,17 +133,6 @@ const ClickToCallProfiles: React.FC = () => {
         setRefreshTrigger(prev => prev + 1);
     };
 
-    const handleGoToPage = () => {
-        const p = Number(goToPageInput);
-        const totalPages = Math.ceil(totalCount / rowsPerPage);
-        if (p > 0 && p <= totalPages) {
-            setPage(p - 1);
-            setGoToPageInput('');
-        } else {
-            toast.warn('Invalid page number');
-        }
-    };
-
     const handleRequestSort = (id: string) => {
         const isAsc = orderBy === id && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
@@ -163,6 +152,158 @@ const ClickToCallProfiles: React.FC = () => {
             if (x > y) return order === 'asc' ? 1 : -1;
             return 0;
         });
+
+    const handleGoToPage = () => {
+        const p = Number(goToPageInput);
+        const totalPages = Math.ceil(totalCount / rowsPerPage);
+        if (p > 0 && p <= totalPages) {
+            setPage(p - 1);
+            setGoToPageInput('');
+        } else {
+            toast.warn('Invalid page number');
+        }
+    };
+
+    // Updated render function with ellipsis logic
+    const renderCustomPagination = () => {
+        const totalPages = Math.ceil(totalCount / rowsPerPage);
+        const currentPage = page + 1;
+
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px' }}>
+                {/* Left side - Page indicator */}
+                <Typography variant="body2">
+                    Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+                </Typography>
+
+                {/* Right side - Pagination controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px' }}>
+                        <Typography variant="body2">Go to page:</Typography>
+                        <TextField
+                            size="small"
+                            type="number"
+                            value={goToPageInput}
+                            onChange={(e) => setGoToPageInput(e.target.value)}
+                            inputProps={{ min: 1, max: totalPages }}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') handleGoToPage();
+                            }}
+                            style={{ width: '80px' }}
+                        />
+                        <Button variant="contained" size="small" onClick={handleGoToPage} disabled={!goToPageInput}>
+                            Go
+                        </Button>
+                    </div>
+
+                    {/* First Page button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setPage(0)}
+                        disabled={page === 0}
+                        sx={{ minWidth: '32px' }}
+                    >
+                        {'<<'}
+                    </Button>
+
+                    {/* Previous button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setPage(Math.max(0, page - 1))}
+                        disabled={page === 0}
+                    >
+                        Prev
+                    </Button>
+
+                    {/* Page numbers with ellipsis logic */}
+                    {(() => {
+                        const pages = [];
+
+                        // Always show the first page
+                        pages.push(
+                            <Button
+                                key={1}
+                                variant={currentPage === 1 ? "contained" : "outlined"}
+                                size="small"
+                                onClick={() => setPage(0)}
+                                sx={{ minWidth: '32px' }}
+                            >
+                                1
+                            </Button>
+                        );
+
+                        // Show start ellipsis if current page is far from the start
+                        if (currentPage > 3) {
+                            pages.push(<Typography key="ellipsis-start" sx={{ px: 1 }}>...</Typography>);
+                        }
+
+                        // Middle Pages (around current)
+                        const start = Math.max(2, currentPage - 1);
+                        const end = Math.min(totalPages - 1, currentPage + 1);
+
+                        for (let i = start; i <= end; i++) {
+                            pages.push(
+                                <Button
+                                    key={i}
+                                    variant={currentPage === i ? "contained" : "outlined"}
+                                    size="small"
+                                    onClick={() => setPage(i - 1)}
+                                    sx={{ minWidth: '32px' }}
+                                >
+                                    {i}
+                                </Button>
+                            );
+                        }
+
+                        // Show end ellipsis if current page is far from the end
+                        if (currentPage < totalPages - 2) {
+                            pages.push(<Typography key="ellipsis-end" sx={{ px: 1 }}>...</Typography>);
+                        }
+
+                        // Always show the last page if more than 1 page exists
+                        if (totalPages > 1) {
+                            pages.push(
+                                <Button
+                                    key={totalPages}
+                                    variant={currentPage === totalPages ? "contained" : "outlined"}
+                                    size="small"
+                                    onClick={() => setPage(totalPages - 1)}
+                                    sx={{ minWidth: '32px' }}
+                                >
+                                    {totalPages}
+                                </Button>
+                            );
+                        }
+
+                        return pages;
+                    })()}
+
+                    {/* Next button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                        disabled={page >= totalPages - 1}
+                    >
+                        Next
+                    </Button>
+
+                    {/* Last Page button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setPage(Math.max(0, totalPages - 1))}
+                        disabled={page >= totalPages - 1}
+                        sx={{ minWidth: '32px' }}
+                    >
+                        {'>>'}
+                    </Button>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <>
@@ -247,7 +388,7 @@ const ClickToCallProfiles: React.FC = () => {
                                     <TableRow key={idx} hover>
                                         {columns.map((col) => {
                                             let value = row[col.id];
-                                            
+
                                             // --- DATE FORMATTING LOGIC ---
                                             if (col.id === 'click_to_call_datetime' && value) {
                                                 const dateObj = new Date(value);
@@ -277,30 +418,7 @@ const ClickToCallProfiles: React.FC = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-
-                {totalCount > 0 && (
-                    <div className="flex items-center justify-between p-4 border-t bg-white">
-                        <Typography variant="body2">Page <strong>{page + 1}</strong> of <strong>{Math.ceil(totalCount / rowsPerPage)}</strong></Typography>
-                        <div className="flex items-center gap-2">
-                            <Typography variant="body2">Go to Page:</Typography>
-                            <TextField size="small" type="number" value={goToPageInput} onChange={(e) => setGoToPageInput(e.target.value)} style={{ width: '70px' }} />
-                            <Button variant="contained" size="small" onClick={handleGoToPage}>Go</Button>
-                            <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>{'<<'}</Button>
-                            <Button variant="outlined" size="small" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>Prev</Button>
-                            {(() => {
-                                const total = Math.ceil(totalCount / rowsPerPage);
-                                const curr = page + 1;
-                                const btns = [];
-                                for (let i = Math.max(1, curr - 1); i <= Math.min(total, curr + 1); i++) {
-                                    btns.push(<Button key={i} variant={curr === i ? "contained" : "outlined"} size="small" onClick={() => setPage(i - 1)}>{i}</Button>);
-                                }
-                                return btns;
-                            })()}
-                            <Button variant="outlined" size="small" onClick={() => setPage(page + 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>Next</Button>
-                            <Button variant="outlined" size="small" onClick={() => setPage(Math.ceil(totalCount / rowsPerPage) - 1)} disabled={page >= Math.ceil(totalCount / rowsPerPage) - 1}>{'>>'}</Button>
-                        </div>
-                    </div>
-                )}
+                {Math.ceil(data.count / rowsPerPage) > 0 && renderCustomPagination()}
             </Paper>
         </>
     );

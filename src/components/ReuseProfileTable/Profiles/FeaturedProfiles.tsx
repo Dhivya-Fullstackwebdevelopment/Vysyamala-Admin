@@ -264,41 +264,21 @@ const FeaturedProfiles: React.FC = () => {
         }
     };
 
+    // 2. Replaced renderCustomPagination with the more advanced logic from ProbsProfiletable
     const renderCustomPagination = () => {
         const totalPages = Math.ceil(data.count / rowsPerPage);
-        const maxVisiblePages = 5;
-        let startPage, endPage;
-
-        if (totalPages <= maxVisiblePages) {
-            startPage = 0;
-            endPage = totalPages - 1;
-        } else {
-            const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
-            const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
-
-            if (page < maxPagesBeforeCurrent) {
-                startPage = 0;
-                endPage = maxVisiblePages - 1;
-            } else if (page + maxPagesAfterCurrent >= totalPages) {
-                startPage = totalPages - maxVisiblePages;
-                endPage = totalPages - 1;
-            } else {
-                startPage = page - maxPagesBeforeCurrent;
-                endPage = page + maxPagesAfterCurrent;
-            }
-        }
-
-        const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
-
+        const currentPage = page + 1;
 
         return (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-sm text-gray-600">
-                    Showing {page * rowsPerPage + 1} to {Math.min((page + 1) * rowsPerPage, data.count)} of {data.count} records
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px' }}>
+                {/* Left side - Page indicator */}
+                <Typography variant="body2">
+                    Page <strong>{page + 1}</strong> of <strong>{totalPages}</strong>
+                </Typography>
 
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2">
+                {/* Right side - Pagination controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px' }}>
                         <Typography variant="body2">Go to page:</Typography>
                         <TextField
                             size="small"
@@ -307,10 +287,12 @@ const FeaturedProfiles: React.FC = () => {
                             onChange={(e) => setGoToPageInput(e.target.value)}
                             inputProps={{
                                 min: 1,
-                                max: Math.ceil(data.count / rowsPerPage),
+                                max: totalPages,
+                            }}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') handleGoToPage();
                             }}
                             style={{ width: '80px' }}
-                            onKeyPress={(e) => e.key === 'Enter' && handleGoToPage()}
                         />
                         <Button
                             variant="contained"
@@ -322,61 +304,115 @@ const FeaturedProfiles: React.FC = () => {
                         </Button>
                     </div>
 
-                    <IconButton
+                    {/* First Page Button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
                         onClick={() => setPage(0)}
                         disabled={page === 0}
-                        aria-label="first page"
+                        sx={{ minWidth: '32px' }}
                     >
-                        {"<<"}
-                    </IconButton>
+                        {'<<'}
+                    </Button>
 
-                    <IconButton
-                        onClick={() => setPage(prev => Math.max(prev - 1, 0))}
+                    {/* Previous Button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setPage(Math.max(0, page - 1))}
                         disabled={page === 0}
-                        aria-label="previous page"
                     >
-                        {"<"}
-                    </IconButton>
+                        Prev
+                    </Button>
 
-                    <div className="flex">
-                        {pages.map((pageNum) => (
+                    {/* Dynamic Page Numbers with Ellipsis logic */}
+                    {(() => {
+                        const pages = [];
+
+                        // Always show first page
+                        pages.push(
                             <Button
-                                key={pageNum}
-                                variant={page === pageNum ? "contained" : "text"}
-                                onClick={() => setPage(pageNum)}
-                                style={{
-                                    minWidth: '32px',
-                                    height: '32px',
-                                    margin: '0 2px',
-                                    backgroundColor: page === pageNum ? '#1976d2' : 'transparent',
-                                    color: page === pageNum ? '#fff' : '#000',
-                                }}
+                                key={1}
+                                variant={currentPage === 1 ? "contained" : "outlined"}
+                                size="small"
+                                onClick={() => setPage(0)}
+                                sx={{ minWidth: '32px' }}
                             >
-                                {pageNum + 1}
+                                1
                             </Button>
-                        ))}
-                    </div>
+                        );
 
-                    <IconButton
-                        onClick={() => setPage(prev => Math.min(prev + 1, Math.ceil(data.count / rowsPerPage) - 1))}
-                        disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}
-                        aria-label="next page"
-                    >
-                        {">"}
-                    </IconButton>
+                        // Show ellipsis if current page is far from the start
+                        if (currentPage > 3) {
+                            pages.push(<Typography key="ellipsis-start" sx={{ px: 1 }}>...</Typography>);
+                        }
 
-                    <IconButton
-                        onClick={() => setPage(Math.ceil(data.count / rowsPerPage) - 1)}
-                        disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}
-                        aria-label="last page"
+                        // Pages around the current page
+                        const start = Math.max(2, currentPage - 1);
+                        const end = Math.min(totalPages - 1, currentPage + 1);
+
+                        for (let i = start; i <= end; i++) {
+                            pages.push(
+                                <Button
+                                    key={i}
+                                    variant={currentPage === i ? "contained" : "outlined"}
+                                    size="small"
+                                    onClick={() => setPage(i - 1)}
+                                    sx={{ minWidth: '32px' }}
+                                >
+                                    {i}
+                                </Button>
+                            );
+                        }
+
+                        // Show ellipsis if current page is far from the end
+                        if (currentPage < totalPages - 2) {
+                            pages.push(<Typography key="ellipsis-end" sx={{ px: 1 }}>...</Typography>);
+                        }
+
+                        // Always show last page if more than 1 page exists
+                        if (totalPages > 1) {
+                            pages.push(
+                                <Button
+                                    key={totalPages}
+                                    variant={currentPage === totalPages ? "contained" : "outlined"}
+                                    size="small"
+                                    onClick={() => setPage(totalPages - 1)}
+                                    sx={{ minWidth: '32px' }}
+                                >
+                                    {totalPages}
+                                </Button>
+                            );
+                        }
+
+                        return pages;
+                    })()}
+
+                    {/* Next Button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                        disabled={page >= totalPages - 1}
                     >
-                        {">>"}
-                    </IconButton>
+                        Next
+                    </Button>
+
+                    {/* Last Page Button */}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setPage(Math.max(0, totalPages - 1))}
+                        disabled={page >= totalPages - 1}
+                        sx={{ minWidth: '32px' }}
+                    >
+                        {'>>'}
+                    </Button>
                 </div>
             </div>
         );
     };
-
+    
     return (
         <div className="p-4">
             <h1 className="text-2xl text-black font-bold mb-4">
