@@ -65,53 +65,40 @@ interface Column {
 }
 
 const allColumns: Column[] = [
-  // { id: 'ProfileId', label: 'Profile ID' },
-  // { id: 'Profile_name', label: 'Name' },
-  // { id: 'Profile_dob', label: 'Date of Birth' },
-  // { id: 'Profile_city', label: 'City' },
-  // { id: 'state_name', label: 'State' },
-  // { id: 'MaritalStatus', label: 'Marital' },
-  // { id: 'Mobile_no', label: 'Mobile' },
-  // { id: 'Profile_whatsapp', label: 'WhatsApp' },
-  // { id: 'Gender', label: 'Gender' },
-  // { id: 'Profile_alternate_mobile', label: 'Alternate Mobile' },
-  // { id: 'DateOfJoin', label: 'Date Of Join' },
-  // { id: 'birthstar_name', label: 'BirthStar' },
-  // { id: 'EmailId', label: 'Email' },
-  // { id: 'highest_education', label: 'Education Details' },
-  // { id: 'family_status', label: 'Family Status' },
-  // { id: 'anual_income', label: 'Annual Income' },
-  // { id: 'Last_login_date', label: 'Last Act Date' },
-  // { id: 'Profile_for', label: 'Profile For' },
-  // { id: 'profession', label: 'Profession' },
-  // { id: 'complexion_desc', label: 'Complexion' },
-  // { id: 'years', label: 'Years' },
-  // { id: 'country_name', label: 'Country' },
   { id: 'ProfileId', label: 'Profile ID' },
   { id: 'DateOfJoin', label: 'Date Of Registration' },
   { id: 'Profile_name', label: 'Name' },
   { id: 'Profile_whatsapp', label: 'WhatsApp' },
   { id: 'Mobile_no', label: 'Mobile' },
   { id: 'years', label: 'Age' },
-  { id: 'Profile_dob', label: 'Date of Birth' },
-  { id: 'birthstar_name', label: 'BirthStar' },
-  { id: 'Profile_city', label: 'City' },
-  { id: 'state_name', label: 'State' },
   { id: 'MaritalStatus', label: 'Marital Status' },
   { id: 'Gender', label: 'Gender' },
+  { id: 'Profile_city', label: 'City' },
+  { id: 'state_name', label: 'State' },
+  { id: 'membership_startdate', label: 'Membership Start Date' },
+  { id: 'membership_enddate', label: 'Membership End Date' },
+  { id: 'birthstar_name', label: 'BirthStar' },
+  { id: 'status', label: 'Status' },
+  { id: 'plan_name', label: 'Plan Name' },
+  { id: 'ModeName', label: 'Created By' },
   { id: 'highest_education', label: 'Education Details' },
   { id: 'family_status', label: 'Family Status' },
   { id: 'anual_income', label: 'Annual Income' },
   { id: 'profession', label: 'Profession' },
-  { id: 'plan_name', label: 'Plan Name' },
-  { id: 'status', label: 'Status' },
-  { id: 'membership_startdate', label: 'Membership Start Date' },
-  { id: 'membership_enddate', label: 'Membership End Date' },
+  { id: 'username', label: 'Owner' },
+  { id: 'Last_login_date', label: 'Last Login' },
+
+  { id: 'Profile_dob', label: 'Date of Birth' },
+
+
+  // { id: 'MaritalStatus', label: 'Marital Status' },
+
+
+
+
   { id: 'has_horo', label: 'Horoscope' },
   { id: 'has_photo', label: 'Photo' },
-  { id: 'username', label: 'Owner' },
-  { id: 'ModeName', label: 'Created By' },
-  { id: 'Last_login_date', label: 'Last Login' },
+
 ];
 
 const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
@@ -135,10 +122,168 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
   console.log(selectedRows);
   const [totalCount, setTotalCount] = useState<number>(0);
 
+  const approvedColumnsWhitelist = [
+    'ProfileId',           // Profile ID
+    'DateOfJoin',          // Date Of Registration
+    'Profile_name',        // Name
+    'years',               // Age
+    'MaritalStatus',       // Marital Status
+    'Gender',              // Gender
+    'Profile_city',        // City
+    'state_name',          // State
+    'birthstar_name',      // BirthStar
+    'status',              // Profile Status
+    'plan_name',           // Profile Mode (Gold, Platinum, etc.)
+    'ModeName',            // Created By
+    'highest_education',   // Education Details
+    'family_status',       // Family Status
+    'anual_income',        // Annual Income
+    'profession',          // Profession
+    'username',            // Owner (Profile Owner)
+    'Last_login_date',     // Last Login
+  ];
+
+  const pendingColumnsWhitelist = [
+    'ProfileId',           // Profile ID
+    'DateOfJoin',          // Date Of Registration
+    'Profile_name',        // Name
+    'years',               // Age
+    'MaritalStatus',       // Marital Status
+    'Gender',              // Gender
+    'Profile_city',        // City
+    'state_name',          // State
+    'status',              // Profile Status
+    'plan_name',           // Profile Mode (Gold, Platinum, etc.)
+    'ModeName',            // Created By
+    'highest_education',   // Education Details
+    'family_status',       // Family Status
+    'anual_income',        // Annual Income
+    'profession',          // Profession
+    'username',            // Profile Owner
+    'Last_login_date'      // Last Login
+  ];
+
+  const paidColumnsWhitelist = [
+    'ProfileId',            // Profile ID
+    'DateOfJoin',           // Date Of Registration
+    'Profile_name',         // Name
+    'years',                // Age
+    'MaritalStatus',        // Marital Status
+    'Gender',               // Gender
+    'Profile_city',         // City
+    'state_name',           // State
+    'membership_startdate', // Membership Date
+    'membership_enddate',
+    'status',               // Profile Status
+    'plan_name',            // Profile Mode
+    'ModeName',             // Created By
+    'highest_education',    // Education Details
+    'family_status',        // Family Status
+    'anual_income',         // Annual Income
+    'profession',           // Profession
+    'username',             // Profile Owner
+    'Last_login_date',      // Last Login
+    'has_horo',             // Horoscope (Yes/No)
+    'has_photo'             // Photo (Yes/No)
+  ];
+
+  const prospectColumnsWhitelist = [
+    'ProfileId',           // Profile ID
+    'DateOfJoin',          // Date Of Registration
+    'Profile_name',        // Name
+    'years',               // Age
+    'MaritalStatus',       // Marital Status
+    'Gender',              // Gender
+    'Profile_city',        // City
+    'state_name',          // State
+    'status',              // Profile Status
+    'plan_name',           // Profile Mode
+    'ModeName',            // Created By
+    'highest_education',   // Education Details
+    'family_status',       // Family Status
+    'anual_income',        // Annual Income
+    'profession',          // Profession
+    'username',            // Profile Owner
+    'Last_login_date',     // Last Login
+    'has_horo',            // Horoscope (Yes / No)
+    'has_photo'            // Photo (Yes / No)
+  ];
+
+  const hiddenColumnsWhitelist = [
+    'ProfileId',           // Profile ID
+    'DateOfJoin',          // Date Of Registration
+    'Profile_name',        // Name
+    'years',               // Age
+    'MaritalStatus',       // Marital Status
+    'Gender',              // Gender
+    'Profile_city',        // City
+    'state_name',          // State
+    'birthstar_name',      // Birth Star
+    'ModeName',            // Created By
+    'plan_name',           // Profile Mode
+    'status',              // Profile Status
+    'highest_education',   // Education Details
+    'family_status',       // Family Status
+    'anual_income',        // Annual Income
+    'profession',          // Profession
+    'username',            // Profile Owner
+    'Last_login_date'      // Last Login
+  ];
+
+  const deletedColumnsWhitelist = [
+    'ProfileId',           // Profile ID
+    'DateOfJoin',          // Date Of Registration
+    'Profile_name',        // Name
+    'years',               // Age
+    'MaritalStatus',       // Marital Status
+    'Gender',              // Gender
+    'Profile_city',        // City
+    'state_name',          // State
+    'birthstar_name',      // Birth Star
+    'ModeName',            // Created By
+    'plan_name',           // Profile Mode (Gold, Platinum, etc.)
+    'status',              // Profile Status (Approved, Unapproved, etc.)
+    'highest_education',   // Education Details
+    'family_status',       // Family Status
+    'anual_income',        // Annual Income
+    'profession',          // Profession
+    'username',            // Profile Owner
+    'Last_login_date'      // Last Login
+  ];
+
   const columns = allColumns.filter(column => {
     const membershipIds = ['membership_startdate', 'membership_enddate'];
     const mediaIds = ['has_horo', 'has_photo'];
+    const hideOnFirstPage = ['Profile_whatsapp', 'Mobile_no', 'Profile_dob', 'birthstar_name', 'plan_name', 'status', 'membership_startdate', 'membership_enddate', 'has_horo', 'has_photo'];
+    const isPaidPage = heading.toLowerCase().includes("paid");
+    //paid profiles
+    if (isPaidPage) {
+      return paidColumnsWhitelist.includes(column.id);
+    }
 
+    const isProspectPage = heading.toLowerCase().includes("prospect");
+    //paid profiles
+    if (isProspectPage) {
+      return prospectColumnsWhitelist.includes(column.id);
+    }
+
+    //Approved profiles
+    if (pageNameValue === 1) {
+      return approvedColumnsWhitelist.includes(column.id);
+    }
+
+    //Pending profiles
+    if (pageNameValue === 2) {
+      return pendingColumnsWhitelist.includes(column.id);
+    }
+
+    if (pageNameValue === 3) {
+      return hiddenColumnsWhitelist.includes(column.id);
+    }
+
+    if (pageNameValue === 4) {
+      return deletedColumnsWhitelist.includes(column.id);
+    }
     // 1. Membership Dates: Show ONLY for "Paid Profiles"
     if (membershipIds.includes(column.id)) {
       return heading.toLowerCase().includes("paid");
@@ -149,6 +294,10 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
       const isPaid = heading.toLowerCase().includes("paid");
       const isProspect = heading.toLowerCase().includes("prospect");
       return isPaid || isProspect;
+    }
+
+    if (page === 0 && hideOnFirstPage.includes(column.id)) {
+      return false;
     }
 
     // 3. Metadata: Hide for Hidden (3) or Deleted (4)

@@ -84,8 +84,8 @@ const columns: Column[] = [
     minWidth: 100,
     align: 'left',
   },
-  { id: 'plan_name', label: 'Mode', minWidth: 100, align: 'left' },
-  { id: 'status', label: 'Profile Status', minWidth: 100, align: 'left' },
+  // { id: 'plan_name', label: 'Mode', minWidth: 100, align: 'left' },
+  // { id: 'status', label: 'Profile Status', minWidth: 100, align: 'left' },
 ];
 
 
