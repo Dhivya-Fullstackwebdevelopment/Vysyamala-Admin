@@ -341,9 +341,18 @@ const VysAssist: React.FC = () => {
                       </TableCell>
                       <TableCell>{row.profile_to_name}</TableCell>
                       <TableCell>{row.profile_to_mobile}</TableCell>
-                      <TableCell>{row.to_express_message}</TableCell>
-                      <TableCell>{row.req_datetime}</TableCell>
-                      <TableCell>{row.response_datetime}</TableCell>
+                      <TableCell>{row.to_message}</TableCell>
+                      {/* <TableCell>{row.req_datetime}</TableCell> */}
+                      <TableCell>
+                        {row.req_datetime
+                          ? String(row.req_datetime).split(/[T ]/)[0] // removes time
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        {row.response_datetime
+                          ? String(row.response_datetime).split(/[T ]/)[0] // removes time
+                          : "N/A"}
+                      </TableCell>
                       <TableCell>{row.status}</TableCell>
                     </TableRow>
                   ))}
