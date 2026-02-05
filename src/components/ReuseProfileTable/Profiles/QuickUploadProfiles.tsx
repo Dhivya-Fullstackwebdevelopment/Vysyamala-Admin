@@ -105,6 +105,7 @@ const QuickUploadProfiles: React.FC = () => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]); // To track selected profile IDs
   console.log(selectedRows);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -233,6 +234,81 @@ const QuickUploadProfiles: React.FC = () => {
     }
   };
 
+  // const handleDownloadExcel = async () => {
+  //   setIsDownloading(true);
+
+  //   try {
+  //     const params: any = {
+  //       export: 'excel',
+  //     };
+
+  //     // include search if applied
+  //     // if (search) {
+  //     //   params.search = search.trim();
+  //     // }
+
+  //     const response = await axios.get(
+  //       'https://app.vysyamala.com/api/quick-upload/',
+  //       {
+  //         params,
+  //         responseType: 'blob', // ✅ IMPORTANT
+  //       }
+  //     );
+
+  //     const blob = new Blob([response.data], {
+  //       type:
+  //         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  //     });
+
+  //     const downloadUrl = window.URL.createObjectURL(blob);
+
+  //     const link = document.createElement('a');
+  //     link.href = downloadUrl;
+  //     link.setAttribute('download', 'Quick_Upload_Profiles.csv');
+
+  //     document.body.appendChild(link);
+  //     link.click();
+
+  //     link.remove();
+  //     window.URL.revokeObjectURL(downloadUrl);
+  //   } catch (error) {
+  //     console.error('Error downloading Excel:', error);
+  //     alert('Failed to download Excel file');
+  //   } finally {
+  //     setIsDownloading(false);
+  //   }
+  // };
+
+  const handleDownloadExcel = async () => {
+    setIsDownloading(true);
+
+    const params: any = {
+      export: 'csv',
+    };
+
+    try {
+      const url = `https://app.vysyamala.com/api/quick-upload/`;
+      const response = await axios.get(url, {
+        params,
+        responseType: 'blob',
+      });
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', 'Quick_Upload_Profiles.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+      console.error('Error downloading the file:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const renderCellContent = (columnId: string, value: any, row: any) => {
     switch (columnId) {
       case 'ProfileId':
@@ -295,6 +371,17 @@ const QuickUploadProfiles: React.FC = () => {
         >
           Download Short Profile
         </Button>
+
+        <Button
+          variant="contained"
+          color="success"
+          sx={{ ml: 2 }}
+          onClick={handleDownloadExcel}
+          disabled={isDownloading}
+        >
+          {isDownloading ? 'Downloading…' : 'Download Excel'}
+        </Button>
+
       </div>
       <div className="w-full text-right ">
         <TextField

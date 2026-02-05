@@ -121,6 +121,29 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
   const [selectedRows, setSelectedRows] = useState<number[]>([]); // To track selected profile IDs
   console.log(selectedRows);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const PAID_PLAN_IDS = ['1', '2', '3', '11', '12', '13', '14', '15'];
+  const PROSPECT_PLAN_ID = '8';
+  const resolvedPlanIds = plan_ids || '';
+
+  const planIdArray = resolvedPlanIds
+    ? resolvedPlanIds.split(',').map(id => id.trim())
+    : [];
+
+  const isPaidProfile =
+    planIdArray.length > 0 &&
+    planIdArray.every(id => PAID_PLAN_IDS.includes(id));
+
+  const isProspectProfile =
+    planIdArray.length === 1 && planIdArray[0] === PROSPECT_PLAN_ID;
+
+
+  const fileName = isPaidProfile
+    ? 'Paid_Profiles.xlsx'
+    : isProspectProfile
+      ? 'Prospect_Profiles.xlsx'
+      : 'Approved_Profiles.xlsx';
+
 
   const approvedColumnsWhitelist = [
     'ProfileId',           // Profile ID
@@ -415,22 +438,181 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
     }
   };
 
-  const handleDownload = async () => {
+  //New Profiles
+  const handleDownload0 = async () => {
+    setIsDownloading(true);
+
+    const params = new URLSearchParams({
+      page_name: '0',
+      plan_ids: plan_ids || '',
+      export: 'xlsx',
+    });
+
     try {
-      const blob = await downloadExcel();  // Fetch or create the file blob
-      const url = window.URL.createObjectURL(blob);  // Create a URL for the blob
-      const a = document.createElement('a');  // Create an anchor element
-      a.href = url;  // Set the blob URL as the href
-      a.download = 'vysya_profiles.xlsx';  // Set the filename for download
-      document.body.appendChild(a);  // (Optional) Append the element to the body
-      a.click();  // Simulate a click to trigger the download
-      a.remove();  // Remove the anchor element from the DOM
-      window.URL.revokeObjectURL(url);  // Free up memory by revoking the blob URL
+      const url = `https://app.vysyamala.com/api/profiles/export/`;
+      const response = await axios.get(url, {
+        params,
+        responseType: 'blob',
+      });
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', 'New_Profiles.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
     } catch (error) {
-      console.error('Error downloading file:', error);
+      console.error('Error downloading the file:', error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
+  //Download Approved, Paid, Prospect profiles
+  const handleDownloadExcelDynamic = async () => {
+    setIsDownloading(true);
+
+    try {
+      const params = new URLSearchParams({
+        page_name: pageNameValue.toString(),
+        plan_ids: resolvedPlanIds,
+        export: 'xlsx',
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+
+      const response = await axios.get(
+        'https://app.vysyamala.com/api/profiles/export/',
+        {
+          params,
+          responseType: 'blob',
+        }
+      );
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Excel download failed:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  //Pending profiles
+  const handleDownloadExcel2 = async () => {
+    setIsDownloading(true);
+
+    const params = new URLSearchParams({
+      page_name: '2',                 // ✅ Approved profiles
+      plan_ids: plan_ids || '',     // optional
+      export: 'xlsx',
+    });
+
+    try {
+      const url = `https://app.vysyamala.com/api/profiles/export/`;
+      const response = await axios.get(url, {
+        params,
+        responseType: 'blob',
+      });
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', 'Pending_Profiles.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+      console.error('Error downloading the file:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  //Hidden profiles
+  const handleDownloadExcel3 = async () => {
+    setIsDownloading(true);
+
+    const params = new URLSearchParams({
+      page_name: '3',                 // ✅ Approved profiles
+      plan_ids: plan_ids || '',     // optional
+      export: 'xlsx',
+    });
+
+    try {
+      const url = `https://app.vysyamala.com/api/profiles/export/`;
+      const response = await axios.get(url, {
+        params,
+        responseType: 'blob',
+      });
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', 'Hidden_Profiles.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+      console.error('Error downloading the file:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  //Deleted Profiles
+  const handleDownloadExcel4 = async () => {
+    setIsDownloading(true);
+
+    const params = new URLSearchParams({
+      page_name: '4',                 // ✅ Approved profiles
+      plan_ids: plan_ids || '',     // optional
+      export: 'xlsx',
+    });
+
+    try {
+      const url = `https://app.vysyamala.com/api/profiles/export/`;
+      const response = await axios.get(url, {
+        params,
+        responseType: 'blob',
+      });
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', 'Deleted_Profiles.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+      console.error('Error downloading the file:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const navigate = useNavigate();
 
@@ -476,9 +658,41 @@ const ProbsProfiletable: React.FC<ProbsProfiletableProps> = ({
     <div className="flex flex-col gap-1">
       <h1 className="text-2xl text-black font-bold mb-4">{heading} <span className="text-lg font-normal">({totalCount})</span></h1>
       <div className="w-full flex justify-between  items-center  ">
+
+        {pageNameValue === 4 && (
+          <Button sx={{ textTransform: "none" }} onClick={handleDownloadExcel4} variant="contained" color="primary" disabled={isDownloading}
+          >
+            {isDownloading ? 'Downloading…' : 'Download Excel'}
+          </Button>
+        )}
+
+        {pageNameValue === 3 && (
+          <Button sx={{ textTransform: "none" }} onClick={handleDownloadExcel3} variant="contained" color="primary" disabled={isDownloading}
+          >
+            {isDownloading ? 'Downloading…' : 'Download Excel'}
+          </Button>
+        )}
+
+        {pageNameValue === 2 && (
+          <Button sx={{ textTransform: "none" }} onClick={handleDownloadExcel2} variant="contained" color="primary" disabled={isDownloading}
+          >
+            {isDownloading ? 'Downloading…' : 'Download Excel'}
+          </Button>
+        )}
+
         {pageNameValue === 1 && (
-          <Button sx={{ textTransform: "none" }} onClick={handleDownload} variant="contained" color="primary">
-            Download Excel
+          // <Button sx={{ textTransform: "none" }} onClick={handleDownload} variant="contained" color="primary">
+          //   Download Excel
+          // </Button>
+          <Button sx={{ textTransform: "none" }} onClick={handleDownloadExcelDynamic} variant="contained" color="primary" disabled={isDownloading}>
+            {isDownloading ? 'Downloading…' : 'Download Excel'}
+          </Button>
+        )}
+
+        {pageNameValue === 0 && (
+          <Button sx={{ textTransform: "none" }} onClick={handleDownload0} variant="contained" color="primary" disabled={isDownloading}
+          >
+            {isDownloading ? 'Downloading…' : 'Download Excel'}
           </Button>
         )}
 

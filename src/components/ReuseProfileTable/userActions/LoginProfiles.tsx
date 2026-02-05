@@ -85,6 +85,7 @@ const LoginProfiles: React.FC = () => {
     specificDate: '',
     planId: ''
   });
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
   // Fetch Plans on mount
   useEffect(() => {
@@ -158,6 +159,53 @@ const LoginProfiles: React.FC = () => {
       specificDate: specificDateInput,
       planId: selectedPlan
     });
+  };
+
+  const handleDownloadExcel = async () => {
+    setIsDownloading(true);
+
+    try {
+      const params = new URLSearchParams();
+      params.append('export', 'xlsx');
+
+      // Use values from the filters state (which are updated on Submit)
+      if (filters.specificDate) params.append('date', filters.specificDate);
+      if (filters.fromDate) params.append('from_date', filters.fromDate);
+      if (filters.toDate) params.append('to_date', filters.toDate);
+      if (filters.planId) params.append('plan', filters.planId);
+
+      const response = await axios.get(
+        'https://app.vysyamala.com/api/login-logs/',
+        {
+          params,
+          responseType: 'blob', // Critical for binary data
+        }
+      );
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Set dynamic filename
+      const dateLabel = filters.specificDate || (filters.fromDate && filters.toDate ? `${filters.fromDate}_to_${filters.toDate}` : 'All_Records');
+      link.download = `Login_Logs_${dateLabel}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading Login Logs Excel:', error);
+      alert("Failed to download Excel file");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -438,6 +486,15 @@ const LoginProfiles: React.FC = () => {
 
             <Button variant="contained" onClick={handleSubmit}>
               Submit
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              sx={{ ml: 2 }}
+              onClick={handleDownloadExcel}
+              disabled={isDownloading || data.results.length === 0}
+            >
+              {isDownloading ? 'Downloading…' : 'Download Excel'}
             </Button>
           </div>
           <TextField

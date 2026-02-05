@@ -63,6 +63,7 @@ const PhotoRequestProfiles: React.FC = () => {
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
   const navigate = useNavigate();
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
   // useEffect(() => {
   //   fetchData();
   // }, [fromDate, toDate, page]);
@@ -124,6 +125,49 @@ const PhotoRequestProfiles: React.FC = () => {
 
     // Call API immediately with local values (bypasses async state delay)
     fetchData(localFromDate, localToDate);
+  };
+
+  const handleDownloadExcel = async () => {
+    if (!fromDate || !toDate) {
+      toast.error("Please select dates and click Submit first");
+      return;
+    }
+    setIsDownloading(true);
+
+    try {
+      const params = new URLSearchParams({
+        from_date: fromDate,
+        to_date: toDate,
+        export: 'xlsx',
+      });
+
+      const response = await axios.get(
+        'https://app.vysyamala.com/api/photo-requests/',
+        {
+          params,
+          responseType: 'blob',
+        }
+      );
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Photo_Requests_${fromDate}_to_${toDate}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      // toast.success("Download started successfully");
+    } catch (error: any) {
+      console.error('Error downloading Photo Request Excel:', error);
+      toast.error("Failed to download Excel file");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleGoToPage = () => {
@@ -236,6 +280,15 @@ const PhotoRequestProfiles: React.FC = () => {
 
             <Button variant="contained" onClick={handleSubmit}>
               Submit
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              sx={{ ml: 2 }}
+              onClick={handleDownloadExcel}
+              disabled={isDownloading || data.results.length === 0}
+            >
+              {isDownloading ? 'Downloading…' : 'Download Excel'}
             </Button>
           </div>
           <div>

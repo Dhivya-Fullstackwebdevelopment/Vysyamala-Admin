@@ -69,6 +69,7 @@ const ExpressInterest: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string>("");
   const [toastSeverity, setToastSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info');
   const navigate = useNavigate();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const stateAbbreviations: Record<string, string> = {
     "1": "AP",
@@ -217,6 +218,61 @@ const ExpressInterest: React.FC = () => {
 
     // Fetch data with the selected dates
     fetchData(localFromDate, localToDate, 0);
+  };
+
+  const handleDownloadExpressInterestExcel = async () => {
+    if (!fromDate || !toDate) {
+      showToast("Please select From Date and To Date and click Submit", "warning");
+      return;
+    }
+    setIsDownloading(true);
+
+    try {
+      const params = new URLSearchParams();
+      params.append('from_date', fromDate);
+      params.append('to_date', toDate);
+      selectedStates.forEach((stateId) => {
+        params.append('profile_state', String(stateId));
+      });
+      if (statusFilter !== '') {
+        params.append('status', statusFilter);
+      }
+      params.append('export', 'xlsx');
+
+      const response = await axios.get(
+        'https://app.vysyamala.com/api/express-interest/',
+        {
+          params,
+          responseType: 'blob',
+        }
+      );
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      // ✅ clean filename
+      let fileName = `Express_Interest_${fromDate}_to_${toDate}.xlsx`;
+      if (statusFilter !== '') {
+        fileName = `Express_Interest_${statusLabels[statusFilter]}_${fromDate}_to_${toDate}.xlsx`;
+      }
+
+      link.href = url;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error('Error downloading Express Interest Excel:', error);
+      showToast("Failed to download Excel file", "error");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -392,6 +448,7 @@ const ExpressInterest: React.FC = () => {
                   size="small"
                   sx={{
                     minWidth: 200,
+                    mt: 2
                   }}
                 >
                   <InputLabel id="status-filter-label">Status</InputLabel>
@@ -420,12 +477,25 @@ const ExpressInterest: React.FC = () => {
 
                 <Button variant="contained" onClick={handleSubmit}
                   sx={{
-                    marginLeft: 3
+                    ml: 2, 
+                    mt: 2  
                   }}
                 >
                   Submit
                 </Button>
 
+                <Button
+                  variant="contained"
+                  color="success"
+                  sx={{
+                    ml: 2, // Margin Left
+                    mt: 2  // Margin Top
+                  }}
+                  onClick={handleDownloadExpressInterestExcel}
+                  disabled={isDownloading || !fromDate || !toDate}
+                >
+                  {isDownloading ? 'Downloading…' : 'Download Excel'}
+                </Button>
 
               </div>
             </div>

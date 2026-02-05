@@ -78,6 +78,7 @@ const ClickToCallProfiles: React.FC = () => {
 
     const [order, setOrder] = useState<'asc' | 'desc'>('asc');
     const [orderBy, setOrderBy] = useState<string>('click_to_call_datetime');
+    const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
     const columns: Column[] = [
         { id: 'profile_from_id', label: 'From Profile ID', minWidth: 150, align: 'center' },
@@ -131,6 +132,52 @@ const ClickToCallProfiles: React.FC = () => {
 
         // Increments the counter to ensure the useEffect runs even if dates are identical
         setRefreshTrigger(prev => prev + 1);
+    };
+
+    const handleDownloadExcel = async () => {
+        setIsDownloading(true);
+
+        try {
+            const params = new URLSearchParams();
+            params.append('export', 'xlsx');
+
+            // Use the filter states (not local input states) to match visible table data
+            if (fromDate) params.append('from_date', fromDate);
+            if (toDate) params.append('to_date', toDate);
+            if (profileId) params.append('profile_id', profileId);
+
+            const response = await apiAxios.get(clickToCallApi, {
+                params,
+                responseType: 'blob', // Critical for binary files like Excel
+            });
+
+            // Create a Blob from the response data
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+
+            // Trigger browser download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Dynamic filename logic
+            const dateTag = fromDate && toDate ? `_${fromDate}_to_${toDate}` : '';
+            link.download = `Click_To_Call_Profiles${dateTag}.xlsx`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            // toast.success("Download started successfully");
+        } catch (error) {
+            console.error('Error downloading Excel:', error);
+            toast.error("Failed to download Excel file");
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     const handleRequestSort = (id: string) => {
@@ -333,8 +380,17 @@ const ClickToCallProfiles: React.FC = () => {
                         value={localProfileId}
                         onChange={(e) => setLocalProfileId(e.target.value)}
                     />
-                    <Button variant="contained" onClick={handleSubmit} sx={{ height: '55px' }}>
+                    <Button variant="contained" onClick={handleSubmit} sx={{ height: '36px' }}>
                         Submit
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        sx={{ ml: 2 }}
+                        onClick={handleDownloadExcel}
+                        disabled={isDownloading || data.results.length === 0}
+                    >
+                        {isDownloading ? 'Downloading…' : 'Download Excel'}
                     </Button>
                 </div>
 

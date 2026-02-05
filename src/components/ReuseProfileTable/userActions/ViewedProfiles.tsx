@@ -78,6 +78,7 @@ const ViewedProfiles: React.FC = () => {
   const [mutualOnly, setMutualOnly] = useState<boolean>(false);
   const [localMutualOnly, setLocalMutualOnly] = useState<boolean>(false);
   const navigate = useNavigate();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Inside ViewedProfiles component
   const fetchData = async (fDate?: string, tDate?: string, isMutual?: boolean) => {
@@ -172,6 +173,60 @@ const ViewedProfiles: React.FC = () => {
 
     // Fetch data with the selected dates
     fetchData(localFromDate, localToDate, localMutualOnly);
+  };
+
+  const handleDownloadExcel = async () => {
+    if (!fromDate || !toDate) {
+      showToast("Please select dates and click Submit first", "warning");
+      return;
+    }
+    setIsDownloading(true);
+
+    try {
+      const params = new URLSearchParams({
+        from_date: fromDate,
+        to_date: toDate,
+        export: 'xlsx',
+      });
+
+      if (mutualOnly) {
+        params.append('mutual_only', '1');
+      }
+
+      const response = await axios.get(
+        'https://app.vysyamala.com/api/viewed-profiles/',
+        {
+          params,
+          responseType: 'blob', // Critical for binary files
+        }
+      );
+
+      // Create a Blob from the response data
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      // Create a temporary link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      const fileName = `Viewed_Profiles_${mutualOnly ? 'Mutual_' : ''}${fromDate}_to_${toDate}.xlsx`;
+
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      // showToast("Download started successfully", "success");
+    } catch (error: any) {
+      console.error('Error downloading Excel:', error);
+      showToast("Failed to download Excel file", "error");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -334,6 +389,15 @@ const ViewedProfiles: React.FC = () => {
 
             <Button variant="contained" onClick={handleSubmit}>
               Submit
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              sx={{ ml: 2 }}
+              onClick={handleDownloadExcel}
+              disabled={isDownloading || data.results.length === 0}
+            >
+              {isDownloading ? 'Downloading…' : 'Download Excel'}
             </Button>
             <FormControlLabel
               control={

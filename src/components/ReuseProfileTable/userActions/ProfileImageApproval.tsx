@@ -81,6 +81,7 @@ const ProfileImageApproval: React.FC = () => {
   const [hoveredProfileId, setHoveredProfileId] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [goToPageInput, setGoToPageInput] = useState('');
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
   const handleGoToPage = () => {
     const num = parseInt(goToPageInput);
@@ -145,6 +146,57 @@ const ProfileImageApproval: React.FC = () => {
     setToDate(toDateInput);
     setPage(0); // Reset to first page
 
+  };
+
+  const handleDownloadExcel = async () => {
+    setIsDownloading(true);
+
+    try {
+      const params = new URLSearchParams({
+        // from_date: fromDate,
+        // to_date: toDate,
+        export: 'xlsx',
+      });
+      if (fromDate) {
+        params.append('from_date', fromDate);
+      }
+      if (toDate) {
+        params.append('to_date', toDate);
+      }
+
+      const response = await axios.get(
+        'https://app.vysyamala.com/api/get_profile-images_approval/',
+        {
+          params,
+          responseType: 'blob', // Important for binary files
+        }
+      );
+
+      // Create a Blob from the response data
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      // Trigger the browser download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileName = (fromDate && toDate)
+        ? `Profile_Image_Approval_${fromDate}_to_${toDate}.xlsx`
+        : `Profile_Image_Approval.xlsx`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading Excel:', error);
+      alert("Failed to download Excel file");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -329,6 +381,15 @@ const ProfileImageApproval: React.FC = () => {
 
               <Button variant="contained" onClick={handleSubmit}>
                 Submit
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                sx={{ ml: 2 }}
+                onClick={handleDownloadExcel}
+                disabled={isDownloading || data.results.length === 0}
+              >
+                {isDownloading ? 'Downloading…' : 'Download Excel'}
               </Button>
             </div>
           </div>
