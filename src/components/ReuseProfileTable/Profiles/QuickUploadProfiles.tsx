@@ -106,6 +106,7 @@ const QuickUploadProfiles: React.FC = () => {
   console.log(selectedRows);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [goToPageInput, setGoToPageInput] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -306,6 +307,14 @@ const QuickUploadProfiles: React.FC = () => {
       console.error('Error downloading the file:', error);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleGoToPage = () => { // Added this
+    const pageNum = parseInt(goToPageInput, 10);
+    const totalPages = Math.ceil(data.count / rowsPerPage);
+    if (pageNum >= 1 && pageNum <= totalPages) {
+      setPage(pageNum - 1);
     }
   };
 
@@ -518,15 +527,139 @@ const QuickUploadProfiles: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[1, 2, 10, 25, 100]}
-          component="div"
-          count={data.count}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderTop: '1px solid #E0E0E0' }}>
+          {/* Left side - Page indicator */}
+          <Typography variant="body2">
+            Page <strong>{page + 1}</strong> of <strong>{Math.ceil(data.count / rowsPerPage)}</strong>
+          </Typography>
+
+          {/* Right side - Pagination controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Typography variant="body2">Go to page:</Typography>
+              <TextField
+                size="small"
+                type="number"
+                value={goToPageInput}
+                onChange={(e) => setGoToPageInput(e.target.value)}
+                inputProps={{
+                  min: 1,
+                  max: Math.ceil(data.count / rowsPerPage),
+                }}
+                style={{ width: '80px' }}
+              />
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleGoToPage}
+                disabled={!goToPageInput}
+              >
+                Go
+              </Button>
+            </div>
+
+            {/* First Page button */}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setPage(0)}
+              disabled={page === 0}
+              sx={{ minWidth: '32px' }}
+            >
+              {'<<'}
+            </Button>
+
+            {/* Previous button */}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setPage(Math.max(0, page - 1))}
+              disabled={page === 0}
+            >
+              Prev
+            </Button>
+
+            {/* Page numbers logic */}
+            {(() => {
+              const totalPages = Math.ceil(data.count / rowsPerPage);
+              const currentPage = page + 1;
+              const pages = [];
+
+              // Always show first page
+              pages.push(
+                <Button
+                  key={1}
+                  variant={currentPage === 1 ? "contained" : "outlined"}
+                  size="small"
+                  onClick={() => setPage(0)}
+                >
+                  1
+                </Button>
+              );
+
+              if (currentPage > 3) {
+                pages.push(<Typography key="ellipsis-start">...</Typography>);
+              }
+
+              const startPage = Math.max(2, currentPage - 1);
+              const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(
+                  <Button
+                    key={i}
+                    variant={currentPage === i ? "contained" : "outlined"}
+                    size="small"
+                    onClick={() => setPage(i - 1)}
+                  >
+                    {i}
+                  </Button>
+                );
+              }
+
+              if (currentPage < totalPages - 2) {
+                pages.push(<Typography key="ellipsis-end">...</Typography>);
+              }
+
+              // Show last page
+              if (totalPages > 1) {
+                pages.push(
+                  <Button
+                    key={totalPages}
+                    variant={currentPage === totalPages ? "contained" : "outlined"}
+                    size="small"
+                    onClick={() => setPage(totalPages - 1)}
+                  >
+                    {totalPages}
+                  </Button>
+                );
+              }
+
+              return pages;
+            })()}
+
+            {/* Next button */}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setPage(Math.min(Math.ceil(data.count / rowsPerPage) - 1, page + 1))}
+              disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}
+            >
+              Next
+            </Button>
+
+            {/* Last Page button */}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setPage(Math.max(0, Math.ceil(data.count / rowsPerPage) - 1))}
+              disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}
+              sx={{ minWidth: '32px' }}
+            >
+              {'>>'}
+            </Button>
+          </div>
+        </div>
       </Paper>
     </div>
   );

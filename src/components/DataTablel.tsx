@@ -33,6 +33,7 @@ export const getDataTable = async (
   const params = new URLSearchParams({
     page_size: rowsPerPage.toString(),
     page: page.toString(),
+    page_name:'0'
     // Pass the page_name parameter
   });
 
@@ -407,42 +408,58 @@ const DataTable: React.FC = () => {
 
         </TableContainer>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '16px', justifyContent: 'end' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px' }}>
-            <Typography variant="body2">Go to page:</Typography>
-            <TextField
-              size="small"
-              type="number"
-              value={goToPageInput}
-              onChange={(e) => setGoToPageInput(e.target.value)}
-              inputProps={{
-                min: 1,
-                max: Math.ceil(data.count / rowsPerPage),
-              }}
-              style={{ width: '80px' }}
-            />
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleGoToPage}
-              disabled={!goToPageInput}
-            >
-              Go
-            </Button>
+       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px' }}>
+          <Typography variant="body2">
+            Page <strong>{page + 1}</strong> of <strong>{Math.ceil(data.count / rowsPerPage)}</strong>
+          </Typography>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Go To Page Input */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Typography variant="body2">Go to page:</Typography>
+              <TextField
+                size="small"
+                type="number"
+                value={goToPageInput}
+                onChange={(e) => setGoToPageInput(e.target.value)}
+                style={{ width: '70px' }}
+              />
+              <Button variant="contained" size="small" onClick={handleGoToPage} disabled={!goToPageInput}>Go</Button>
+            </div>
+
+            {/* Navigation Buttons */}
+            <Button variant="outlined" size="small" onClick={() => setPage(0)} disabled={page === 0}>{'<<'}</Button>
+            <Button variant="outlined" size="small" onClick={() => setPage(prev => Math.max(0, prev - 1))} disabled={page === 0}>Prev</Button>
+
+            {/* Dynamic Page Numbers */}
+            {(() => {
+              const totalPages = Math.ceil(data.count / rowsPerPage);
+              const currentPage = page + 1;
+              const pages = [];
+
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                  pages.push(
+                    <Button
+                      key={i}
+                      variant={currentPage === i ? "contained" : "outlined"}
+                      size="small"
+                      onClick={() => setPage(i - 1)}
+                    >
+                      {i}
+                    </Button>
+                  );
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                  pages.push(<Typography key={`dots-${i}`}>...</Typography>);
+                }
+              }
+              return pages;
+            })()}
+
+            <Button variant="outlined" size="small" onClick={() => setPage(prev => prev + 1)} disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}>Next</Button>
+            <Button variant="outlined" size="small" onClick={() => setPage(Math.ceil(data.count / rowsPerPage) - 1)} disabled={page >= Math.ceil(data.count / rowsPerPage) - 1}>{'>>'}</Button>
           </div>
-          <TablePagination
-            rowsPerPageOptions={[10, 25, 100]}
-            component="div"
-            count={data.count}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </div>
-
-
-
       </Paper>
 
     </div>
